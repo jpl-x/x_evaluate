@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
   message_generation
+  dvs_msgs
   sensor_msgs
   std_msgs
 )
