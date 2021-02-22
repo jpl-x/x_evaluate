@@ -43,7 +43,7 @@ if(NOT ${OpenCV_FOUND})
 endif()
 
 find_package(catkin REQUIRED COMPONENTS
-  x 
+  x
   cv_bridge
   image_geometry
   dynamic_reconfigure
@@ -54,6 +54,7 @@ find_package(catkin REQUIRED COMPONENTS
   dvs_msgs
   sensor_msgs
   std_msgs
+  eklt
 )
 
 # Set build flags, depending on the architecture
