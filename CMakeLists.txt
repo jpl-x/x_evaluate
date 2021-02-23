@@ -96,6 +96,7 @@ include_directories (
 set (SOURCE
   src/x_vio_ros/node.cpp
   src/x_vio_ros/main.cpp
+  src/x_vio_ros/ros_utils.cpp
 )
 
 add_executable (x_vio_ros ${SOURCE})
