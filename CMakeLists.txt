@@ -15,7 +15,7 @@ set(USE_EKLT_NODE true) # replaces original xVIO node with new EKLT node
 
 cmake_minimum_required(VERSION 2.8.3)
 project(x_vio_ros)
-set (CMAKE_BUILD_TYPE Debug)
+set (CMAKE_BUILD_TYPE Release)
 
 if(USE_EKLT_NODE)
   set(DUAL_THREAD false)
