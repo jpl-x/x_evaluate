@@ -10,7 +10,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   
   <build_depend>x</build_depend>
-  <build_depend>eklt</build_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_geometry</build_depend>
   <build_depend>roscpp</build_depend>
@@ -25,7 +24,6 @@
   <build_depend>rostest</build_depend>
 
   <run_depend>x</run_depend>
-  <build_depend>eklt</build_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>image_geometry</run_depend>
   <run_depend>roscpp</run_depend>
