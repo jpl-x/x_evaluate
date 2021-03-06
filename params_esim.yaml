@@ -43,8 +43,8 @@ cam1_cy: 0.5
 cam1_s:  0.0
 cam1_img_width: 640
 cam1_img_height: 480
-#cam1_q_ic: [1, 0, 0, 0] # [w,x,y,z]
-cam1_q_ic: [0.0000, -0.0000, -0.7071, 0.7071] # [w,x,y,z]
+cam1_q_ic: [1, 0, 0, 0] # [w,x,y,z]
+#cam1_q_ic: [0.0000, -0.0000, -0.7071, 0.7071] # [w,x,y,z]
 cam1_p_ic: [0,  0, 0] # [x,y,z]
 cam1_time_offset: 0.0
 
@@ -55,8 +55,8 @@ cam2_cy: 0.5
 cam2_s:  0.0
 cam2_img_width: 640
 cam2_img_height: 480
-#cam2_q_ic: [1, 0, 0, 0] # [w,x,y,z]
-cam2_q_ic: [0.0000, -0.0000, -0.7071, 0.7071] # [w,x,y,z]
+cam2_q_ic: [1, 0, 0, 0] # [w,x,y,z]
+#cam2_q_ic: [0.0000, -0.0000, -0.7071, 0.7071] # [w,x,y,z]
 cam2_p_ic: [0,  0, 0] # [x,y,z]
 cam2_time_offset: 0.0
 
@@ -178,7 +178,7 @@ min_track_length: 10
 traj_timeout_gui: 3
 
 # flags to play rosbags
-/use_sim_time: True
+/use_sim_time: False
 
 # Initialize at startup
 init_at_startup: False

@@ -60,7 +60,6 @@ find_package(catkin REQUIRED COMPONENTS
   dvs_msgs
   sensor_msgs
   std_msgs
-  eklt
 )
 
 # Set build flags, depending on the architecture
