@@ -43,20 +43,23 @@ if(NOT ${OpenCV_FOUND})
 endif()
 
 find_package(catkin REQUIRED COMPONENTS
-  x 
+  x
   cv_bridge
   image_geometry
   dynamic_reconfigure
   image_transport
   roscpp
+  rosbag
   tf
   message_generation
   sensor_msgs
   std_msgs
+  gflags_catkin # used in evaluation executable
 )
+find_package(yaml-cpp REQUIRED) # used in evaluation executable
 
 # Set build flags, depending on the architecture
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
@@ -96,9 +99,14 @@ include_directories (
 set (SOURCE
   src/x_vio_ros/node.cpp
   src/x_vio_ros/main.cpp
+  src/x_vio_ros/parameter_loader.cpp
 )
 
 add_executable (x_vio_ros ${SOURCE})
+
+# add generic evaluation program as executable to be a able to call it from python
+add_executable(evaluate test/evaluate.cpp)
+target_link_libraries(evaluate ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${rostest_LIBRARIES} ${YAML_CPP_LIBRARIES})
 
 # Make sure configure headers are built before any node using them
 add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)
