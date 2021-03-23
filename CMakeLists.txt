@@ -97,15 +97,14 @@ include_directories (
 # ROS node executable
 #####################
 set (SOURCE
-  src/x_vio_ros/node.cpp
-  src/x_vio_ros/main.cpp
   src/x_vio_ros/parameter_loader.cpp
+  src/x_vio_ros/node.cpp
 )
 
-add_executable (x_vio_ros ${SOURCE})
+add_executable(x_vio_ros ${SOURCE} src/x_vio_ros/main.cpp)
 
 # add generic evaluation program as executable to be a able to call it from python
-add_executable(evaluate test/evaluate.cpp)
+add_executable(evaluate ${SOURCE} test/evaluate.cpp)
 target_link_libraries(evaluate ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${rostest_LIBRARIES} ${YAML_CPP_LIBRARIES})
 
 # Make sure configure headers are built before any node using them
@@ -115,6 +114,7 @@ add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)
 target_link_libraries(x_vio_ros
   ${OpenCV_LIBRARIES}
   ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
 )
 
 # Testing

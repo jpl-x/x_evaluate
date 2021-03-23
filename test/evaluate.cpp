@@ -28,20 +28,7 @@ int main(int argc, char **argv) {
   x::ParameterLoader l;
   x::Params params;
 
-  auto success = l.loadCameraParams(params, [config](const std::string& key, auto &par) -> bool {
-    auto key_cropped = key.substr(7);
-    if (config[key_cropped].IsDefined()) {
-      // this is ugly but the only way to get the correct auto type for the template interface as<T>
-      const auto& v = config[key_cropped].as<std::remove_reference_t<decltype(par)>>();
-      std::cerr << "Accessing key " << key_cropped << std::endl;
-      par = v;
-      return true;
-    } else {
-      std::cerr << "Key " << key_cropped << " not defined!";
-    }
-    return false;
-    }
-  );
+  auto success = l.loadXParamsWithYamlFile(config, params);
 
   std::cerr << "Reading config '" << FLAGS_params_file << "' was " << (success? "successful" : "failing") << std::endl;
 
