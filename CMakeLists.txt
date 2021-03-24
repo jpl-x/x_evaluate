@@ -98,6 +98,7 @@ include_directories (
 #####################
 set (SOURCE
   src/x_vio_ros/parameter_loader.cpp
+  src/x_vio_ros/ros_utils.cpp
   src/x_vio_ros/node.cpp
 )
 
