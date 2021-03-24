@@ -8,9 +8,16 @@
 #include <iostream>
 #include <yaml-cpp/yaml.h>
 #include <x_vio_ros/parameter_loader.h>
-#include <type_traits>
+#include <geometry_msgs/PoseStamped.h>
+//#include <dvs_msgs/EventArray.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/Imu.h>
 
 DEFINE_string(input_bag, "", "filename of the bag to scan");
+//DEFINE_string(events_topic, "/cam0/events", "topic in rosbag publishing dvs_msgs::EventArray");
+DEFINE_string(image_topic, "/cam0/image_raw", "topic in rosbag publishing sensor_msgs::Image");
+DEFINE_string(pose_topic, "", "(optional) topic publishing IMU pose ground truth as geometry_msgs::PoseStamped");
+DEFINE_string(imu_topic, "/imu", "topic in rosbag publishing sensor_msgs::Imu");
 DEFINE_string(params_file, "", "filename of the params.yaml to use");
 
 
@@ -32,13 +39,29 @@ int main(int argc, char **argv) {
 
   std::cerr << "Reading config '" << FLAGS_params_file << "' was " << (success? "successful" : "failing") << std::endl;
 
-//
-//  for(rosbag::MessageInstance const &m : rosbag::View(bag))
-//  {
-//    std_msgs::Int32::ConstPtr i = m.instantiate<std_msgs::Int32>();
-//    if (i != nullptr)
-//      std::cout << i->data << std::endl;
-//  }
+  uint64_t counter_imu = 0, counter_image = 0, counter_events = 0, counter_pose = 0;
+
+  for (rosbag::MessageInstance const &m : rosbag::View(bag))
+  {
+    if (m.getTopic() == FLAGS_imu_topic) {
+      auto msg = m.instantiate<sensor_msgs::Imu>();
+      ++counter_imu;
+    } else if (m.getTopic() == FLAGS_image_topic) {
+      auto msg = m.instantiate<sensor_msgs::Image>();
+      ++counter_image;
+//    } else if (m.getTopic() == FLAGS_events_topic) {
+//      auto msg = m.instantiate<dvs_msgs::EventArray>();
+//      ++counter_events;
+    } else if (m.getTopic() == FLAGS_pose_topic) {
+      auto msg = m.instantiate<geometry_msgs::PoseStamped>();
+      ++counter_pose;
+    }
+  }
+
+  std::cerr << "Processed " << counter_imu << " IMU, "
+            << counter_image << " image, "
+            << counter_events << " events and "
+            << counter_pose << " pose messages" << std::endl;
 
   bag.close();
 }
