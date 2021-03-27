@@ -55,11 +55,12 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   gflags_catkin # used in evaluation executable
+  easy_profiler_catkin
 )
 find_package(yaml-cpp REQUIRED) # used in evaluation executable
 
 # Set build flags, depending on the architecture
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
@@ -92,6 +93,8 @@ include_directories (
   include
   ${OpenCV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${easy_profiler_catkin_INCLUDE_DIRS}
+
 )
 
 # ROS node executable
@@ -106,7 +109,13 @@ add_executable(x_vio_ros ${SOURCE} src/x_vio_ros/main.cpp)
 
 # add generic evaluation program as executable to be a able to call it from python
 add_executable(evaluate ${SOURCE} test/evaluate.cpp)
-target_link_libraries(evaluate ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} ${rostest_LIBRARIES} ${YAML_CPP_LIBRARIES})
+target_link_libraries(evaluate
+        ${OpenCV_LIBRARIES}
+        ${catkin_LIBRARIES}
+        ${rostest_LIBRARIES}
+        ${YAML_CPP_LIBRARIES}
+        ${easy_profiler_catkin_LIBRARIES})
+target_compile_definitions(evaluate PUBLIC -DUSING_easy_profiler_catkin)
 
 # Make sure configure headers are built before any node using them
 add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)

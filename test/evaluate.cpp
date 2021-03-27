@@ -7,9 +7,11 @@
 #include <rosbag/view.h>
 #include <iostream>
 #include <yaml-cpp/yaml.h>
+#include <easy/profiler.h>
 
 #include <x_vio_ros/parameter_loader.h>
 #include <x/vio/vio.h>
+#include <x/common/csv_writer.h>
 
 #include <geometry_msgs/PoseStamped.h>
 //#include <dvs_msgs/EventArray.h>
@@ -35,6 +37,9 @@ DEFINE_string(params_file, "", "filename of the params.yaml to use");
 
 int main(int argc, char **argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
+
+  x::CsvWriter<std::string, double, double> csv("test.csv", {"type", "x", "accuracy"});
+  csv.addRow("IMU", 1.6, 0.000004*(-1));
 
   // directly reads yaml file, without the need for a ROS master / ROS parameter server
   YAML::Node config = YAML::LoadFile(FLAGS_params_file);
@@ -70,6 +75,8 @@ int main(int argc, char **argv) {
   x::State most_recent_state;
   boost::circular_buffer<geometry_msgs::PoseStamped> recent_gt_poses(10);
   boost::progress_display show_progress(view.size(), std::cerr);
+
+  EASY_PROFILER_ENABLE;
 
   for (rosbag::MessageInstance const &m : view) {
     if (m.getTopic() == FLAGS_imu_topic) {
@@ -114,6 +121,8 @@ int main(int argc, char **argv) {
 
     ++show_progress;
   }
+
+  profiler::dumpBlocksToFile("test.prof");
 
   std::cerr << "Processed " << counter_imu << " IMU, "
             << counter_image << " image, "
