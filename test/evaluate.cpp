@@ -17,15 +17,26 @@
 //#include <dvs_msgs/EventArray.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
-#include <cv_bridge/cv_bridge.h>
 #include <x_vio_ros/ros_utils.h>
 #include <boost/progress.hpp>
-#include <boost/circular_buffer.hpp>
-#include <algorithm>
 
-void compareWithClosestGTPose(const x::State &x_state,
-                              const boost::circular_buffer<geometry_msgs::PoseStamped> &recent_gt_poses,
-                              double &max_time_diff);
+
+using PoseCsv = x::CsvWriter<std::string,
+                             double,
+                             double, double, double,
+                             double, double, double, double>;
+
+using GTCsv = x::CsvWriter<double,
+                           double, double, double,
+                           double, double, double, double>;
+
+void addPose(PoseCsv& csv, const std::string& update_modality, const x::State& s) {
+  csv.addRow(update_modality, s.getTime(),
+             s.getPosition().x(), s.getPosition().y(), s.getPosition().z(),
+             s.getOrientation().x(), s.getOrientation().y(), s.getOrientation().z(), s.getOrientation().w());
+}
+
+
 
 DEFINE_string(input_bag, "", "filename of the bag to scan");
 //DEFINE_string(events_topic, "/cam0/events", "topic in rosbag publishing dvs_msgs::EventArray");
@@ -38,8 +49,15 @@ DEFINE_string(params_file, "", "filename of the params.yaml to use");
 int main(int argc, char **argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  x::CsvWriter<std::string, double, double> csv("test.csv", {"type", "x", "accuracy"});
-  csv.addRow("IMU", 1.6, 0.000004*(-1));
+  PoseCsv pose_csv("pose.csv", {"update_modality", "t",
+                                "estimated_p_x", "estimated_p_y", "estimated_p_z",
+                                "estimated_q_x", "estimated_q_y", "estimated_q_z", "estimated_q_w"});
+
+  GTCsv gt_csv("gt.csv", {"t_gt", "closest_gt_p_x", "closest_gt_p_y", "closest_gt_p_z",
+                          "closest_gt_q_x", "closest_gt_q_y", "closest_gt_q_z", "closest_gt_q_w"});
+
+
+  x::CsvWriter<double, double, double> rt_csv("realtime.csv", {"t_sim", "t_real", "rt_factor"});
 
   // directly reads yaml file, without the need for a ROS master / ROS parameter server
   YAML::Node config = YAML::LoadFile(FLAGS_params_file);
@@ -59,8 +77,6 @@ int main(int argc, char **argv) {
   x::VIO vio;
   vio.setUp(params);
 
-  bool initialized = false;
-
   rosbag::View view(bag);
 
   std::cerr << "Initializing at time " << view.getBeginTime().toSec() << std::endl;
@@ -71,24 +87,32 @@ int main(int argc, char **argv) {
 
   uint64_t counter_imu = 0, counter_image = 0, counter_events = 0, counter_pose = 0;
   bool filer_initialized = false;
-  double max_time_diff = 0.0;
-  x::State most_recent_state;
-  boost::circular_buffer<geometry_msgs::PoseStamped> recent_gt_poses(10);
   boost::progress_display show_progress(view.size(), std::cerr);
+
+  double rt_factor_resolution = .5;
+  double next_rt_factor = rt_factor_resolution;
+  profiler::timestamp_t calculation_time = 0, last_calculation_time = 0;
 
   EASY_PROFILER_ENABLE;
 
   for (rosbag::MessageInstance const &m : view) {
+    bool processing_useful_message = false;
+
     if (m.getTopic() == FLAGS_imu_topic) {
+      processing_useful_message = true;
+      EASY_BLOCK("IMU Message");
       auto msg = m.instantiate<sensor_msgs::Imu>();
       ++counter_imu;
 
       auto a_m = x::msgVector3ToEigen(msg->linear_acceleration);
       auto w_m = x::msgVector3ToEigen(msg->angular_velocity);
 
-      most_recent_state = vio.processImu(msg->header.stamp.toSec(), msg->header.seq, w_m, a_m);
+      auto state = vio.processImu(msg->header.stamp.toSec(), msg->header.seq, w_m, a_m);
+      addPose(pose_csv, "IMU", state);
 
     } else if (m.getTopic() == FLAGS_image_topic) {
+      processing_useful_message = true;
+      EASY_BLOCK("Image Message", profiler::colors::Green);
       auto msg = m.instantiate<sensor_msgs::Image>();
       ++counter_image;
 
@@ -96,24 +120,44 @@ int main(int argc, char **argv) {
       if (!x::msgToTiledImage(params, msg, image))
         continue;
       x::TiledImage feature_img(image);
-      most_recent_state = vio.processImageMeasurement(image.getTimestamp(), image.getFrameNumber(), image, feature_img);
+      auto state = vio.processImageMeasurement(image.getTimestamp(), image.getFrameNumber(), image, feature_img);
+      addPose(pose_csv, "Image", state);
 
 //    } else if (m.getTopic() == FLAGS_events_topic) {
+//      processing_useful_message = true;
 //      auto msg = m.instantiate<dvs_msgs::EventArray>();
 //      ++counter_events;
 
     } else if (m.getTopic() == FLAGS_pose_topic) {
-      auto msg = m.instantiate<geometry_msgs::PoseStamped>();
+      EASY_BLOCK("GT Message", profiler::colors::Yellow);
+      auto p = m.instantiate<geometry_msgs::PoseStamped>();
       ++counter_pose;
-      recent_gt_poses.push_back(*msg);
+      gt_csv.addRow(p->header.stamp.toSec(), p->pose.position.x, p->pose.position.y, p->pose.position.z,
+                    p->pose.orientation.x, p->pose.orientation.y, p->pose.orientation.z, p->pose.orientation.w);
+    }
 
-      if (filer_initialized) {
-        compareWithClosestGTPose(most_recent_state, recent_gt_poses, max_time_diff);
+    if (processing_useful_message && filer_initialized) {
+      // frame time is the duration of the last ended "root" block
+      auto duration_in_us  = profiler::this_thread_frameTime();
+      calculation_time += duration_in_us;
+
+      double rt_factor = std::numeric_limits<double>::quiet_NaN();
+
+      if (m.getTime().toSec() >= next_rt_factor) {
+        next_rt_factor += rt_factor_resolution;
+
+        rt_factor = static_cast<double>(calculation_time-last_calculation_time) * 1e-6 / rt_factor_resolution;
+
+        // reset calculation time
+        last_calculation_time = calculation_time;
       }
+
+      rt_csv.addRow(m.getTime().toSec(), calculation_time*1e-6, rt_factor);
     }
 
     if (!filer_initialized && vio.isInitialized()) {
       filer_initialized = true;
+      next_rt_factor = m.getTime().toSec() + rt_factor_resolution;
       auto count = show_progress.count();
       show_progress.restart(view.size());
       show_progress += count;
@@ -129,26 +173,31 @@ int main(int argc, char **argv) {
             << counter_events << " events and "
             << counter_pose << " pose messages" << std::endl;
 
-  std::cerr << "Maximum time difference in GT pose alignment: " << max_time_diff << "s" << std::endl;
-
   bag.close();
 }
 
-void compareWithClosestGTPose(const x::State &x_state,
-                              const boost::circular_buffer<geometry_msgs::PoseStamped> &recent_gt_poses,
-                              double& max_time_diff) {
-  auto closest_pose = std::lower_bound(recent_gt_poses.begin(), recent_gt_poses.end(), x_state.getTime(),
-                                       [](const geometry_msgs::PoseStamped& pose, double time) {
-                                          return pose.header.stamp.toSec() < time;
-                                       });
 
-  auto pos = x_state.getPosition();
-
-  auto pos_gt = x::msgVector3ToEigen(closest_pose->pose.position);
-
-  auto error = pos - pos_gt;
-  max_time_diff = std::max(max_time_diff, fabs(closest_pose->header.stamp.toSec() - x_state.getTime()));
-
-//  std::cerr << "Time diff: " << closest_pose->header.stamp.toSec() - x_state.getTime() << std::endl;
-//  std::cerr << "Pose error: " << error.x() << " " << error.y() << " " << error.z() << std::endl;
-}
+// // Former approach, for reference only --> do this in python
+//void compareWithClosestGTPose(PoseCsv &csv, const std::string& update_modality, const x::State &x_state,
+//                              const boost::circular_buffer<geometry_msgs::PoseStamped> &recent_gt_poses,
+//                              double &max_time_diff) {
+//  auto closest_pose = std::lower_bound(recent_gt_poses.begin(), recent_gt_poses.end(), x_state.getTime(),
+//                                       [](const geometry_msgs::PoseStamped& pose, double time) {
+//                                          return pose.header.stamp.toSec() < time;
+//                                       });
+//
+//  max_time_diff = std::max(max_time_diff, fabs(closest_pose->header.stamp.toSec() - x_state.getTime()));
+//
+//  csv.addRow(update_modality, x_state.getTime(), closest_pose->header.stamp.toSec(),
+//             x_state.getPosition().x(), x_state.getPosition().y(), x_state.getPosition().z(),
+//             x_state.getOrientation().x(), x_state.getOrientation().y(), x_state.getOrientation().z(), x_state.getOrientation().w(),
+//             closest_pose->pose.position.x, closest_pose->pose.position.y, closest_pose->pose.position.z,
+//             closest_pose->pose.orientation.x, closest_pose->pose.orientation.y, closest_pose->pose.orientation.z, closest_pose->pose.orientation.w);
+//
+//  auto pos = x_state.getPosition();
+//  auto pos_gt = x::msgVector3ToEigen(closest_pose->pose.position);
+//  auto error = pos - pos_gt;
+//
+////  std::cerr << "Time diff: " << closest_pose->header.stamp.toSec() - x_state.getTime() << std::endl;
+////  std::cerr << "Pose error: " << error.x() << " " << error.y() << " " << error.z() << std::endl;
+//}

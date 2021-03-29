@@ -115,7 +115,7 @@ target_link_libraries(evaluate
         ${rostest_LIBRARIES}
         ${YAML_CPP_LIBRARIES}
         ${easy_profiler_catkin_LIBRARIES})
-target_compile_definitions(evaluate PUBLIC -DUSING_easy_profiler_catkin)
+target_compile_definitions(evaluate PUBLIC -DUSING_EASY_PROFILER)
 
 # Make sure configure headers are built before any node using them
 add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)
