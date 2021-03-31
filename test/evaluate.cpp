@@ -7,6 +7,7 @@
 #include <rosbag/view.h>
 #include <iostream>
 #include <filesystem>
+#include <memory>
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
 
@@ -67,22 +68,6 @@ int main(int argc, char **argv) {
       return 1;
     }
 
-    fs::path output_path(FLAGS_output_folder);
-
-    PoseCsv pose_csv(output_path / "pose.csv", {"update_modality", "t",
-                                                "estimated_p_x", "estimated_p_y", "estimated_p_z",
-                                                "estimated_q_x", "estimated_q_y", "estimated_q_z", "estimated_q_w"});
-
-    GTCsv gt_csv(output_path / "gt.csv", {"t", "closest_p_x", "closest_p_y", "closest_p_z",
-                                          "closest_q_x", "closest_q_y", "closest_q_z", "closest_q_w"});
-
-
-    x::CsvWriter<double, double, std::string, profiler::timestamp_t, double> rt_csv(output_path / "realtime.csv",
-                                                                                    {"t_sim", "t_real",
-                                                                                     "processing_type",
-                                                                                     "process_time_in_us",
-                                                                                     "rt_factor"});
-
     // directly reads yaml file, without the need for a ROS master / ROS parameter server
     YAML::Node config = YAML::LoadFile(FLAGS_params_file);
     x::ParameterLoader l;
@@ -94,8 +79,31 @@ int main(int argc, char **argv) {
     if (!success)
       return 1;
 
+    fs::path output_path(FLAGS_output_folder);
+
     fs::create_directories(output_path);
     fs::copy(FLAGS_params_file, output_path / "params.yaml", fs::copy_options::overwrite_existing);
+
+
+    PoseCsv pose_csv(output_path / "pose.csv", {"update_modality", "t",
+                                                "estimated_p_x", "estimated_p_y", "estimated_p_z",
+                                                "estimated_q_x", "estimated_q_y", "estimated_q_z", "estimated_q_w"});
+
+
+    std::unique_ptr<GTCsv> gt_csv(nullptr);
+
+    if (!FLAGS_pose_topic.empty())
+      gt_csv.reset(new GTCsv(output_path / "gt.csv", {"t", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"}));
+
+
+//    GTCsv gt_csv(output_path / "gt.csv", {"t", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"});
+
+
+    x::CsvWriter<double, double, std::string, profiler::timestamp_t, double> rt_csv(output_path / "realtime.csv",
+                                                                                    {"t_sim", "t_real",
+                                                                                     "processing_type",
+                                                                                     "process_time_in_us",
+                                                                                     "rt_factor"});
 
     std::cerr << "Reading rosbag '" << FLAGS_input_bag << "'" << std::endl;
     rosbag::Bag bag;
@@ -157,11 +165,11 @@ int main(int argc, char **argv) {
         //      auto msg = m.instantiate<dvs_msgs::EventArray>();
         //      ++counter_events;
 
-      } else if (m.getTopic() == FLAGS_pose_topic) {
+      } else if (!FLAGS_pose_topic.empty() && m.getTopic() == FLAGS_pose_topic) {
         EASY_BLOCK("GT Message");
         auto p = m.instantiate<geometry_msgs::PoseStamped>();
         ++counter_pose;
-        gt_csv.addRow(p->header.stamp.toSec(), p->pose.position.x, p->pose.position.y, p->pose.position.z,
+        gt_csv->addRow(p->header.stamp.toSec(), p->pose.position.x, p->pose.position.y, p->pose.position.z,
                       p->pose.orientation.x, p->pose.orientation.y, p->pose.orientation.z, p->pose.orientation.w);
         EASY_END_BLOCK;
       }
