@@ -58,6 +58,7 @@ find_package(catkin REQUIRED COMPONENTS
   easy_profiler_catkin
 )
 find_package(yaml-cpp REQUIRED) # used in evaluation executable
+catkin_python_setup()
 
 # Set build flags, depending on the architecture
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
@@ -116,6 +117,8 @@ target_link_libraries(evaluate
         ${YAML_CPP_LIBRARIES}
         ${easy_profiler_catkin_LIBRARIES})
 target_compile_definitions(evaluate PUBLIC -DUSING_EASY_PROFILER)
+catkin_install_python(PROGRAMS test/evaluate.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 
 # Make sure configure headers are built before any node using them
 add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)

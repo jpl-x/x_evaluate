@@ -1,0 +1,11 @@
+
+
+datasets:
+  -
+    name: 45 Deg Carpet
+    rosbag: ${XVIO_DATASET_DIR}/esim_45deg_2021-03-17.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+

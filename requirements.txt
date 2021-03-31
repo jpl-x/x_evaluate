@@ -1,0 +1,3 @@
+numpy>=1.19.2
+matplotlib>=3.3.4
+envyaml>=1.7.210310
