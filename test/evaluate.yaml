@@ -1,4 +1,22 @@
 
+common_params:
+  fast_detection_delta: 20
+  non_max_supp: False
+  block_half_length: 20
+  margin: 20
+  n_feat_min: 400
+  outlier_method: 8
+  outlier_param1: 0.3
+  outlier_param2: 0.99
+  n_tiles_h: 1
+  n_tiles_w: 1
+  max_feat_per_tile: 10000
+  n_poses_max: 10
+  n_slam_features_max: 15
+  rho_0: 2.5
+  iekf_iter: 1
+  msckf_baseline: 30.0
+  min_track_length: 10
 
 datasets:
   -
@@ -8,4 +26,5 @@ datasets:
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
+    params: ${XVIO_SRC_ROOT}/params.yaml
 

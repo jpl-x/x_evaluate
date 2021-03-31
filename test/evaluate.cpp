@@ -95,10 +95,6 @@ int main(int argc, char **argv) {
     if (!FLAGS_pose_topic.empty())
       gt_csv.reset(new GTCsv(output_path / "gt.csv", {"t", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"}));
 
-
-//    GTCsv gt_csv(output_path / "gt.csv", {"t", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"});
-
-
     x::CsvWriter<double, double, std::string, profiler::timestamp_t, double> rt_csv(output_path / "realtime.csv",
                                                                                     {"t_sim", "t_real",
                                                                                      "processing_type",
@@ -177,9 +173,9 @@ int main(int argc, char **argv) {
       if (!filer_initialized && vio.isInitialized()) {
         filer_initialized = true;
         next_rt_factor = m.getTime().toSec() + rt_factor_resolution;
-        auto count = show_progress.count();
-        show_progress.restart(view.size());
-        show_progress += count;
+//        auto count = show_progress.count();
+//        show_progress.restart(view.size());
+//        show_progress += count;
       }
 
       if (!process_type.empty() && filer_initialized) {
