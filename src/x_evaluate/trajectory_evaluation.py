@@ -1,16 +1,24 @@
+import os
+
 from evo.core.metrics import PoseRelation
+from natsort import os_sorted
+
 from x_evaluate.conversions import convert_to_evo_trajectory
 from evo.core import sync
 from evo.core import metrics
+from evo.tools import plot
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import copy
 
 
 class TrajectoryEvaluator:
 
-    POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
-                      metrics.PoseRelation.translation_part]
+    # POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
+    #                   metrics.PoseRelation.translation_part]
+    POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
+
 
     def __init__(self):
 
@@ -25,13 +33,15 @@ class TrajectoryEvaluator:
         self._ref_trajectories = dict()
         self._est_trajectories = dict()
 
-    def evaluate(self, name, df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame):
+    def evaluate(self, name, df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame, output_folder):
 
         traj_est = convert_to_evo_trajectory(df_poses, prefix="estimated_")
         traj_ref = convert_to_evo_trajectory(df_groundtruth)
 
         self._ref_trajectories[name] = traj_ref
         self._est_trajectories[name] = traj_est
+
+        self.plot_trajectory(os.path.join(output_folder, "xy_plot.svg"), name, name)
 
         max_diff = 0.01
         traj_ref, traj_est = sync.associate_trajectories(traj_ref, traj_est, max_diff)
@@ -66,3 +76,17 @@ class TrajectoryEvaluator:
         ape_rms = np.linalg.norm(ape_array) / np.sqrt(len(rpe_array))
 
         print(F"Overall [RPE] [APE]: {rpe_rms:>15.2f} {ape_rms:>15.2f}")
+
+    def plot_trajectory(self, filename, reference_name, *estimate_names):
+
+        fig = plt.figure()
+        traj_by_label = {F"{x} estimate": self._est_trajectories[x] for x in estimate_names}
+        traj_by_label[F"{reference_name} reference"] = self._ref_trajectories[reference_name]
+
+        plot.trajectories(fig, traj_by_label, plot.PlotMode.xy)
+
+        if filename is None or len(filename) == 0:
+            plt.show()
+        else:
+            plt.savefig(filename)
+

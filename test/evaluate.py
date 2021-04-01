@@ -66,14 +66,16 @@ def main():
 
     try:
         for i, dataset in enumerate(eval_config['datasets']):
-            output_folder = F"{i:<03}_{dataset['name'].lower().replace(' ', '_')}"
+            output_folder = F"{i:>03}_{dataset['name'].lower().replace(' ', '_')}"
             print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
-            output_folder = os.path.join(output_folder, output_folder)
+            output_folder = os.path.join(args.output_folder, output_folder)
 
             process_dataset(args.evaluate, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator,
                             eval_config)
 
             print(F"Analysis of output {i+1} of {N} completed")
+
+        traj_evaluator.plot_trajectory("45 Deg Carpet", "45 Deg Carpet")
 
         traj_evaluator.print_summary()
         perf_evaluator.print_summary()
@@ -83,12 +85,17 @@ def main():
 
 
 def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator, yaml_file):
+
     create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
-    run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
-                     dataset['imu_topic'], output_folder, tmp_yaml_filename)
+
+    # run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
+    #                  dataset['imu_topic'], output_folder, tmp_yaml_filename)
+
     print(F"Running dataset completed, analyzing outputs now...")
+
     df_groundtruth, df_poses, df_realtime, profiling_json = read_output_files(output_folder)
-    traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth)
+
+    traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth, output_folder)
     perf_evaluator.evaluate(df_realtime, profiling_json)
 
 
@@ -130,11 +137,4 @@ def create_temporary_params_yaml(base_params_filename, common_params, tmp_yaml_f
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
 
