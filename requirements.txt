@@ -1,4 +1,6 @@
 numpy>=1.19.2
 matplotlib>=3.3.4
-envyaml>=1.7.210310
+envyaml>=1.7
 pyyaml>=5.4.1
+evo>=1.13.4
+pandas>=1.2.3

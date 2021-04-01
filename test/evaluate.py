@@ -1,15 +1,14 @@
 import os
-import subprocess
 import sys
 
 import argparse
-import numpy as np
-import matplotlib as mp
 import pandas as pd
-
 
 from envyaml import EnvYAML
 import yaml
+
+from x_evaluate.conversions import convert_to_evo_trajectory
+from x_evaluate.trajectory_evaluation import TrajectoryEvaluator
 
 
 def main():
@@ -61,6 +60,8 @@ def main():
 
     N = len(yaml_file['datasets'])
 
+    traj_evaluator = TrajectoryEvaluator()
+
     try:
         for i, dataset in enumerate(yaml_file['datasets']):
             output_folder = F"{i:<03}_{dataset['name'].lower().replace(' ', '_')}"
@@ -83,8 +84,8 @@ def main():
 
             print(F"Running {command}")
 
-            stream = os.popen(command)
-            stream.read()  # waits for process to finish, captures stdout
+            # stream = os.popen(command)
+            # stream.read()  # waits for process to finish, captures stdout
 
             print(F"Running dataset {i+1} of {N} completed, analyzing outputs now...")
 
@@ -92,8 +93,10 @@ def main():
             df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
             df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
 
+            traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth)
+
             df_rt_factor = df_realtime.dropna()[['t_sim', 'rt_factor']]
-            print(df_rt_factor)
+            # print(df_rt_factor)
 
             print(F"Analysis of output {i+1} of {N} completed")
 
