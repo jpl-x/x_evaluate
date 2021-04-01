@@ -9,8 +9,6 @@ set(PROFILING false)  # Set true to disable compiler flags which are not
 		      # compatible with Callgrind profiling tool.
 set(UNIT_TESTS false) # Set true to enable unit tests
 
-set(USE_EKLT_NODE true) # replaces original xVIO node with new EKLT node
-
 ################################################################################ 
 
 cmake_minimum_required(VERSION 2.8.3)
@@ -55,15 +53,20 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   image_transport
   roscpp
+  rosbag
   tf
   message_generation
   dvs_msgs
   sensor_msgs
   std_msgs
+  gflags_catkin # used in evaluation executable
+  easy_profiler_catkin
 )
+find_package(yaml-cpp REQUIRED) # used in evaluation executable
+catkin_python_setup()
 
 # Set build flags, depending on the architecture
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
@@ -96,18 +99,32 @@ include_directories (
   include
   ${OpenCV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${easy_profiler_catkin_INCLUDE_DIRS}
+
 )
 
 # ROS node executable
 #####################
 set (SOURCE
+  src/x_vio_ros/parameter_loader.cpp
+  src/x_vio_ros/ros_utils.cpp
   src/x_vio_ros/node.cpp
   src/x_vio_ros/xvio_eklt_node.cpp
-  src/x_vio_ros/main.cpp
-  src/x_vio_ros/ros_utils.cpp
 )
 
-add_executable (x_vio_ros ${SOURCE})
+add_executable(x_vio_ros ${SOURCE} src/x_vio_ros/main.cpp)
+
+# add generic evaluation program as executable to be a able to call it from python
+add_executable(evaluate ${SOURCE} test/evaluate.cpp)
+target_link_libraries(evaluate
+        ${OpenCV_LIBRARIES}
+        ${catkin_LIBRARIES}
+        ${rostest_LIBRARIES}
+        ${YAML_CPP_LIBRARIES}
+        ${easy_profiler_catkin_LIBRARIES})
+target_compile_definitions(evaluate PUBLIC -DUSING_EASY_PROFILER)
+catkin_install_python(PROGRAMS test/evaluate.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 
 # Make sure configure headers are built before any node using them
 add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)
@@ -116,6 +133,7 @@ add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)
 target_link_libraries(x_vio_ros
   ${OpenCV_LIBRARIES}
   ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
 )
 
 # Testing

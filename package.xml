@@ -20,8 +20,10 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>gflags_catkin</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>rostest</build_depend>
+  <build_depend>easy_profiler_catkin</build_depend>
 
   <run_depend>x</run_depend>
   <run_depend>cv_bridge</run_depend>
@@ -34,5 +36,7 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>gflags_catkin</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>easy_profiler_catkin</run_depend>
 </package>
