@@ -88,8 +88,8 @@ def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml
 
     create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
 
-    # run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
-    #                  dataset['imu_topic'], output_folder, tmp_yaml_filename)
+    run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
+                     dataset['imu_topic'], output_folder, tmp_yaml_filename)
 
     print(F"Running dataset completed, analyzing outputs now...")
 
