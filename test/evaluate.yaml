@@ -1,7 +1,7 @@
 
 common_params:
   fast_detection_delta: 20
-  non_max_supp: False
+  non_max_supp: True
   block_half_length: 20
   margin: 20
   n_feat_min: 400

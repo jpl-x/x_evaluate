@@ -75,7 +75,9 @@ def main():
 
             print(F"Analysis of output {i+1} of {N} completed")
 
-        traj_evaluator.plot_trajectory("45 Deg Carpet", "45 Deg Carpet")
+        # traj_evaluator.plot_trajectory("45 Deg Carpet", "45 Deg Carpet")
+
+        traj_evaluator.plot_summary_boxplot(args.output_folder)
 
         traj_evaluator.print_summary()
         perf_evaluator.print_summary()

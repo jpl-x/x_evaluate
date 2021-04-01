@@ -15,9 +15,9 @@ import copy
 
 class TrajectoryEvaluator:
 
-    # POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
-    #                   metrics.PoseRelation.translation_part]
-    POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
+    POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
+                      metrics.PoseRelation.translation_part]
+    # POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
 
     def __init__(self):
 
@@ -76,14 +76,13 @@ class TrajectoryEvaluator:
 
         print(F"Overall [RPE] [APE]: {rpe_rms:>15.2f} {ape_rms:>15.2f}")
 
-    def combined_rpe_error(self, pose_relation: metrics.PoseRelation, *keys):
+    def combined_rpe_error(self, pose_relation: metrics.PoseRelation, *keys) -> np.ndarray:
         arrays = tuple([self._rpe_error_arrays[k][pose_relation] for k in keys])
         return np.hstack(arrays)
 
-    def combined_ape_error(self, pose_relation: metrics.PoseRelation, *keys):
+    def combined_ape_error(self, pose_relation: metrics.PoseRelation, *keys) -> np.ndarray:
         arrays = tuple([self._ape_error_arrays[k][pose_relation] for k in keys])
         return np.hstack(arrays)
-
 
     def plot_trajectory(self, filename, reference_name, *estimate_names):
         fig = plt.figure()
@@ -96,4 +95,33 @@ class TrajectoryEvaluator:
             plt.show()
         else:
             plt.savefig(filename)
+
+    def plot_summary_boxplot(self, output_folder):
+        for r in self.POSE_RELATIONS:
+            filename = os.path.join(output_folder, "ape_boxplot_" + r.name + ".svg")
+            self.plot_ape_comparison(filename, r, *self._ape_error_arrays.keys())
+            filename = os.path.join(output_folder, "rpe_boxplot_" + r.name + ".svg")
+            self.plot_rpe_comparison(filename, r, *self._rpe_error_arrays.keys())
+
+    def plot_ape_comparison(self, filename, kind: metrics.PoseRelation, *names):
+        data = [self._ape_error_arrays[name][kind] for name in names]
+        labels = [*names]
+        self.boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
+
+    def plot_rpe_comparison(self, filename, kind: metrics.PoseRelation, *names):
+        data = [self._rpe_error_arrays[name][kind] for name in names]
+        labels = [*names]
+        self.boxplot(filename, data, labels, F"RPE w.r.t. {kind.value} comparison")
+
+    @staticmethod
+    def boxplot(filename, data, labels, title=""):
+        plt.figure()
+        plt.boxplot(data, vert=True, labels=labels)
+        plt.title(title)
+
+        if filename is None or len(filename) == 0:
+            plt.show()
+        else:
+            plt.savefig(filename)
+
 
