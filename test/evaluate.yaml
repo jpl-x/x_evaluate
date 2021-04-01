@@ -28,3 +28,12 @@ datasets:
     imu_topic: /imu
     params: ${XVIO_SRC_ROOT}/params.yaml
 
+  -
+    name: Mars ESA Orbiter Xplorer
+    rosbag: ${XVIO_DATASET_DIR}/mars_xplorer.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    params: ${XVIO_SRC_ROOT}/params.yaml
+

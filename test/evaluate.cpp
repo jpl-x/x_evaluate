@@ -10,6 +10,7 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
+#include <easy/converter/converter.h>
 
 #include <x_vio_ros/parameter_loader.h>
 #include <x/vio/vio.h>
@@ -201,6 +202,8 @@ int main(int argc, char **argv) {
     }
 
     profiler::dumpBlocksToFile((output_path / "profiling.prof").c_str());
+    JsonExporter je;
+    je.convert((output_path / "profiling.prof").c_str(), (output_path / "profiling.json").c_str());
 
     std::cerr << "Processed " << counter_imu << " IMU, "
               << counter_image << " image, "

@@ -6,8 +6,9 @@ import pandas as pd
 
 from envyaml import EnvYAML
 import yaml
+import orjson
 
-from x_evaluate.conversions import convert_to_evo_trajectory
+from x_evaluate.performance_evaluation import PerformanceEvaluator
 from x_evaluate.trajectory_evaluation import TrajectoryEvaluator
 
 
@@ -60,6 +61,7 @@ def main():
 
     N = len(yaml_file['datasets'])
 
+    perf_evaluator = PerformanceEvaluator()
     traj_evaluator = TrajectoryEvaluator()
 
     try:
@@ -84,21 +86,24 @@ def main():
 
             print(F"Running {command}")
 
-            # stream = os.popen(command)
-            # stream.read()  # waits for process to finish, captures stdout
+            stream = os.popen(command)
+            stream.read()  # waits for process to finish, captures stdout
 
             print(F"Running dataset {i+1} of {N} completed, analyzing outputs now...")
 
             df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
             df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
             df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
+            with open(os.path.join(output_folder, "profiling.json"), "rb") as f:
+                profiling_json = orjson.loads(f.read())
 
             traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth)
-
-            df_rt_factor = df_realtime.dropna()[['t_sim', 'rt_factor']]
-            # print(df_rt_factor)
+            perf_evaluator.evaluate(df_realtime, profiling_json)
 
             print(F"Analysis of output {i+1} of {N} completed")
+
+        traj_evaluator.print_summary()
+        perf_evaluator.print_summary()
 
     finally:
         os.remove(tmp_yaml_filename)

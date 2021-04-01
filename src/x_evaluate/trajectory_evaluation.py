@@ -53,3 +53,11 @@ class TrajectoryEvaluator:
 
         result_row = [name] + ape_results + rpe_results
         self._result_table.loc[len(self._result_table)] = result_row
+
+    def print_summary(self):
+        rpe_array = self._rpe_error_arrays[''][metrics.PoseRelation.full_transformation]
+        ape_array = self._ape_error_arrays[''][metrics.PoseRelation.full_transformation]
+        rpe_rms = np.linalg.norm(rpe_array) / np.sqrt(len(rpe_array))
+        ape_rms = np.linalg.norm(ape_array) / np.sqrt(len(rpe_array))
+
+        print(F"Overall [RPE] [APE]: {rpe_rms:>15.2f} {ape_rms:>15.2f}")
