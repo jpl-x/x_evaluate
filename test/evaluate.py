@@ -52,53 +52,26 @@ def main():
 
     print(F"Reading '{args.configuration}'")
 
-    yaml_file = EnvYAML(args.configuration)
+    eval_config = EnvYAML(args.configuration)
     tmp_yaml_filename = os.path.join(args.output_folder, 'tmp.yaml')
 
     print(F"Using the following 'evaluate' executable: {args.evaluate}")
-    print(F"Processing the following datasets: {str.join(', ', (d['name'] for d in yaml_file['datasets']))}")
+    print(F"Processing the following datasets: {str.join(', ', (d['name'] for d in eval_config['datasets']))}")
     print()
 
-    N = len(yaml_file['datasets'])
+    N = len(eval_config['datasets'])
 
     perf_evaluator = PerformanceEvaluator()
     traj_evaluator = TrajectoryEvaluator()
 
     try:
-        for i, dataset in enumerate(yaml_file['datasets']):
+        for i, dataset in enumerate(eval_config['datasets']):
             output_folder = F"{i:<03}_{dataset['name'].lower().replace(' ', '_')}"
             print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
-            output_folder = os.path.join(args.output_folder, output_folder)
+            output_folder = os.path.join(output_folder, output_folder)
 
-            create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
-
-            #  F" --events_topic {dataset['events_topic']}" \ # ADD ME LATER
-            command = F"{args.evaluate}" \
-                      F" --input_bag {dataset['rosbag']}" \
-                      F" --image_topic {dataset['image_topic']}" \
-                      F" --pose_topic {dataset['pose_topic']}" \
-                      F" --imu_topic {dataset['imu_topic']}" \
-                      F" --params_file {tmp_yaml_filename}" \
-                      F" --output_folder {output_folder}"
-
-            # when running from console this was necessary
-            command = command.replace('\n', ' ')
-
-            print(F"Running {command}")
-
-            stream = os.popen(command)
-            stream.read()  # waits for process to finish, captures stdout
-
-            print(F"Running dataset {i+1} of {N} completed, analyzing outputs now...")
-
-            df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
-            df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
-            df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
-            with open(os.path.join(output_folder, "profiling.json"), "rb") as f:
-                profiling_json = orjson.loads(f.read())
-
-            traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth)
-            perf_evaluator.evaluate(df_realtime, profiling_json)
+            process_dataset(args.evaluate, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator,
+                            eval_config)
 
             print(F"Analysis of output {i+1} of {N} completed")
 
@@ -107,6 +80,41 @@ def main():
 
     finally:
         os.remove(tmp_yaml_filename)
+
+
+def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator, yaml_file):
+    create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
+    run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
+                     dataset['imu_topic'], output_folder, tmp_yaml_filename)
+    print(F"Running dataset completed, analyzing outputs now...")
+    df_groundtruth, df_poses, df_realtime, profiling_json = read_output_files(output_folder)
+    traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth)
+    perf_evaluator.evaluate(df_realtime, profiling_json)
+
+
+def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, output_folder, params_file):
+    #  F" --events_topic {dataset['events_topic']}" \ # ADD ME LATER
+    command = F"{executable}" \
+              F" --input_bag {rosbag}" \
+              F" --image_topic {image_topic}" \
+              F" --pose_topic {pose_topic}" \
+              F" --imu_topic {imu_topic}" \
+              F" --params_file {params_file}" \
+              F" --output_folder {output_folder}"
+    # when running from console this was necessary
+    command = command.replace('\n', ' ')
+    print(F"Running {command}")
+    stream = os.popen(command)
+    stream.read()  # waits for process to finish, captures stdout
+
+
+def read_output_files(output_folder):
+    df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
+    df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
+    df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
+    with open(os.path.join(output_folder, "profiling.json"), "rb") as f:
+        profiling_json = orjson.loads(f.read())
+    return df_groundtruth, df_poses, df_realtime, profiling_json
 
 
 def create_temporary_params_yaml(base_params_filename, common_params, tmp_yaml_filename):

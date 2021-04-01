@@ -22,11 +22,16 @@ class TrajectoryEvaluator:
             '': {k: np.array([]) for k in self.POSE_RELATIONS}
         }
         self._rpe_error_arrays = copy.deepcopy(self._ape_error_arrays)
+        self._ref_trajectories = dict()
+        self._est_trajectories = dict()
 
     def evaluate(self, name, df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame):
 
         traj_est = convert_to_evo_trajectory(df_poses, prefix="estimated_")
         traj_ref = convert_to_evo_trajectory(df_groundtruth)
+
+        self._ref_trajectories[name] = traj_ref
+        self._est_trajectories[name] = traj_est
 
         max_diff = 0.01
         traj_ref, traj_est = sync.associate_trajectories(traj_ref, traj_est, max_diff)
