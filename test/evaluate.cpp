@@ -14,10 +14,11 @@
 
 #include <x_vio_ros/parameter_loader.h>
 #include <x/vio/vio.h>
+#include <x/eklt/eklt_vio.h>
 #include <x/common/csv_writer.h>
 
 #include <geometry_msgs/PoseStamped.h>
-//#include <dvs_msgs/EventArray.h>
+#include <dvs_msgs/EventArray.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 #include <x_vio_ros/ros_utils.h>
@@ -26,12 +27,13 @@
 namespace fs = std::filesystem;
 
 DEFINE_string(input_bag, "", "filename of the bag to scan");
-//DEFINE_string(events_topic, "/cam0/events", "topic in rosbag publishing dvs_msgs::EventArray");
+DEFINE_string(events_topic, "/cam0/events", "topic in rosbag publishing dvs_msgs::EventArray");
 DEFINE_string(image_topic, "/cam0/image_raw", "topic in rosbag publishing sensor_msgs::Image");
 DEFINE_string(pose_topic, "", "(optional) topic publishing IMU pose ground truth as geometry_msgs::PoseStamped");
 DEFINE_string(imu_topic, "/imu", "topic in rosbag publishing sensor_msgs::Imu");
 DEFINE_string(params_file, "", "filename of the params.yaml to use");
 DEFINE_string(output_folder, "", "folder where to write output files, is created if not existent");
+DEFINE_bool(use_eklt, false, "use eklt front end");
 
 
 using PoseCsv = x::CsvWriter<std::string,
@@ -56,13 +58,11 @@ char* get_time_string_in_utc() {
   return std::asctime(tm_gmt);
 }
 
-
-int main(int argc, char **argv) {
+// FIXME the usage of VioClass as template is a big hack, enabling fast testing of VIO + EKLTVIO, without code duplication
+// FIXME a common interface in X library (baseclass) or a parameter "enable_eklt" in x_params might be a solution
+template <typename VioClass>
+int evaluate() {
   {
-
-    std::cerr << "Running " << argv[0] << " " << get_time_string_in_utc() << std::endl;
-
-    google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (FLAGS_output_folder.empty()) {
       std::cerr << "ERROR: No output folder specified, provide --output_folder" << std::endl;
@@ -106,9 +106,22 @@ int main(int argc, char **argv) {
     rosbag::Bag bag;
     bag.open(FLAGS_input_bag);  // BagMode is Read by default
 
+    VioClass vio;
+    if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
+      x::EkltParams eklt_params;
+      success = l.loadEkltParamsWithYamlFile(config, eklt_params);
+      std::cerr << "Reading EKLT config '" << FLAGS_params_file << "' was " << (success ? "successful" : "failing")
+                << std::endl;
 
-    x::VIO vio;
-    vio.setUp(params);
+      if (!success)
+        return 1;
+
+      vio.setUp(params, eklt_params);
+    } else {
+      vio.setUp(params);
+    }
+
+
 
     rosbag::View view(bag);
 
@@ -157,17 +170,26 @@ int main(int argc, char **argv) {
         state = vio.processImageMeasurement(image.getTimestamp(), image.getFrameNumber(), image, feature_img);
         EASY_END_BLOCK;
 
-        //    } else if (m.getTopic() == FLAGS_events_topic) {
-        //      processing_useful_message = true;
-        //      auto msg = m.instantiate<dvs_msgs::EventArray>();
-        //      ++counter_events;
+      } else if (m.getTopic() == FLAGS_events_topic) {
+        if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
+          EASY_BLOCK("Events Message", profiler::colors::Blue);
+          process_type = "Events";
+          auto msg = m.instantiate<dvs_msgs::EventArray>();
+          ++counter_events;
 
+          x::EventArray::Ptr x_events = x::msgToEvents(msg);
+
+          x::TiledImage tracker_img, feature_img;
+
+          state = vio.processEventsMeasurement(x_events, tracker_img, feature_img);
+          EASY_END_BLOCK;
+        }
       } else if (!FLAGS_pose_topic.empty() && m.getTopic() == FLAGS_pose_topic) {
         EASY_BLOCK("GT Message");
         auto p = m.instantiate<geometry_msgs::PoseStamped>();
         ++counter_pose;
         gt_csv->addRow(p->header.stamp.toSec(), p->pose.position.x, p->pose.position.y, p->pose.position.z,
-                      p->pose.orientation.x, p->pose.orientation.y, p->pose.orientation.z, p->pose.orientation.w);
+                       p->pose.orientation.x, p->pose.orientation.y, p->pose.orientation.z, p->pose.orientation.w);
         EASY_END_BLOCK;
       }
 
@@ -214,6 +236,12 @@ int main(int argc, char **argv) {
 
     bag.close();
 
+    // manually flush as workaround for memory corruption in EKLT node
+    rt_csv.flush();
+    pose_csv.flush();
+    if (gt_csv)
+      gt_csv->flush();
+
     // destructor calls (--> CSV flushing) happening here
   }
   std::cerr << "Evaluation completed " << get_time_string_in_utc();
@@ -222,27 +250,15 @@ int main(int argc, char **argv) {
 }
 
 
-// // Former approach, for reference only --> do this in python
-//void compareWithClosestGTPose(PoseCsv &csv, const std::string& update_modality, const x::State &x_state,
-//                              const boost::circular_buffer<geometry_msgs::PoseStamped> &recent_gt_poses,
-//                              double &max_time_diff) {
-//  auto closest_pose = std::lower_bound(recent_gt_poses.begin(), recent_gt_poses.end(), x_state.getTime(),
-//                                       [](const geometry_msgs::PoseStamped& pose, double time) {
-//                                          return pose.header.stamp.toSec() < time;
-//                                       });
-//
-//  max_time_diff = std::max(max_time_diff, fabs(closest_pose->header.stamp.toSec() - x_state.getTime()));
-//
-//  csv.addRow(update_modality, x_state.getTime(), closest_pose->header.stamp.toSec(),
-//             x_state.getPosition().x(), x_state.getPosition().y(), x_state.getPosition().z(),
-//             x_state.getOrientation().x(), x_state.getOrientation().y(), x_state.getOrientation().z(), x_state.getOrientation().w(),
-//             closest_pose->pose.position.x, closest_pose->pose.position.y, closest_pose->pose.position.z,
-//             closest_pose->pose.orientation.x, closest_pose->pose.orientation.y, closest_pose->pose.orientation.z, closest_pose->pose.orientation.w);
-//
-//  auto pos = x_state.getPosition();
-//  auto pos_gt = x::msgVector3ToEigen(closest_pose->pose.position);
-//  auto error = pos - pos_gt;
-//
-////  std::cerr << "Time diff: " << closest_pose->header.stamp.toSec() - x_state.getTime() << std::endl;
-////  std::cerr << "Pose error: " << error.x() << " " << error.y() << " " << error.z() << std::endl;
-//}
+int main(int argc, char **argv) {
+
+  std::cerr << "Running " << argv[0] << " " << get_time_string_in_utc() << std::endl;
+
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
+  if (FLAGS_use_eklt) {
+    return evaluate<x::EKLTVIO>();
+  }
+
+  return evaluate<x::VIO>();
+}
