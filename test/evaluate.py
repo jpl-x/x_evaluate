@@ -66,7 +66,7 @@ def main():
 
     try:
         for i, dataset in enumerate(eval_config['datasets']):
-            output_folder = F"{i:>03}_{dataset['name'].lower().replace(' ', '_')}"
+            output_folder = F"{i+1:>03}_{dataset['name'].lower().replace(' ', '_')}"
             print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
             output_folder = os.path.join(args.output_folder, output_folder)
 
@@ -91,25 +91,37 @@ def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml
     create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
 
     run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
-                     dataset['imu_topic'], output_folder, tmp_yaml_filename)
+                     dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
+                     dataset['use_eklt'])
 
     print(F"Running dataset completed, analyzing outputs now...")
 
-    df_groundtruth, df_poses, df_realtime, profiling_json = read_output_files(output_folder)
+    gt_available = dataset['pose_topic'] is not None
 
-    traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth, output_folder)
+    df_groundtruth, df_poses, df_realtime, profiling_json = read_output_files(output_folder, gt_available)
+
+    if df_groundtruth is not None:
+        traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth, output_folder)
     perf_evaluator.evaluate(df_realtime, profiling_json)
 
 
-def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, output_folder, params_file):
-    #  F" --events_topic {dataset['events_topic']}" \ # ADD ME LATER
+def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
+                     use_eklt):
+    if pose_topic is None:
+        pose_topic = "\"\""
+    if events_topic is None:
+        events_topic = "\"\""
+
     command = F"{executable}" \
               F" --input_bag {rosbag}" \
               F" --image_topic {image_topic}" \
               F" --pose_topic {pose_topic}" \
               F" --imu_topic {imu_topic}" \
+              F" --events_topic {events_topic}" \
               F" --params_file {params_file}" \
               F" --output_folder {output_folder}"
+    if use_eklt:
+        command = command + " --use_eklt"
     # when running from console this was necessary
     command = command.replace('\n', ' ')
     print(F"Running {command}")
@@ -117,9 +129,11 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, out
     stream.read()  # waits for process to finish, captures stdout
 
 
-def read_output_files(output_folder):
+def read_output_files(output_folder, gt_available):
     df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
-    df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
+    df_groundtruth = None
+    if gt_available:
+        df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
     df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
     with open(os.path.join(output_folder, "profiling.json"), "rb") as f:
         profiling_json = orjson.loads(f.read())

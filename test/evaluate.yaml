@@ -12,11 +12,31 @@ common_params:
   n_tiles_w: 1
   max_feat_per_tile: 10000
   n_poses_max: 10
-  n_slam_features_max: 15
-  rho_0: 2.5
+  n_slam_features_max: 25
   iekf_iter: 1
-  msckf_baseline: 30.0
+  msckf_baseline: 15.0
   min_track_length: 10
+
+  eklt_batch_size: 500
+  eklt_update_every_n_events: 20
+  eklt_displacement_px: 0.6
+  eklt_patch_size: 35
+  eklt_max_num_iterations: 25
+  eklt_tracking_quality: 0.7
+  eklt_bootstrap: "klt"
+  eklt_lk_window_size: 20
+  eklt_num_pyramidal_layers: 3
+  eklt_scale: 4
+  eklt_display_features: false
+  eklt_display_feature_id: false
+  eklt_display_feature_patches: false
+  eklt_max_corners: 60
+  eklt_min_corners: 35
+  eklt_min_distance: 25
+  eklt_quality_level: 0.3
+  eklt_log_eps: 0.01
+  eklt_block_size: 3
+  eklt_k: 0
 
 datasets:
   -
@@ -26,14 +46,70 @@ datasets:
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
-    params: ${XVIO_SRC_ROOT}/params.yaml
+    params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
+    use_eklt: false
+    tags:
+      - xVIO
+      - Simulation
 
   -
-    name: Mars ESA Orbiter Xplorer
+    name: 45 Deg Carpet EKLT
+    rosbag: ${XVIO_DATASET_DIR}/esim_45deg_2021-03-17.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
+    use_eklt: true
+    tags:
+      - EKLT
+      - Simulation
+
+  -
+    name: ESA Mars
     rosbag: ${XVIO_DATASET_DIR}/mars_xplorer.bag
     events_topic: /cam0/events
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
-    params: ${XVIO_SRC_ROOT}/params.yaml
+    params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
+    use_eklt: false
+    tags:
+      - xVIO
+      - Simulation
 
+  -
+    name: ESA Mars EKLT
+    rosbag: ${XVIO_DATASET_DIR}/mars_xplorer.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
+    use_eklt: true
+    tags:
+      - EKLT
+      - Simulation
+
+  - name: Boxes 6DOF EKLT
+    rosbag: ${XVIO_DATASET_DIR}/boxes_6dof.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic:
+    imu_topic: /dvs/imu
+    params: ${XVIO_SRC_ROOT}/params_eklt_samples.yaml
+    use_eklt: true
+    tags:
+      - EKLT
+      - RPG Davis
+
+  - name: Circle High Velocity
+    rosbag: ${XVIO_DATASET_DIR}/circle_high_vel_restamped.bag
+    events_topic:
+    image_topic: /camera/image_raw
+    pose_topic:
+    imu_topic: /fcu/imu
+    params: ${XVIO_SRC_ROOT}/params.yaml
+    use_eklt: false
+    tags:
+      - xVIO

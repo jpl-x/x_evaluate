@@ -69,6 +69,8 @@ class TrajectoryEvaluator:
         self._result_table.loc[len(self._result_table)] = result_row
 
     def print_summary(self):
+        if len(self._rpe_error_arrays) <= 0:
+            return
         rpe_array = self.combined_rpe_error(metrics.PoseRelation.full_transformation, *self._rpe_error_arrays.keys())
         ape_array = self.combined_ape_error(metrics.PoseRelation.full_transformation, *self._ape_error_arrays.keys())
         rpe_rms = np.linalg.norm(rpe_array) / np.sqrt(len(rpe_array))
@@ -104,11 +106,15 @@ class TrajectoryEvaluator:
             self.plot_rpe_comparison(filename, r, *self._rpe_error_arrays.keys())
 
     def plot_ape_comparison(self, filename, kind: metrics.PoseRelation, *names):
+        if len(names) <= 0:
+            return
         data = [self._ape_error_arrays[name][kind] for name in names]
         labels = [*names]
         self.boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
 
     def plot_rpe_comparison(self, filename, kind: metrics.PoseRelation, *names):
+        if len(names) <= 0:
+            return
         data = [self._rpe_error_arrays[name][kind] for name in names]
         labels = [*names]
         self.boxplot(filename, data, labels, F"RPE w.r.t. {kind.value} comparison")

@@ -27,7 +27,7 @@
 namespace fs = std::filesystem;
 
 DEFINE_string(input_bag, "", "filename of the bag to scan");
-DEFINE_string(events_topic, "/cam0/events", "topic in rosbag publishing dvs_msgs::EventArray");
+DEFINE_string(events_topic, "", "topic in rosbag publishing dvs_msgs::EventArray");
 DEFINE_string(image_topic, "/cam0/image_raw", "topic in rosbag publishing sensor_msgs::Image");
 DEFINE_string(pose_topic, "", "(optional) topic publishing IMU pose ground truth as geometry_msgs::PoseStamped");
 DEFINE_string(imu_topic, "/imu", "topic in rosbag publishing sensor_msgs::Imu");
@@ -170,7 +170,9 @@ int evaluate() {
         state = vio.processImageMeasurement(image.getTimestamp(), image.getFrameNumber(), image, feature_img);
         EASY_END_BLOCK;
 
-      } else if (m.getTopic() == FLAGS_events_topic) {
+      } else if (!FLAGS_events_topic.empty() && m.getTopic() == FLAGS_events_topic) {
+
+        // this constexpr if is necessary, since VIO.processEventsMeasurement(...) would not compile with same arguments
         if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
           EASY_BLOCK("Events Message", profiler::colors::Blue);
           process_type = "Events";
@@ -229,7 +231,7 @@ int evaluate() {
 
     std::cerr << "Processed " << counter_imu << " IMU, "
               << counter_image << " image, "
-              << counter_events << " events and "
+              << counter_events << " event and "
               << counter_pose << " pose messages" << std::endl;
 
     std::cerr << "Writing outputs to folder " << output_path << std::endl;
