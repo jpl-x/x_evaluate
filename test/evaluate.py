@@ -83,7 +83,8 @@ def main():
         perf_evaluator.print_summary()
 
     finally:
-        os.remove(tmp_yaml_filename)
+        if os.path.exists(tmp_yaml_filename):
+            os.remove(tmp_yaml_filename)
 
 
 def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator, yaml_file):
@@ -102,7 +103,8 @@ def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml
 
     if df_groundtruth is not None:
         traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth, output_folder)
-    perf_evaluator.evaluate(df_realtime, profiling_json)
+
+    perf_evaluator.evaluate(dataset['name'], df_realtime, profiling_json, output_folder)
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
