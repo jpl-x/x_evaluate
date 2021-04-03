@@ -9,6 +9,5 @@ setup(
               'matplotlib>=3.3.4',
               'envyaml>=1.7',
               'evo>=1.13.4',
-              'orjson>=3.5.1',
               'pyyaml>=5.4.1']
 )

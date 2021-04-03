@@ -103,6 +103,18 @@ datasets:
       - EKLT
       - RPG Davis
 
+  - name: Boxes 6DOF
+    rosbag: ${XVIO_DATASET_DIR}/boxes_6dof.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic:
+    imu_topic: /dvs/imu
+    params: ${XVIO_SRC_ROOT}/params_eklt_samples.yaml
+    use_eklt: false
+    tags:
+      - xVIO
+      - RPG Davis
+
   - name: Circle High Velocity
     rosbag: ${XVIO_DATASET_DIR}/circle_high_vel_restamped.bag
     events_topic:

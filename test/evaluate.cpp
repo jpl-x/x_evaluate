@@ -96,15 +96,19 @@ int evaluate() {
     if (!FLAGS_pose_topic.empty())
       gt_csv.reset(new GTCsv(output_path / "gt.csv", {"t", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"}));
 
-    x::CsvWriter<double, double, std::string, profiler::timestamp_t, double> rt_csv(output_path / "realtime.csv",
-                                                                                    {"t_sim", "t_real",
-                                                                                     "processing_type",
-                                                                                     "process_time_in_us",
-                                                                                     "rt_factor"});
+    x::CsvWriter<double, double, profiler::timestamp_t, std::string, profiler::timestamp_t,
+                 double> rt_csv(output_path / "realtime.csv", {"t_sim", "t_real", "ts_real",
+                                                               "processing_type", "process_time_in_us", "rt_factor"});
+
+    x::EkltPerformanceLoggerPtr  eklt_logger;
+    if (FLAGS_use_eklt) {
+      eklt_logger = std::make_shared<x::EkltPerformanceLogger>(output_path);
+    }
 
     std::cerr << "Reading rosbag '" << FLAGS_input_bag << "'" << std::endl;
     rosbag::Bag bag;
     bag.open(FLAGS_input_bag);  // BagMode is Read by default
+
 
     VioClass vio;
     if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
@@ -116,12 +120,10 @@ int evaluate() {
       if (!success)
         return 1;
 
-      vio.setUp(params, eklt_params);
+      vio.setUp(params, eklt_params, eklt_logger);
     } else {
       vio.setUp(params);
     }
-
-
 
     rosbag::View view(bag);
 
@@ -141,6 +143,7 @@ int evaluate() {
     profiler::timestamp_t calculation_time = 0, last_calculation_time = 0;
 
     EASY_PROFILER_ENABLE;
+    EASY_MAIN_THREAD;
 
     for (rosbag::MessageInstance const &m : view) {
       std::string process_type;
@@ -219,15 +222,15 @@ int evaluate() {
         }
 
         addPose(pose_csv, process_type, state);
-        rt_csv.addRow(m.getTime().toSec(), calculation_time * 1e-6, process_type, duration_in_us, rt_factor);
+        rt_csv.addRow(m.getTime().toSec(), calculation_time * 1e-6, profiler::now(), process_type, duration_in_us, rt_factor);
       }
 
       ++show_progress;
     }
 
-    profiler::dumpBlocksToFile((output_path / "profiling.prof").c_str());
-    JsonExporter je;
-    je.convert((output_path / "profiling.prof").c_str(), (output_path / "profiling.json").c_str());
+//    profiler::dumpBlocksToFile((output_path / "profiling.prof").c_str());
+//    JsonExporter je;
+//    je.convert((output_path / "profiling.prof").c_str(), (output_path / "profiling.json").c_str());
 
     std::cerr << "Processed " << counter_imu << " IMU, "
               << counter_image << " image, "
@@ -243,6 +246,11 @@ int evaluate() {
     pose_csv.flush();
     if (gt_csv)
       gt_csv->flush();
+    if (eklt_logger) {
+      eklt_logger->events_csv.flush();
+      eklt_logger->optimizations_csv.flush();
+      eklt_logger->tracks_csv.flush();
+    }
 
     // destructor calls (--> CSV flushing) happening here
   }

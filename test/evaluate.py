@@ -6,7 +6,7 @@ import pandas as pd
 
 from envyaml import EnvYAML
 import yaml
-import orjson
+# import orjson
 
 from x_evaluate.performance_evaluation import PerformanceEvaluator
 from x_evaluate.trajectory_evaluation import TrajectoryEvaluator
@@ -99,12 +99,16 @@ def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml
 
     gt_available = dataset['pose_topic'] is not None
 
-    df_groundtruth, df_poses, df_realtime, profiling_json = read_output_files(output_folder, gt_available)
+    df_groundtruth, df_poses, df_realtime = read_output_files(output_folder, gt_available)
 
     if df_groundtruth is not None:
         traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth, output_folder)
 
-    perf_evaluator.evaluate(dataset['name'], df_realtime, profiling_json, output_folder)
+    perf_evaluator.evaluate(dataset['name'], df_realtime, output_folder)
+
+    if dataset['use_eklt']:
+        df_events, df_optimizations, df_tracks = read_eklt_output_files(output_folder)
+        perf_evaluator.evaluate_eklt(dataset['name'], df_events, df_optimizations, df_tracks, output_folder)
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
@@ -137,9 +141,26 @@ def read_output_files(output_folder, gt_available):
     if gt_available:
         df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
     df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
-    with open(os.path.join(output_folder, "profiling.json"), "rb") as f:
-        profiling_json = orjson.loads(f.read())
-    return df_groundtruth, df_poses, df_realtime, profiling_json
+
+    # profiling_json = read_json_file(output_folder)
+    return df_groundtruth, df_poses, df_realtime
+
+
+def read_eklt_output_files(output_folder):
+    df_events = pd.read_csv(os.path.join(output_folder, "events.csv"), delimiter=";")
+    df_optimizations = pd.read_csv(os.path.join(output_folder, "optimizations.csv"), delimiter=";")
+    df_tracks = pd.read_csv(os.path.join(output_folder, "tracks.csv"), delimiter=";")
+    return df_events, df_optimizations, df_tracks
+
+
+# def read_json_file(output_folder):
+#     profile_json_filename = os.path.join(output_folder, "profiling.json")
+#     if os.path.exists(profile_json_filename):
+#         with open(profile_json_filename, "rb") as f:
+#             profiling_json = orjson.loads(f.read())
+#     else:
+#         profiling_json = None
+#     return profiling_json
 
 
 def create_temporary_params_yaml(base_params_filename, common_params, tmp_yaml_filename):
