@@ -40,7 +40,8 @@ cam1_fx: 0.5
 cam1_fy: 0.66
 cam1_cx: 0.5
 cam1_cy: 0.5
-cam1_s:  0.0
+cam1_dist_model: FOV
+cam1_dist_params: [ 0.0 ]
 cam1_img_width: 640
 cam1_img_height: 480
 cam1_q_ic: [1, 0, 0, 0] # [w,x,y,z]
@@ -52,7 +53,8 @@ cam2_fx: 0.5
 cam2_fy: 0.66
 cam2_cx: 0.5
 cam2_cy: 0.5
-cam2_s:  0.0
+cam2_dist_model: FOV
+cam2_dist_params: [0.0]
 cam2_img_width: 640
 cam2_img_height: 480
 cam2_q_ic: [1, 0, 0, 0] # [w,x,y,z]

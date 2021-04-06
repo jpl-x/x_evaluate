@@ -97,7 +97,7 @@ datasets:
     image_topic: /dvs/image_raw
     pose_topic:
     imu_topic: /dvs/imu
-    params: ${XVIO_SRC_ROOT}/params_eklt_samples.yaml
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     use_eklt: true
     tags:
       - EKLT
@@ -109,7 +109,7 @@ datasets:
     image_topic: /dvs/image_raw
     pose_topic:
     imu_topic: /dvs/imu
-    params: ${XVIO_SRC_ROOT}/params_eklt_samples.yaml
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     use_eklt: false
     tags:
       - xVIO
