@@ -11,7 +11,7 @@ set(UNIT_TESTS false) # Set true to enable unit tests
 
 set(USE_EKLT_NODE true) # replaces original xVIO node with new EKLT node
 
-################################################################################ 
+################################################################################
 
 cmake_minimum_required(VERSION 2.8.3)
 project(x_vio_ros)
