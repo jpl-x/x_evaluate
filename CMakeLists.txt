@@ -9,11 +9,15 @@ set(PROFILING false)  # Set true to disable compiler flags which are not
 		      # compatible with Callgrind profiling tool.
 set(UNIT_TESTS false) # Set true to enable unit tests
 
+set(USE_EKLT_NODE true) # replaces original xVIO node with new EKLT node
+
 ################################################################################ 
 
 cmake_minimum_required(VERSION 2.8.3)
 project(x_vio_ros)
 set (CMAKE_BUILD_TYPE Release)
+
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og") # REMOVE ME LATER
 
 if(USE_EKLT_NODE)
   set(DUAL_THREAD false)
