@@ -155,6 +155,7 @@ event_cam1_time_offset: 0.0
 
 n_events_min: 15000
 n_events_max: 40000
+n_events_noise_detection_min: 40
 noise_event_rate: 20000
 event_norm_factor: 4.0
-correct_event_motion: True
+correct_event_motion: False
