@@ -137,27 +137,3 @@ traj_timeout_gui: 3
 
 # Initialize at startup
 init_at_startup: False
-
-##########
-# Events #
-##########
-
-# Event camera calibration for DVxplorer without distortion
-event_cam1_fx: 0.6437500
-event_cam1_fy: 0.8583333
-event_cam1_cx: 0.5000000
-event_cam1_cy: 0.5000000
-event_cam1_s:  0.0
-event_cam1_img_width: 640
-event_cam1_img_height: 480
-event_cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
-event_cam1_p_ic: [0.0, 0.0, 0.0] # [x,y,z]
-event_cam1_time_offset: 0.0
-
-
-n_events_min: 15000
-n_events_max: 40000
-n_events_noise_detection_min: 40
-noise_event_rate: 20000
-event_norm_factor: 4.0
-correct_event_motion: False

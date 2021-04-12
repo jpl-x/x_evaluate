@@ -16,7 +16,6 @@
   <build_depend>tf</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>image_transport</build_depend>
-  <build_depend>dvs_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
@@ -30,7 +29,6 @@
   <run_depend>tf</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>image_transport</run_depend>
-  <run_depend>dvs_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
