@@ -25,7 +25,8 @@ cam1_fx: 0.46513
 cam1_fy: 0.726246
 cam1_cx: 0.499822
 cam1_cy: 0.458086
-cam1_s:  0.950711
+cam1_dist_model: FOV
+cam1_dist_params: [0.950711]
 cam1_img_width: 752
 cam1_img_height: 480
 cam1_q_ic: [-0.004059133072894, 0.928890463133302, 0.370065735566358, -0.014049352983967] # [w,x,y,z]
@@ -36,7 +37,8 @@ cam2_fx: 0.46513
 cam2_fy: 0.726246
 cam2_cx: 0.499822
 cam2_cy: 0.458086
-cam2_s:  0.950711
+cam2_dist_model: FOV
+cam2_dist_params: [0.950711]
 cam2_img_width: 752
 cam2_img_height: 480
 cam2_q_ic: [-0.004059133072894, 0.928890463133302, 0.370065735566358, -0.014049352983967] # [w,x,y,z]
