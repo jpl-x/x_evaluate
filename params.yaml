@@ -147,7 +147,8 @@ event_cam1_fx: 0.6437500
 event_cam1_fy: 0.8583333
 event_cam1_cx: 0.5000000
 event_cam1_cy: 0.5000000
-event_cam1_s:  0.0
+event_cam1_dist_model: FOV
+event_cam1_dist_params: [0.0]
 event_cam1_img_width: 640
 event_cam1_img_height: 480
 event_cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
