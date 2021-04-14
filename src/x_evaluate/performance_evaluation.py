@@ -44,18 +44,25 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
 
 
 def plot_performance_plots(eval_data: EvaluationData, output_folder):
-    plot_realtime_factor(eval_data, os.path.join(output_folder, "realtime_factor.svg"))
+    plot_realtime_factor([eval_data], os.path.join(output_folder, "realtime_factor.svg"))
     if eval_data.eklt_performance_data is not None:
         plot_events_per_second(eval_data, os.path.join(output_folder, "events_per_second.svg"))
 
 
-def plot_realtime_factor(eval_data: EvaluationData, filename):
-    t_targets = np.arange(0.0, len(eval_data.performance_data.rt_factors)) * RT_FACTOR_RESOLUTION
+def plot_realtime_factor(evaluations: Collection[EvaluationData], filename):
     plt.figure()
-    plt.plot(t_targets, eval_data.performance_data.rt_factors, label=eval_data.name)
-    plt.plot(t_targets, np.ones_like(eval_data.performance_data.rt_factors), label="boundary", linestyle="--")
+    max_length = 0
+
+    for d in evaluations:
+        l = len(d.performance_data.rt_factors)
+        max_length = max(l, max_length)
+        t_targets = np.arange(0.0, l) * RT_FACTOR_RESOLUTION
+        plt.plot(t_targets, d.performance_data.rt_factors, label=d.name)
+
+    t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
+    plt.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
     plt.legend()
-    plt.title(F"Realtime factor ({eval_data.name})")
+    plt.title(F"Realtime factor")
     plt.savefig(filename)
     plt.clf()
 
