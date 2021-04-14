@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 
 import argparse
@@ -6,10 +7,11 @@ import pandas as pd
 
 from envyaml import EnvYAML
 import yaml
+import git
 # import orjson
-
-from x_evaluate.performance_evaluation import PerformanceEvaluator
-from x_evaluate.trajectory_evaluation import TrajectoryEvaluator
+from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData, GitInfo
+import x_evaluate.performance_evaluation as pe
+import x_evaluate.trajectory_evaluation as te
 
 
 def main():
@@ -61,8 +63,7 @@ def main():
 
     N = len(eval_config['datasets'])
 
-    perf_evaluator = PerformanceEvaluator()
-    traj_evaluator = TrajectoryEvaluator()
+    summary = EvaluationDataSummary()
 
     try:
         for i, dataset in enumerate(eval_config['datasets']):
@@ -70,30 +71,47 @@ def main():
             print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
             output_folder = os.path.join(args.output_folder, output_folder)
 
-            process_dataset(args.evaluate, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator,
-                            eval_config)
+            d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config)
+
+            pe.plot_performance_plots(d, output_folder)
+            te.plot_trajectory_plots(d, output_folder)
+
+            summary.data[dataset['name']] = d
 
             print(F"Analysis of output {i+1} of {N} completed")
 
         # traj_evaluator.plot_trajectory("45 Deg Carpet", "45 Deg Carpet")
 
-        traj_evaluator.plot_summary_boxplot(args.output_folder)
+        te.plot_summary_boxplot(summary, args.output_folder)
+        te.print_trajectory_summary(summary)
+        pe.print_realtime_factor_summary(summary)
 
-        traj_evaluator.print_summary()
-        perf_evaluator.print_summary()
+        x_vio_ros_root = os.environ['XVIO_SRC_ROOT']
+        x_root = os.path.normpath(os.path.join(x_vio_ros_root, "../x"))
+
+        print(F"Assuming '{x_root}' to be the x source root")
+
+        summary.x_git_info = get_git_info(x_root)
+        summary.x_vio_ros_git_info = get_git_info(x_vio_ros_root)
+
+        with open(os.path.join(args.output_folder, 'evaluation.pickle'), 'wb') as f:
+            pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
 
     finally:
         if os.path.exists(tmp_yaml_filename):
             os.remove(tmp_yaml_filename)
 
 
-def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml_filename, traj_evaluator, yaml_file):
+def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file) ->EvaluationData:
+
+    d = EvaluationData()
+    d.name = dataset['name']
 
     create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
 
-    run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
-                     dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
-                     dataset['use_eklt'])
+    # run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
+    #                  dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
+    #                  dataset['use_eklt'])
 
     print(F"Running dataset completed, analyzing outputs now...")
 
@@ -102,13 +120,14 @@ def process_dataset(executable, dataset, output_folder, perf_evaluator, tmp_yaml
     df_groundtruth, df_poses, df_realtime = read_output_files(output_folder, gt_available)
 
     if df_groundtruth is not None:
-        traj_evaluator.evaluate(dataset['name'], df_poses, df_groundtruth, output_folder)
+        d.trajectory_data = te.evaluate_trajectory(df_poses, df_groundtruth)
 
-    perf_evaluator.evaluate(dataset['name'], df_realtime, output_folder)
+    d.performance_data = pe.evaluate_computational_performance(df_realtime)
 
     if dataset['use_eklt']:
-        df_events, df_optimizations, df_tracks = read_eklt_output_files(output_folder)
-        perf_evaluator.evaluate_eklt(dataset['name'], df_events, df_optimizations, df_tracks, output_folder)
+        df_events, df_optimize, df_tracks = read_eklt_output_files(output_folder)
+        d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize, df_tracks)
+    return d
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
@@ -172,6 +191,13 @@ def create_temporary_params_yaml(base_params_filename, common_params, tmp_yaml_f
                 params[k] = c
         with open(tmp_yaml_filename, 'w') as tmp_yaml_file:
             yaml.dump(params, tmp_yaml_file)
+
+
+def get_git_info(path) -> GitInfo:
+    x = git.Repo(path)
+    return GitInfo(branch=x.active_branch.name,
+                   last_commit=x.head.object.hexsha,
+                   files_changed=len(x.index.diff(None)) > 0)
 
 
 if __name__ == '__main__':
