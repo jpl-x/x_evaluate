@@ -95,7 +95,7 @@ datasets:
     rosbag: ${XVIO_DATASET_DIR}/boxes_6dof.bag
     events_topic: /dvs/events
     image_topic: /dvs/image_raw
-    pose_topic:
+    pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     use_eklt: true
@@ -107,7 +107,7 @@ datasets:
     rosbag: ${XVIO_DATASET_DIR}/boxes_6dof.bag
     events_topic: /dvs/events
     image_topic: /dvs/image_raw
-    pose_topic:
+    pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     use_eklt: false

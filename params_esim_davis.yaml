@@ -139,7 +139,7 @@ rho_0: 0.05
 
 # Initial standard deviation of SLAM inverse depth [1/m]
 # (default: 1 / (4 * d_min) [Montiel, 2006])
-sigma_rho_0: 1.25
+sigma_rho_0: 0.025
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1

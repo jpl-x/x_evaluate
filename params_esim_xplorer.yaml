@@ -36,17 +36,16 @@ b_a: [0.0, 0.0, 0.0] # [x,y,z]
 #  width: 0
 #  do_rectify: False
 
-cam1_fx: 0.5
-cam1_fy: 0.66
-cam1_cx: 0.5
-cam1_cy: 0.5
+cam1_fx: 0.6437500
+cam1_fy: 0.8583333
+cam1_cx: 0.5000000
+cam1_cy: 0.5000000
 cam1_dist_model: FOV
-cam1_dist_params: [ 0.0 ]
+cam1_dist_params: [0.0]
 cam1_img_width: 640
 cam1_img_height: 480
-cam1_q_ic: [1, 0, 0, 0] # [w,x,y,z]
-#cam1_q_ic: [0.0000, -0.0000, -0.7071, 0.7071] # [w,x,y,z]
-cam1_p_ic: [0,  0, 0] # [x,y,z]
+cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
+cam1_p_ic: [0.0, 0.0, 0.0] # [x,y,z]
 cam1_time_offset: 0.0
 
 cam2_fx: 0.5
@@ -161,7 +160,7 @@ rho_0: 0.05
 
 # Initial standard deviation of SLAM inverse depth [1/m]
 # (default: 1 / (4 * d_min) [Montiel, 2006])
-sigma_rho_0: 1.25
+sigma_rho_0: 0.025
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1
