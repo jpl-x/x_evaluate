@@ -15,10 +15,10 @@ import copy
 
 from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData
 
-# POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
-#                   metrics.PoseRelation.translation_part]
+POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
+                  metrics.PoseRelation.translation_part]
 
-POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
+# POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
 
 
 def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) -> TrajectoryData:
@@ -133,37 +133,44 @@ def plot_summary_boxplot(summary: EvaluationDataSummary, output_folder):
         plot_rpe_comparison(summary.data.values(), filename, r)
 
 
-def plot_ape_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation):
-    labels = []
+def plot_ape_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation, labels=None):
+    auto_labels = []
     data = []
     for e in evaluations:
         if e.trajectory_data is not None:
             data.append(e.trajectory_data.ape_error_arrays[kind])
-            labels.append(e.name)
+            auto_labels.append(e.name)
 
-    if len(labels) <= 0:
+    if len(auto_labels) <= 0:
         return
+
+    if labels is None:
+        labels = auto_labels
 
     boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
 
 
-def plot_rpe_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation):
-    labels = []
+def plot_rpe_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation, labels=None):
+    auto_labels = []
     data = []
     for e in evaluations:
         if e.trajectory_data is not None:
             data.append(e.trajectory_data.rpe_error_arrays[kind])
-            labels.append(e.name)
+            auto_labels.append(e.name)
 
-    if len(labels) <= 0:
+    if len(auto_labels) <= 0:
         return
+
+    if labels is None:
+        labels = auto_labels
 
     boxplot(filename, data, labels, F"RPE w.r.t. {kind.value} comparison")
 
 
 def boxplot(filename, data, labels, title=""):
     plt.figure()
-    plt.boxplot(data, vert=True, labels=labels)
+    # WHIS explanation see https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.boxplot.html, it's worth it
+    plt.boxplot(data, vert=True, labels=labels, whis=10)
     plt.title(title)
 
     if filename is None or len(filename) == 0:

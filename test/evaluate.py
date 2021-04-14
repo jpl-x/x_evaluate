@@ -80,8 +80,6 @@ def main():
 
             print(F"Analysis of output {i+1} of {N} completed")
 
-        # traj_evaluator.plot_trajectory("45 Deg Carpet", "45 Deg Carpet")
-
         te.plot_summary_boxplot(summary, args.output_folder)
         te.print_trajectory_summary(summary)
         pe.print_realtime_factor_summary(summary)
@@ -94,7 +92,11 @@ def main():
         summary.x_git_info = get_git_info(x_root)
         summary.x_vio_ros_git_info = get_git_info(x_vio_ros_root)
 
-        with open(os.path.join(args.output_folder, 'evaluation.pickle'), 'wb') as f:
+        filename = os.path.join(args.output_folder, 'evaluation.pickle')
+
+        print(F"Dumping evaluation results to '{filename}'")
+
+        with open(filename, 'wb') as f:
             pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
 
     finally:
@@ -109,9 +111,9 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 
     create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
 
-    # run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
-    #                  dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
-    #                  dataset['use_eklt'])
+    run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
+                     dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
+                     dataset['use_eklt'])
 
     print(F"Running dataset completed, analyzing outputs now...")
 
