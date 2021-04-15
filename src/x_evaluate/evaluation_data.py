@@ -28,6 +28,8 @@ class PerformanceData:
 class EKLTPerformanceData:
     events_per_sec: np.ndarray
     events_per_sec_sim: np.ndarray
+    optimizations_per_sec: np.ndarray
+    optimization_iterations: np.ndarray
 
 
 class EvaluationData:

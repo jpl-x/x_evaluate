@@ -1,18 +1,9 @@
 import argparse
-import os
-import pickle
 
 from evo.core import metrics
 
-from x_evaluate.evaluation_data import EvaluationDataSummary
 from x_evaluate.trajectory_evaluation import plot_ape_comparison, plot_rpe_comparison
-
-
-def read_evaluation_pickle(input_folder, filename) -> EvaluationDataSummary:
-    file = os.path.join(input_folder, filename)
-    with open(file, 'rb') as f:
-        data = pickle.load(f)
-    return data
+from x_evaluate.utils import read_evaluation_pickle
 
 
 def main():

@@ -1,17 +1,13 @@
 import os
 from typing import Collection
 
-from evo.core.metrics import PoseRelation
-from natsort import os_sorted
-
-from x_evaluate.conversions import convert_to_evo_trajectory
+from x_evaluate.utils import convert_to_evo_trajectory, boxplot
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
 
 from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData
 
@@ -167,14 +163,3 @@ def plot_rpe_comparison(evaluations: Collection[EvaluationData], filename, kind:
     boxplot(filename, data, labels, F"RPE w.r.t. {kind.value} comparison")
 
 
-def boxplot(filename, data, labels, title=""):
-    plt.figure()
-    # WHIS explanation see https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.boxplot.html, it's worth it
-    plt.boxplot(data, vert=True, labels=labels, whis=10)
-    plt.title(title)
-
-    if filename is None or len(filename) == 0:
-        plt.show()
-    else:
-        plt.savefig(filename)
-    plt.clf()

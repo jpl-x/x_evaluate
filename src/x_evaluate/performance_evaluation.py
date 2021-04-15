@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary
+from x_evaluate.utils import boxplot
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -40,6 +41,12 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
     event_times_sim = np.interp(df_events['ts_start'], df_rt['ts_real'], df_rt['t_sim']) - df_rt['t_sim'][0]
     bins_sim = np.arange(0.0, event_times_sim[-1], 1.0)
     d.events_per_sec_sim, _ = np.histogram(event_times_sim, bins=bins_sim)
+
+    optimization_times = np.interp(df_optimizations['ts_start'], df_rt['ts_real'], df_rt['t_real'])
+    bins = np.arange(0.0, optimization_times[-1], 1.0)
+    d.optimizations_per_sec, _ = np.histogram(optimization_times, bins=bins)
+    d.optimization_iterations = df_optimizations['num_iterations'].to_numpy()
+
     return d
 
 
@@ -47,6 +54,22 @@ def plot_performance_plots(eval_data: EvaluationData, output_folder):
     plot_realtime_factor([eval_data], os.path.join(output_folder, "realtime_factor.svg"))
     if eval_data.eklt_performance_data is not None:
         plot_events_per_second(eval_data, os.path.join(output_folder, "events_per_second.svg"))
+        plot_optimizations_per_second(eval_data, os.path.join(output_folder, "optimizations_per_second.svg"))
+        plot_optimization_iterations([eval_data], os.path.join(output_folder, "optimization_iterations.svg"))
+
+
+def plot_optimization_iterations(evaluations: Collection[EvaluationData], filename, labels=None):
+    auto_labels = []
+    data = []
+    for d in evaluations:
+        if d.eklt_performance_data is not None:
+            data.append(d.eklt_performance_data.optimization_iterations)
+            auto_labels.append(d.name)
+
+    if labels is None:
+        labels = auto_labels
+
+    boxplot(filename, data, labels, "Optimization iterations")
 
 
 def plot_realtime_factor(evaluations: Collection[EvaluationData], filename):
@@ -54,9 +77,9 @@ def plot_realtime_factor(evaluations: Collection[EvaluationData], filename):
     max_length = 0
 
     for d in evaluations:
-        l = len(d.performance_data.rt_factors)
-        max_length = max(l, max_length)
-        t_targets = np.arange(0.0, l) * RT_FACTOR_RESOLUTION
+        length = len(d.performance_data.rt_factors)
+        max_length = max(length, max_length)
+        t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
         plt.plot(t_targets, d.performance_data.rt_factors, label=d.name)
 
     t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
@@ -65,6 +88,10 @@ def plot_realtime_factor(evaluations: Collection[EvaluationData], filename):
     plt.title(F"Realtime factor")
     plt.savefig(filename)
     plt.clf()
+
+
+def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
+    plot_optimization_iterations(summary.data.values(), os.path.join(output_folder, "optimization_iterations.svg"))
 
 
 def print_realtime_factor_summary(eval_data_summary: EvaluationDataSummary):
@@ -87,5 +114,17 @@ def plot_events_per_second(eval_data: EvaluationData, filename):
     plt.xlabel("time")
     plt.ylabel("events/s")
     plt.legend()
+    plt.savefig(filename)
+    plt.clf()
+
+
+def plot_optimizations_per_second(eval_data: EvaluationData, filename):
+    plt.figure()
+    plt.title(F"Optimizations per second ({eval_data.name})")
+    t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec))
+    plt.plot(t, eval_data.eklt_performance_data.optimizations_per_sec)
+    plt.xlabel("time")
+    plt.ylabel("optimizations/s")
+    # plt.legend()
     plt.savefig(filename)
     plt.clf()
