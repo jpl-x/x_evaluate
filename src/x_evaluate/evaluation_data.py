@@ -1,9 +1,21 @@
+from enum import Enum
+
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional
 
 from evo.core.metrics import PoseRelation
 from evo.core.trajectory import PoseTrajectory3D
+
+
+class ErrorType(Enum):
+    APE = 1
+    RPE = 2
+
+
+class PlotType(Enum):
+    BOXPLOT = 1
+    TIME_SERIES = 2
 
 
 class TrajectoryData:

@@ -26,6 +26,22 @@ def boxplot(filename, data, labels, title=""):
     plt.clf()
 
 
+def time_series_plot(filename, t_arrays, data, labels, title=""):
+    plt.figure()
+    for i in range(len(t_arrays)):
+        plt.plot(t_arrays[i], data[i], label=labels[i])
+
+    plt.legend()
+    plt.title(title)
+    plt.xlabel("Time [s]")
+
+    if filename is None or len(filename) == 0:
+        plt.show()
+    else:
+        plt.savefig(filename)
+    plt.clf()
+
+
 def read_evaluation_pickle(input_folder, filename) -> EvaluationDataSummary:
     file = os.path.join(input_folder, filename)
     with open(file, 'rb') as f:

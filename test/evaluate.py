@@ -80,7 +80,7 @@ def main():
 
             print(F"Analysis of output {i+1} of {N} completed")
 
-        te.plot_summary_boxplot(summary, args.output_folder)
+        te.plot_summary_plots(summary, args.output_folder)
         te.print_trajectory_summary(summary)
         pe.plot_summary_plots(summary, args.output_folder)
         pe.print_realtime_factor_summary(summary)

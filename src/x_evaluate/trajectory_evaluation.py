@@ -1,7 +1,7 @@
 import os
 from typing import Collection
 
-from x_evaluate.utils import convert_to_evo_trajectory, boxplot
+from x_evaluate.utils import convert_to_evo_trajectory, boxplot, time_series_plot
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData
+from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, PlotType, ErrorType
 
 POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
                   metrics.PoseRelation.translation_part]
@@ -121,20 +121,33 @@ def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
     plt.clf()
 
 
-def plot_summary_boxplot(summary: EvaluationDataSummary, output_folder):
+def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
     for r in POSE_RELATIONS:
         filename = os.path.join(output_folder, "ape_boxplot_" + r.name + ".svg")
-        plot_ape_comparison(summary.data.values(), filename, r)
+        plot_error_comparison(summary.data.values(), filename, r, ErrorType.APE, PlotType.BOXPLOT)
         filename = os.path.join(output_folder, "rpe_boxplot_" + r.name + ".svg")
-        plot_rpe_comparison(summary.data.values(), filename, r)
+        plot_error_comparison(summary.data.values(), filename, r, ErrorType.RPE, PlotType.BOXPLOT)
+        filename = os.path.join(output_folder, "ape_" + r.name + ".svg")
+        plot_error_comparison(summary.data.values(), filename, r, ErrorType.APE, PlotType.TIME_SERIES)
+        filename = os.path.join(output_folder, "rpe_" + r.name + ".svg")
+        plot_error_comparison(summary.data.values(), filename, r, ErrorType.RPE, PlotType.TIME_SERIES)
 
 
-def plot_ape_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation, labels=None):
+def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation,
+                          error_type: ErrorType = ErrorType.APE, plot_type: PlotType = PlotType.BOXPLOT, labels=None):
     auto_labels = []
     data = []
+    time_arrays = []
     for e in evaluations:
         if e.trajectory_data is not None:
-            data.append(e.trajectory_data.ape_error_arrays[kind])
+            if error_type == ErrorType.APE:
+                data.append(e.trajectory_data.ape_error_arrays[kind])
+            elif error_type == ErrorType.RPE:
+                data.append(e.trajectory_data.rpe_error_arrays[kind])
+            else:
+                raise ValueError(F"Invalid error type '{error_type}'")
+            t = e.trajectory_data.traj_est.timestamps.flatten()
+            time_arrays.append(t - t[0])
             auto_labels.append(e.name)
 
     if len(auto_labels) <= 0:
@@ -143,23 +156,9 @@ def plot_ape_comparison(evaluations: Collection[EvaluationData], filename, kind:
     if labels is None:
         labels = auto_labels
 
-    boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
-
-
-def plot_rpe_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation, labels=None):
-    auto_labels = []
-    data = []
-    for e in evaluations:
-        if e.trajectory_data is not None:
-            data.append(e.trajectory_data.rpe_error_arrays[kind])
-            auto_labels.append(e.name)
-
-    if len(auto_labels) <= 0:
-        return
-
-    if labels is None:
-        labels = auto_labels
-
-    boxplot(filename, data, labels, F"RPE w.r.t. {kind.value} comparison")
-
-
+    if plot_type == PlotType.BOXPLOT:
+        boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
+    elif plot_type == PlotType.TIME_SERIES:
+        time_series_plot(filename, time_arrays, data, labels, F"APE w.r.t. {kind.value}")
+    else:
+        raise ValueError(F"Invalid plot type '{plot_type}'")

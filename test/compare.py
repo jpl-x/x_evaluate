@@ -2,7 +2,8 @@ import argparse
 
 from evo.core import metrics
 
-from x_evaluate.trajectory_evaluation import plot_ape_comparison, plot_rpe_comparison
+from x_evaluate.evaluation_data import PlotType, ErrorType
+from x_evaluate.trajectory_evaluation import plot_error_comparison
 from x_evaluate.utils import read_evaluation_pickle
 
 
@@ -15,13 +16,16 @@ def main():
     print(args.input_folder)
 
     no_undistortion = read_evaluation_pickle(args.input_folder, "evaluation_no_undistortion.pickle")
+    new_undistortion = read_evaluation_pickle(args.input_folder, "evaluation_rt_fixed.pickle")
+    eklt = read_evaluation_pickle(args.input_folder, "evaluation.pickle")
     rt = read_evaluation_pickle(args.input_folder, "evaluation_radial_tangential.pickle")
     rt_pub = read_evaluation_pickle(args.input_folder, "evaluation_radial_tangential_published.pickle")
     # plot_ape_comparison(summary.data.values(), filename, r)
-    data = [no_undistortion.data['Boxes 6DOF'], rt.data['Boxes 6DOF'], rt_pub.data['Boxes 6DOF']]
-    labels = ["No undistortion", "Radial-tangential calib file", "Radial-tangential camera_info topic"]
-    plot_ape_comparison(data[:-1], None, metrics.PoseRelation.full_transformation, labels[:-1])
-    plot_rpe_comparison(data[:-1], None, metrics.PoseRelation.full_transformation, labels[:-1])
+    data = [no_undistortion.data['Boxes 6DOF'], rt.data['Boxes 6DOF'], new_undistortion.data['Boxes 6DOF'],
+            eklt.data['Boxes 6DOF EKLT']]
+    labels = ["No undistortion", "Radial-tangential", "Radial-tangential FIXED", "EKLT"]
+    plot_error_comparison(data, None, metrics.PoseRelation.full_transformation,
+                          ErrorType.APE, PlotType.TIME_SERIES, labels)
 
 
 if __name__ == '__main__':

@@ -66,6 +66,9 @@ def plot_optimization_iterations(evaluations: Collection[EvaluationData], filena
             data.append(d.eklt_performance_data.optimization_iterations)
             auto_labels.append(d.name)
 
+    if len(auto_labels) <= 0:
+        return
+
     if labels is None:
         labels = auto_labels
 
