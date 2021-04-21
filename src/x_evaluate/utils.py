@@ -13,10 +13,10 @@ def convert_to_evo_trajectory(df_poses, prefix="") -> PoseTrajectory3D:
     return PoseTrajectory3D(xyz_est, wxyz_est, df_poses[['t']].to_numpy())
 
 
-def boxplot(filename, data, labels, title=""):
-    plt.figure()
+def boxplot(filename, data, labels, title="", outlier_params=1.5):
+    f = plt.figure()
     # WHIS explanation see https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.boxplot.html, it's worth it
-    plt.boxplot(data, vert=True, labels=labels, whis=1.5)
+    plt.boxplot(data, vert=True, labels=labels, whis=outlier_params)
     plt.title(title)
 
     if filename is None or len(filename) == 0:
@@ -24,22 +24,30 @@ def boxplot(filename, data, labels, title=""):
     else:
         plt.savefig(filename)
     plt.clf()
+    plt.close(f)
 
 
-def time_series_plot(filename, t_arrays, data, labels, title=""):
-    plt.figure()
-    for i in range(len(t_arrays)):
-        plt.plot(t_arrays[i], data[i], label=labels[i])
+def time_series_plot(filename, time, data, labels, title="", ylabel=None):
+    f = plt.figure()
+    for i in range(len(data)):
+        if isinstance(time, list):
+            plt.plot(time[i], data[i], label=labels[i])
+        else:
+            plt.plot(time, data[i], label=labels[i])
 
     plt.legend()
     plt.title(title)
     plt.xlabel("Time [s]")
 
+    if ylabel is not None:
+        plt.ylabel(ylabel)
+
     if filename is None or len(filename) == 0:
         plt.show()
     else:
         plt.savefig(filename)
     plt.clf()
+    plt.close(f)
 
 
 def read_evaluation_pickle(input_folder, filename) -> EvaluationDataSummary:
@@ -47,3 +55,31 @@ def read_evaluation_pickle(input_folder, filename) -> EvaluationDataSummary:
     with open(file, 'rb') as f:
         data = pickle.load(f)
     return data
+
+
+def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
+                     use_eklt):
+    if pose_topic is None:
+        pose_topic = "\"\""
+    if events_topic is None:
+        events_topic = "\"\""
+
+    command = F"{executable}" \
+              F" --input_bag {rosbag}" \
+              F" --image_topic {image_topic}" \
+              F" --pose_topic {pose_topic}" \
+              F" --imu_topic {imu_topic}" \
+              F" --events_topic {events_topic}" \
+              F" --params_file {params_file}" \
+              F" --output_folder {output_folder}"
+    if use_eklt:
+        command = command + " --use_eklt"
+    # when running from console this was necessary
+    command = command.replace('\n', ' ')
+    print(F"Running {command}")
+    stream = os.popen(command)
+    out = stream.read()  # waits for process to finish, captures stdout
+    print("################### <STDOUT> ################")
+    print(out)
+    print("################### </STDOUT> ################")
+

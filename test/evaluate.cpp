@@ -24,6 +24,9 @@
 #include <x_vio_ros/ros_utils.h>
 #include <boost/progress.hpp>
 
+#include <sys/resource.h>
+#include <ctime>
+
 namespace fs = std::filesystem;
 
 DEFINE_string(input_bag, "", "filename of the bag to scan");
@@ -96,9 +99,13 @@ int evaluate() {
     if (!FLAGS_pose_topic.empty())
       gt_csv.reset(new GTCsv(output_path / "gt.csv", {"t", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"}));
 
-    x::CsvWriter<double, double, profiler::timestamp_t, std::string, profiler::timestamp_t,
-                 double> rt_csv(output_path / "realtime.csv", {"t_sim", "t_real", "ts_real",
-                                                               "processing_type", "process_time_in_us", "rt_factor"});
+    x::CsvWriter<double, double, profiler::timestamp_t, std::string, profiler::timestamp_t> rt_csv(
+      output_path / "realtime.csv", {"t_sim", "t_real", "ts_real", "processing_type", "process_time_in_us"});
+
+    x::CsvWriter<profiler::timestamp_t, double, double, double, size_t, size_t> resource_csv(output_path / "resource.csv",
+                   {"ts", "cpu_usage", "cpu_user_mode_usage", "cpu_kernel_mode_usage", "memory_usage_in_bytes", "debug_memory_in_bytes"});
+
+    x::XVioPerformanceLoggerPtr xvio_logger = std::make_shared<x::XVioPerformanceLogger>(output_path);
 
     x::EkltPerformanceLoggerPtr  eklt_logger;
     if (FLAGS_use_eklt) {
@@ -120,9 +127,9 @@ int evaluate() {
       if (!success)
         return 1;
 
-      vio.setUp(params, eklt_params, eklt_logger);
+      vio.setUp(params, eklt_params, xvio_logger, eklt_logger);
     } else {
-      vio.setUp(params);
+      vio.setUp(params, xvio_logger);
     }
 
     rosbag::View view(bag);
@@ -136,17 +143,25 @@ int evaluate() {
     uint64_t counter_imu = 0, counter_image = 0, counter_events = 0, counter_pose = 0;
     bool filer_initialized = false;
     x::State state;
+    auto t_0 = std::numeric_limits<double>::infinity();
     boost::progress_display show_progress(view.size(), std::cerr);
 
-    double rt_factor_resolution = .5;
-    double next_rt_factor = rt_factor_resolution;
-    profiler::timestamp_t calculation_time = 0, last_calculation_time = 0;
+    profiler::timestamp_t calculation_time = 0, last_rusage_check = 0;
+
+    struct timeval rusage_walltime;
+    gettimeofday(&rusage_walltime, nullptr);
+
+    struct rusage prev_rusage;
+    getrusage(RUSAGE_SELF, &prev_rusage);
+
 
     EASY_PROFILER_ENABLE;
     EASY_MAIN_THREAD;
 
     for (rosbag::MessageInstance const &m : view) {
       std::string process_type;
+
+      auto start = profiler::now();
 
       if (m.getTopic() == FLAGS_imu_topic) {
         EASY_BLOCK("IMU Message", profiler::colors::Red);
@@ -198,37 +213,67 @@ int evaluate() {
         EASY_END_BLOCK;
       }
 
+      auto stop = profiler::now();
+
+      if (m.getTime().toSec() < t_0)
+        t_0 = m.getTime().toSec();
+
+      // profile 1s only to avoid huge files that are not handleable anymore
+      if (m.getTime().toSec() - t_0 > 1.0)
+        EASY_PROFILER_DISABLE;
+
+      if (calculation_time - last_rusage_check >= 1000000) {
+        last_rusage_check = calculation_time;
+        struct timeval rusage_walltime_new;
+        gettimeofday(&rusage_walltime_new, nullptr);
+
+        double walltime_sec_passed = (rusage_walltime_new.tv_sec + rusage_walltime_new.tv_usec * 1e-6) -
+                                   (rusage_walltime.tv_sec + rusage_walltime.tv_usec * 1e-6);
+
+        struct rusage cur_rusage;
+        getrusage(RUSAGE_SELF, &cur_rusage);
+
+        double cpu_time_usr = (cur_rusage.ru_utime.tv_sec + cur_rusage.ru_utime.tv_usec * 1e-6) -
+                              (prev_rusage.ru_utime.tv_sec + prev_rusage.ru_utime.tv_usec * 1e-6);
+        double cpu_time_sys = (cur_rusage.ru_stime.tv_sec + cur_rusage.ru_stime.tv_usec * 1e-6) -
+                              (prev_rusage.ru_stime.tv_sec + prev_rusage.ru_stime.tv_usec * 1e-6);
+
+//        std::cout << "timings passed: WT: " << walltime_sec_passed
+//                  << " USR: " << cpu_time_usr
+//                  << " SYS: " << cpu_time_sys << std::endl;
+
+        double cpu_usage = 100 * (cpu_time_sys + cpu_time_usr) / walltime_sec_passed;
+        double cpu_usage_usr = 100 * cpu_time_usr / walltime_sec_passed;
+        double cpu_usage_sys = 100 * cpu_time_sys / walltime_sec_passed;
+
+        size_t mem_usage_in_bytes = cur_rusage.ru_maxrss * 1024L;
+        size_t mem_usage_debug = x::DebugMemoryMonitor::instance().memory_usage_in_bytes();
+
+        resource_csv.addRow(profiler::now(), cpu_usage, cpu_usage_usr, cpu_usage_sys, mem_usage_in_bytes, mem_usage_debug);
+
+        rusage_walltime = rusage_walltime_new;
+        prev_rusage = cur_rusage;
+      }
+
       if (!filer_initialized && vio.isInitialized()) {
         filer_initialized = true;
-        next_rt_factor = m.getTime().toSec() + rt_factor_resolution;
 //        auto count = show_progress.count();
 //        show_progress.restart(view.size());
 //        show_progress += count;
       }
 
       if (!process_type.empty() && filer_initialized) {
-        auto duration_in_us = profiler::this_thread_frameTime();
+        auto duration_in_us = profiler::toMicroseconds(stop - start);
         calculation_time += duration_in_us;
 
-        double rt_factor = std::numeric_limits<double>::quiet_NaN();
-
-        if (m.getTime().toSec() >= next_rt_factor) {
-          next_rt_factor += rt_factor_resolution;
-
-          rt_factor = static_cast<double>(calculation_time - last_calculation_time) * 1e-6 / rt_factor_resolution;
-
-          // reset calculation time
-          last_calculation_time = calculation_time;
-        }
-
         addPose(pose_csv, process_type, state);
-        rt_csv.addRow(m.getTime().toSec(), calculation_time * 1e-6, profiler::now(), process_type, duration_in_us, rt_factor);
+        rt_csv.addRow(m.getTime().toSec(), calculation_time * 1e-6, profiler::now(), process_type, duration_in_us);
       }
 
       ++show_progress;
     }
 
-//    profiler::dumpBlocksToFile((output_path / "profiling.prof").c_str());
+    profiler::dumpBlocksToFile((output_path / "profiling.prof").c_str());
 //    JsonExporter je;
 //    je.convert((output_path / "profiling.prof").c_str(), (output_path / "profiling.json").c_str());
 
@@ -244,6 +289,8 @@ int evaluate() {
     // manually flush as workaround for memory corruption in EKLT node
     rt_csv.flush();
     pose_csv.flush();
+    xvio_logger->features_csv.flush();
+    resource_csv.flush();
     if (gt_csv)
       gt_csv->flush();
     if (eklt_logger) {

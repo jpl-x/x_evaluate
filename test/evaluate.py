@@ -12,6 +12,8 @@ import git
 from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData, GitInfo
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
+import x_evaluate.tracking_evaluation as fe
+from x_evaluate.utils import run_evaluate_cpp
 
 
 def main():
@@ -75,6 +77,7 @@ def main():
 
             pe.plot_performance_plots(d, output_folder)
             te.plot_trajectory_plots(d, output_folder)
+            fe.plot_feature_plots(d, output_folder)
 
             summary.data[dataset['name']] = d
 
@@ -84,6 +87,7 @@ def main():
         te.print_trajectory_summary(summary)
         pe.plot_summary_plots(summary, args.output_folder)
         pe.print_realtime_factor_summary(summary)
+        fe.plot_summary_plots(summary, args.output_folder)
 
         x_vio_ros_root = os.environ['XVIO_SRC_ROOT']
         x_root = os.path.normpath(os.path.join(x_vio_ros_root, "../x"))
@@ -105,7 +109,7 @@ def main():
             os.remove(tmp_yaml_filename)
 
 
-def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file) ->EvaluationData:
+def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file) -> EvaluationData:
 
     d = EvaluationData()
     d.name = dataset['name']
@@ -120,52 +124,34 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 
     gt_available = dataset['pose_topic'] is not None
 
-    df_groundtruth, df_poses, df_realtime = read_output_files(output_folder, gt_available)
+    df_groundtruth, df_poses, df_realtime, df_features, df_resources = read_output_files(output_folder, gt_available)
 
     if df_groundtruth is not None:
         d.trajectory_data = te.evaluate_trajectory(df_poses, df_groundtruth)
 
-    d.performance_data = pe.evaluate_computational_performance(df_realtime)
+    d.performance_data = pe.evaluate_computational_performance(df_realtime, df_resources)
+
+    df_tracks = None
 
     if dataset['use_eklt']:
         df_events, df_optimize, df_tracks = read_eklt_output_files(output_folder)
-        d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize, df_tracks)
+        d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize)
+
+    d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
     return d
-
-
-def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
-                     use_eklt):
-    if pose_topic is None:
-        pose_topic = "\"\""
-    if events_topic is None:
-        events_topic = "\"\""
-
-    command = F"{executable}" \
-              F" --input_bag {rosbag}" \
-              F" --image_topic {image_topic}" \
-              F" --pose_topic {pose_topic}" \
-              F" --imu_topic {imu_topic}" \
-              F" --events_topic {events_topic}" \
-              F" --params_file {params_file}" \
-              F" --output_folder {output_folder}"
-    if use_eklt:
-        command = command + " --use_eklt"
-    # when running from console this was necessary
-    command = command.replace('\n', ' ')
-    print(F"Running {command}")
-    stream = os.popen(command)
-    stream.read()  # waits for process to finish, captures stdout
 
 
 def read_output_files(output_folder, gt_available):
     df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
+    df_features = pd.read_csv(os.path.join(output_folder, "features.csv"), delimiter=";")
+    df_resources = pd.read_csv(os.path.join(output_folder, "resource.csv"), delimiter=";")
     df_groundtruth = None
     if gt_available:
         df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
     df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
 
     # profiling_json = read_json_file(output_folder)
-    return df_groundtruth, df_poses, df_realtime
+    return df_groundtruth, df_poses, df_realtime, df_features, df_resources
 
 
 def read_eklt_output_files(output_folder):

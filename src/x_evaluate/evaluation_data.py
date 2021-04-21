@@ -29,11 +29,23 @@ class TrajectoryData:
         self.rpe_error_arrays = dict()
 
 
+class FeatureTrackingData:
+    df_x_vio_features: pd.DataFrame
+
+    df_eklt_features: Optional[pd.DataFrame]
+    df_eklt_feature_age: Optional[pd.DataFrame]
+
+    def __init__(self):
+        self.df_eklt_features = None
+        self.df_eklt_feature_age = None
+
+
 class PerformanceData:
     """
     Holds computational performance data useful for plots and comparisons
     """
     df_realtime: pd.DataFrame
+    df_resources: pd.DataFrame
     rt_factors: np.ndarray
 
 
@@ -49,6 +61,7 @@ class EvaluationData:
     tags: List[str]
     trajectory_data: Optional[TrajectoryData]
     performance_data: PerformanceData
+    feature_data: FeatureTrackingData
     eklt_performance_data: Optional[EKLTPerformanceData]
 
     def __init__(self):

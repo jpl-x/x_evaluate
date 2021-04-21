@@ -5,17 +5,18 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary
-from x_evaluate.utils import boxplot
+from x_evaluate.utils import boxplot, time_series_plot
 
 RT_FACTOR_RESOLUTION = 0.2
 
 
-def evaluate_computational_performance(df_rt: pd.DataFrame) -> PerformanceData:
+def evaluate_computational_performance(df_rt: pd.DataFrame, df_resources: pd.DataFrame) -> PerformanceData:
     # for now only save those columns, later also save average processing times for events, IMU, etc.
     d = PerformanceData()
     d.df_realtime = df_rt[['t_sim', 't_real', 'ts_real']]
     realtime_factors = calculate_realtime_factors(df_rt)
     d.rt_factors = realtime_factors
+    d.df_resources = df_resources
     return d
 
 
@@ -29,8 +30,8 @@ def calculate_realtime_factors(df_rt, resolution=RT_FACTOR_RESOLUTION):
     return realtime_factors
 
 
-def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFrame, df_optimizations: pd.DataFrame,
-                              df_tracks: pd.DataFrame) -> EKLTPerformanceData:
+def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFrame,
+                              df_optimizations: pd.DataFrame) -> EKLTPerformanceData:
     d = EKLTPerformanceData()
     df_rt = perf_data.df_realtime
 
@@ -50,8 +51,33 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
     return d
 
 
+def plot_resources(eval_data: EvaluationData, output_folder):
+    df_rt = eval_data.performance_data.df_realtime
+    df_resources = eval_data.performance_data.df_resources
+
+    resource_times = np.interp(df_resources['ts'], df_rt['ts_real'], df_rt['t_real'])
+
+    #
+
+    data = [df_resources['cpu_usage'], df_resources['cpu_user_mode_usage'], df_resources['cpu_kernel_mode_usage']]
+    labels = ["CPU total", "CPU user mode", "CPU kernel mode"]
+    file = os.path.join(output_folder, "cpu_usage.svg")
+    time_series_plot(file, resource_times, data, labels, F"CPU Usage ({eval_data.name})", "cpu time : real time [%]")
+
+    mem_usage = df_resources['memory_usage_in_bytes'].to_numpy() / 1024 / 1024
+    mem_usage_debug = df_resources['debug_memory_in_bytes'].to_numpy() / 1024 / 1024
+
+    actual_mem = mem_usage - mem_usage_debug
+
+    data = [actual_mem, mem_usage_debug]
+    labels = ["memory usage", "additional debug memory"]
+    file = os.path.join(output_folder, "memory_usage.svg")
+    time_series_plot(file, resource_times, data, labels, F"Memory Usage ({eval_data.name})", "MB")
+
+
 def plot_performance_plots(eval_data: EvaluationData, output_folder):
     plot_realtime_factor([eval_data], os.path.join(output_folder, "realtime_factor.svg"))
+    plot_resources(eval_data, output_folder)
     if eval_data.eklt_performance_data is not None:
         plot_events_per_second(eval_data, os.path.join(output_folder, "events_per_second.svg"))
         plot_optimizations_per_second(eval_data, os.path.join(output_folder, "optimizations_per_second.svg"))
@@ -124,7 +150,7 @@ def plot_events_per_second(eval_data: EvaluationData, filename):
 def plot_optimizations_per_second(eval_data: EvaluationData, filename):
     plt.figure()
     plt.title(F"Optimizations per second ({eval_data.name})")
-    t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec))
+    t = np.arange(0.0, len(eval_data.eklt_performance_data.optimizations_per_sec))
     plt.plot(t, eval_data.eklt_performance_data.optimizations_per_sec)
     plt.xlabel("time")
     plt.ylabel("optimizations/s")

@@ -99,7 +99,7 @@ def print_trajectory_summary(summary: EvaluationDataSummary):
 def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
     traj_by_label = dict()
 
-    if len(trajectories):
+    if len(trajectories) <= 0:
         return
 
     first = True
@@ -140,13 +140,16 @@ def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kin
     time_arrays = []
     for e in evaluations:
         if e.trajectory_data is not None:
+            t = e.trajectory_data.traj_est.timestamps.flatten()
             if error_type == ErrorType.APE:
                 data.append(e.trajectory_data.ape_error_arrays[kind])
             elif error_type == ErrorType.RPE:
+                # relative error available only for n-1 values
+                t = t[:-1]
                 data.append(e.trajectory_data.rpe_error_arrays[kind])
             else:
                 raise ValueError(F"Invalid error type '{error_type}'")
-            t = e.trajectory_data.traj_est.timestamps.flatten()
+
             time_arrays.append(t - t[0])
             auto_labels.append(e.name)
 
