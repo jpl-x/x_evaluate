@@ -59,6 +59,9 @@ def main():
     eval_config = EnvYAML(args.configuration)
     tmp_yaml_filename = os.path.join(args.output_folder, 'tmp.yaml')
 
+    if not os.path.exists(args.output_folder):
+        os.makedirs(args.output_folder)
+
     print(F"Using the following 'evaluate' executable: {args.evaluate}")
     print(F"Processing the following datasets: {str.join(', ', (d['name'] for d in eval_config['datasets']))}")
     print()
@@ -114,7 +117,7 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     d = EvaluationData()
     d.name = dataset['name']
 
-    create_temporary_params_yaml(dataset['params'], yaml_file['common_params'], tmp_yaml_filename)
+    create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename)
 
     run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
                      dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
@@ -171,13 +174,19 @@ def read_eklt_output_files(output_folder):
 #     return profiling_json
 
 
-def create_temporary_params_yaml(base_params_filename, common_params, tmp_yaml_filename):
+def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename):
+    base_params_filename = dataset['params']
     with open(base_params_filename) as base_params_file:
         params = yaml.full_load(base_params_file)
         for k, c in common_params.items():
             if c != params[k]:
                 print(F"Overwriting '{k}': '{params[k]}' --> '{c}'")
                 params[k] = c
+        if 'override_params' in dataset.keys():
+            for k, c in dataset['override_params'].items():
+                if c != params[k]:
+                    print(F"Overwriting '{k}': '{params[k]}' --> '{c}'")
+                    params[k] = c
         with open(tmp_yaml_filename, 'w') as tmp_yaml_file:
             yaml.dump(params, tmp_yaml_file)
 
