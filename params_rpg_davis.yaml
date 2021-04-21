@@ -15,12 +15,12 @@ b_a: [0.0, 0.0, 0.0] # [x,y,z]
 # Calibration #
 ###############
 
-cam1_fx: 0.8307143111366176
-cam1_fy: 1.1094881524187095
-cam1_cx: 0.5573099196496173
-cam1_cy: 0.6332898330570906
+cam1_fx: 0.829551527
+cam1_fy: 1.104604558
+cam1_cx: 0.550800297
+cam1_cy: 0.615070333
 cam1_dist_model: radial-tangential
-cam1_dist_params: [-0.38289915571515265, 0.18933636521343228, -0.0010024743349031492, -0.0005637766302076818, 0]
+cam1_dist_params: [-0.3684363117977873, 0.1509472435566583, -0.0002961305343848646, -0.000759431726241032, 0]
 cam1_img_width: 240
 cam1_img_height: 180
 cam1_q_ic: [0.999965419952174, 0.004660206319180, -0.003190841088148, -0.006104089619662]
@@ -107,17 +107,17 @@ eklt_lk_window_size: 20
 eklt_num_pyramidal_layers: 3
 eklt_scale: 4
 eklt_display_features: true
-eklt_display_feature_id: false
-eklt_display_feature_patches: false
+eklt_display_feature_id: true
+eklt_display_feature_patches: true
 eklt_arrow_length: 5
 
-eklt_max_corners: 100
-eklt_min_corners: 0
-eklt_min_distance: 10
-eklt_quality_level: 0.01
+eklt_max_corners: 60
+eklt_min_corners: 45
+eklt_min_distance: 10  # 10
+eklt_quality_level: 0.3 # 0.01
 eklt_log_eps: 0.01
 eklt_block_size: 3
-eklt_k: 0.04
+eklt_k: 0  # 0.04
 
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
@@ -130,7 +130,7 @@ eklt_tracks_file_txt: ""
 n_poses_max: 10
 
 # Number of SLAM features
-n_slam_features_max: 15
+n_slam_features_max: 25
 
 # Initial inverse depth of SLAM features [1/m]
 # (default: 1 / (2 * d_min) [Montiel, 2006])
@@ -144,7 +144,7 @@ sigma_rho_0: 1.25
 iekf_iter: 1
 
 # Minimum baseline to trigger MSCKF measurement (pixels)
-msckf_baseline: 30.0
+msckf_baseline: 15.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10
