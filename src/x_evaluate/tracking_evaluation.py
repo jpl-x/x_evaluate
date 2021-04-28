@@ -5,22 +5,20 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary
-from x_evaluate.utils import time_series_plot, boxplot
+from x_evaluate.utils import time_series_plot, boxplot, timestamp_to_rosbag_time_zero
 
 
 def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFrame,
                               df_eklt_tracks: pd.DataFrame = None) -> FeatureTrackingData:
     d = FeatureTrackingData()
 
-    df_rt = perf_data.df_realtime
-
-    feature_times = np.interp(df_features['ts'], df_rt['ts_real'], df_rt['t_sim']) - df_rt['t_sim'][0]
+    feature_times = timestamp_to_rosbag_time_zero(df_features['ts'], perf_data.df_realtime)
     df_features['ts'] = feature_times
 
     d.df_x_vio_features = df_features.rename(columns={'ts': 't'})
 
     if df_eklt_tracks is not None:
-        track_times = np.interp(df_eklt_tracks['ts'], df_rt['ts_real'], df_rt['t_sim']) - df_rt['t_sim'][0]
+        track_times = timestamp_to_rosbag_time_zero(df_eklt_tracks['ts'], perf_data.df_realtime)
         df_eklt_tracks['ts'] = track_times
         df_eklt_tracks = df_eklt_tracks.rename(columns={'ts': 't'})
         df_eklt_tracks['change'] = 0

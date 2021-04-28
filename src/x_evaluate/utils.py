@@ -1,6 +1,7 @@
 import os
 import pickle
 
+import numpy as np
 from evo.core.trajectory import PoseTrajectory3D
 from matplotlib import pyplot as plt
 
@@ -15,6 +16,7 @@ def convert_to_evo_trajectory(df_poses, prefix="") -> PoseTrajectory3D:
 
 def boxplot(filename, data, labels, title="", outlier_params=1.5):
     f = plt.figure()
+    f.set_size_inches(10, 7)
     # WHIS explanation see https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.boxplot.html, it's worth it
     plt.boxplot(data, vert=True, labels=labels, whis=outlier_params)
     plt.title(title)
@@ -83,3 +85,14 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, eve
     print(out)
     print("################### </STDOUT> ################")
 
+
+def timestamp_to_rosbag_time(timestamps, df_rt):
+    return np.interp(timestamps, df_rt['ts_real'], df_rt['t_sim'])
+
+
+def timestamp_to_rosbag_time_zero(timestamps, df_rt):
+    return timestamp_to_rosbag_time(timestamps, df_rt) - df_rt['t_sim'][0]
+
+
+def timestamp_to_real_time(timestamps, df_rt):
+    return np.interp(timestamps, df_rt['ts_real'], df_rt['t_real'])
