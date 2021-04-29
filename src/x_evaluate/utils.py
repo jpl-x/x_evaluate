@@ -1,11 +1,14 @@
 import os
 import pickle
+from typing import Dict
 
+import git
 import numpy as np
+from envyaml import EnvYAML
 from evo.core.trajectory import PoseTrajectory3D
 from matplotlib import pyplot as plt
 
-from x_evaluate.evaluation_data import EvaluationDataSummary
+from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo
 
 
 def convert_to_evo_trajectory(df_poses, prefix="") -> PoseTrajectory3D:
@@ -52,7 +55,7 @@ def time_series_plot(filename, time, data, labels, title="", ylabel=None):
     plt.close(f)
 
 
-def read_evaluation_pickle(input_folder, filename) -> EvaluationDataSummary:
+def read_evaluation_pickle(input_folder, filename="evaluation.pickle") -> EvaluationDataSummary:
     file = os.path.join(input_folder, filename)
     with open(file, 'rb') as f:
         data = pickle.load(f)
@@ -85,6 +88,8 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, eve
     print(out)
     print("################### </STDOUT> ################")
 
+    return command
+
 
 def timestamp_to_rosbag_time(timestamps, df_rt):
     return np.interp(timestamps, df_rt['ts_real'], df_rt['t_sim'])
@@ -96,3 +101,18 @@ def timestamp_to_rosbag_time_zero(timestamps, df_rt):
 
 def timestamp_to_real_time(timestamps, df_rt):
     return np.interp(timestamps, df_rt['ts_real'], df_rt['t_real'])
+
+
+def envyaml_to_archive_dict(eval_config: EnvYAML) -> Dict:
+    conf = eval_config.export()
+    # remove environment keys to protect privacy
+    for k in os.environ.keys():
+        conf.pop(k)
+    return conf
+
+
+def get_git_info(path) -> GitInfo:
+    x = git.Repo(path)
+    return GitInfo(branch=x.active_branch.name,
+                   last_commit=x.head.object.hexsha,
+                   files_changed=len(x.index.diff(None)) > 0)

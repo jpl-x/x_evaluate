@@ -59,6 +59,8 @@ class EKLTPerformanceData:
 class EvaluationData:
     name: str
     tags: List[str]
+    params: Dict
+    command: str
     trajectory_data: Optional[TrajectoryData]
     performance_data: PerformanceData
     feature_data: FeatureTrackingData
@@ -83,6 +85,8 @@ class GitInfo:
 class EvaluationDataSummary:
     data: Dict[str, EvaluationData]
     trajectory_result_table: pd.DataFrame
+
+    configuration: Dict
 
     x_git_info: GitInfo
     x_vio_ros_git_info: GitInfo

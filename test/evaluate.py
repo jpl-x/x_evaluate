@@ -7,13 +7,12 @@ import pandas as pd
 
 from envyaml import EnvYAML
 import yaml
-import git
 # import orjson
-from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData, GitInfo
+from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
-from x_evaluate.utils import run_evaluate_cpp
+from x_evaluate.utils import run_evaluate_cpp, envyaml_to_archive_dict, get_git_info
 
 
 def main():
@@ -70,6 +69,10 @@ def main():
 
     summary = EvaluationDataSummary()
 
+    conf = envyaml_to_archive_dict(eval_config)
+
+    summary.configuration = conf
+
     try:
         for i, dataset in enumerate(eval_config['datasets']):
             output_folder = F"{i+1:>03}_{dataset['name'].lower().replace(' ', '_')}"
@@ -117,11 +120,10 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     d = EvaluationData()
     d.name = dataset['name']
 
-    create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename)
-
-    run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
-                     dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
-                     dataset['use_eklt'])
+    d.params = create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename)
+    d.command = run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
+                                 dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
+                                 dataset['use_eklt'])
 
     print(F"Running dataset completed, analyzing outputs now...")
 
@@ -189,13 +191,7 @@ def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename):
                     params[k] = c
         with open(tmp_yaml_filename, 'w') as tmp_yaml_file:
             yaml.dump(params, tmp_yaml_file)
-
-
-def get_git_info(path) -> GitInfo:
-    x = git.Repo(path)
-    return GitInfo(branch=x.active_branch.name,
-                   last_commit=x.head.object.hexsha,
-                   files_changed=len(x.index.diff(None)) > 0)
+    return params
 
 
 if __name__ == '__main__':
