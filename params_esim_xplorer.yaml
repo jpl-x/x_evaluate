@@ -140,6 +140,7 @@ eklt_quality_level: 0.3
 eklt_log_eps: 0.01
 eklt_block_size: 3
 eklt_k: 0
+eklt_enable_outlier_removal: false
 
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
