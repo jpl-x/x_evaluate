@@ -34,11 +34,19 @@ def boxplot(filename, data, labels, title="", outlier_params=1.5):
 
 def time_series_plot(filename, time, data, labels, title="", ylabel=None):
     f = plt.figure()
+    f.set_size_inches(10, 7)
+
     for i in range(len(data)):
+
+        # this causes issues, quick fix:
+        label = labels[i]
+        if label.startswith('_'):
+            label = label[1:]
+
         if isinstance(time, list):
-            plt.plot(time[i], data[i], label=labels[i])
+            plt.plot(time[i], data[i], label=label)
         else:
-            plt.plot(time, data[i], label=labels[i])
+            plt.plot(time, data[i], label=label)
 
     plt.legend()
     plt.title(title)
@@ -116,3 +124,7 @@ def get_git_info(path) -> GitInfo:
     return GitInfo(branch=x.active_branch.name,
                    last_commit=x.head.object.hexsha,
                    files_changed=len(x.index.diff(None)) > 0)
+
+
+def name_to_identifier(name):
+    return name.lower().replace(' ', '_')

@@ -142,7 +142,7 @@ def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kin
         if e.trajectory_data is not None:
             t = e.trajectory_data.traj_est.timestamps.flatten()
             if error_type == ErrorType.APE:
-                data.append(e.trajectory_data.ape_error_arrays[kind])
+                data.append(np.log1p(e.trajectory_data.ape_error_arrays[kind]))
             elif error_type == ErrorType.RPE:
                 # relative error available only for n-1 values
                 t = t[:-1]

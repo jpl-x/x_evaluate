@@ -12,7 +12,7 @@ from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
-from x_evaluate.utils import run_evaluate_cpp, envyaml_to_archive_dict, get_git_info
+from x_evaluate.utils import run_evaluate_cpp, envyaml_to_archive_dict, get_git_info, name_to_identifier
 
 
 def main():
@@ -75,7 +75,7 @@ def main():
 
     try:
         for i, dataset in enumerate(eval_config['datasets']):
-            output_folder = F"{i+1:>03}_{dataset['name'].lower().replace(' ', '_')}"
+            output_folder = F"{i+1:>03}_{name_to_identifier(dataset['name'])}"
             print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
             output_folder = os.path.join(args.output_folder, output_folder)
 

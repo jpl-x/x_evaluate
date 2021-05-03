@@ -99,15 +99,24 @@ def plot_optimization_iterations(evaluations: Collection[EvaluationData], filena
     boxplot(filename, data, labels, "Optimization iterations")
 
 
-def plot_realtime_factor(evaluations: Collection[EvaluationData], filename):
+def plot_realtime_factor(evaluations: Collection[EvaluationData], filename, labels=None):
     plt.figure()
     max_length = 0
+
+    i = 0
 
     for d in evaluations:
         length = len(d.performance_data.rt_factors)
         max_length = max(length, max_length)
         t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
-        plt.plot(t_targets, d.performance_data.rt_factors, label=d.name)
+        label = d.name
+        if labels is not None:
+            label = labels[i]
+            # this causes issues, quick fix:
+            if label.startswith('_'):
+                label = label[1:]
+            i += 1
+        plt.plot(t_targets, d.performance_data.rt_factors, label=label)
 
     t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
     plt.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
