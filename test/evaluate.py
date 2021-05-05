@@ -12,7 +12,7 @@ import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
 from x_evaluate.utils import envyaml_to_archive_dict, get_git_info, name_to_identifier, \
-    read_output_files, read_eklt_output_files
+    read_output_files, read_eklt_output_files, ArgparseKeyValueAction
 from x_evaluate.scriptlets import run_evaluate_cpp
 
 
@@ -29,8 +29,14 @@ def main():
     parser.add_argument('--configuration', type=str, default="", help="YAML file specifying what to run")
     parser.add_argument('--dataset_dir', type=str, default="", help="substitutes XVIO_DATASET_DIR in yaml file")
     parser.add_argument('--output_folder', type=str, required=True)
+    # adding an arguments
+    parser.add_argument('--overrides', nargs='*', action=ArgparseKeyValueAction)
 
     args = parser.parse_args()
+
+    cmdline_override_params = dict()
+    if args.overrides is not None:
+        cmdline_override_params = args.overrides
 
     if len(args.evaluate) == 0:
         try:
@@ -80,7 +86,7 @@ def main():
             print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
             output_folder = os.path.join(args.output_folder, output_folder)
 
-            d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config)
+            d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config, cmdline_override_params)
 
             pe.plot_performance_plots(d, output_folder)
             te.plot_trajectory_plots(d, output_folder)
@@ -116,12 +122,12 @@ def main():
             os.remove(tmp_yaml_filename)
 
 
-def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file) -> EvaluationData:
+def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file, cmdline_override_params) -> EvaluationData:
 
     d = EvaluationData()
     d.name = dataset['name']
 
-    d.params = create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename)
+    d.params = create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename, cmdline_override_params)
     d.command = run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
                                  dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
                                  dataset['use_eklt'])
@@ -157,7 +163,7 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 #     return profiling_json
 
 
-def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename):
+def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename, cmdline_override_params):
     base_params_filename = dataset['params']
     with open(base_params_filename) as base_params_file:
         params = yaml.full_load(base_params_file)
@@ -170,6 +176,10 @@ def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename):
                 if c != params[k]:
                     print(F"Overwriting '{k}': '{params[k]}' --> '{c}'")
                     params[k] = c
+        for k, c in cmdline_override_params.items():
+            if c != params[k]:
+                print(F"Overwriting '{k}': '{params[k]}' --> '{c}'")
+                params[k] = c
         with open(tmp_yaml_filename, 'w') as tmp_yaml_file:
             yaml.dump(params, tmp_yaml_file)
     return params

@@ -1,3 +1,4 @@
+import argparse
 import os
 import pickle
 from typing import Dict
@@ -5,10 +6,36 @@ from typing import Dict
 import git
 import numpy as np
 import pandas as pd
+import distutils.util
 from envyaml import EnvYAML
 from evo.core.trajectory import PoseTrajectory3D
-
 from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo
+
+
+class ArgparseKeyValueAction(argparse.Action):
+    # Constructor calling
+    def __call__(self, parser, namespace,
+                 values, option_string=None):
+        setattr(namespace, self.dest, dict())
+
+        for value in values:
+            key, value = value.split('=')
+            value = str_to_likely_type(value)
+            getattr(namespace, self.dest)[key] = value
+
+
+def str_to_likely_type(value):
+    try:
+        value = int(value)
+    except ValueError:
+        try:
+            value = float(value)
+        except ValueError:
+            try:
+                value = distutils.util.strtobool(value) == 1
+            except ValueError:
+                pass
+    return value
 
 
 def convert_to_evo_trajectory(df_poses, prefix="") -> PoseTrajectory3D:
