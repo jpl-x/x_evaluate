@@ -26,9 +26,14 @@ def main():
         cur_id += 1
         track = tracks.loc[tracks.id == cur_id]
 
-        if len(track) > 3:
-            track_times = timestamp_to_rosbag_time_zero(track['ts'], rt)
+        if len(track) > 10:
+            track_times = track['patch_t_current'].to_numpy() - track.iloc[0]['patch_t_current']
             delta_t = track_times[-1] - track_times[0]
+
+            if delta_t < 0.1:
+                print(F"Delta t too small: {delta_t}")
+                continue
+
             print(F"Analyzing track with {len(track)} updates, tracked over {delta_t:.1f}s")
             print(F"    had the following updates: {track['update_type'].unique()}")
 
