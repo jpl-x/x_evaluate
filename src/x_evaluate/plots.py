@@ -3,6 +3,11 @@ from enum import Enum
 from matplotlib import pyplot as plt
 
 
+class PlotType(Enum):
+    BOXPLOT = 1
+    TIME_SERIES = 2
+
+
 class PlotContext:
     figure: plt.Figure
 
@@ -40,36 +45,25 @@ def boxplot(filename, data, labels, title="", outlier_params=1.5):
 
 
 def time_series_plot(filename, time, data, labels, title="", ylabel=None):
-    f = plt.figure()
-    f.set_size_inches(10, 7)
+    with PlotContext(filename) as f:
+        ax = f.get_axis()
 
-    for i in range(len(data)):
+        for i in range(len(data)):
 
-        # this causes issues, quick fix:
-        label = labels[i]
-        if label.startswith('_'):
-            label = label[1:]
+            # this causes issues, quick fix:
+            label = labels[i]
+            if label.startswith('_'):
+                label = label[1:]
 
-        if isinstance(time, list):
-            plt.plot(time[i], data[i], label=label)
-        else:
-            plt.plot(time, data[i], label=label)
+            if isinstance(time, list):
+                plt.plot(time[i], data[i], label=label)
+            else:
+                plt.plot(time, data[i], label=label)
 
-    plt.legend()
-    plt.title(title)
-    plt.xlabel("Time [s]")
+        plt.legend()
+        plt.title(title)
+        plt.xlabel("Time [s]")
 
-    if ylabel is not None:
-        plt.ylabel(ylabel)
+        if ylabel is not None:
+            plt.ylabel(ylabel)
 
-    if filename is None or len(filename) == 0:
-        plt.show()
-    else:
-        plt.savefig(filename)
-    plt.clf()
-    plt.close(f)
-
-
-class PlotType(Enum):
-    BOXPLOT = 1
-    TIME_SERIES = 2

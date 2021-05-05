@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from x_evaluate.plots import PlotContext
 from x_evaluate.utils import timestamp_to_rosbag_time_zero
 
 
@@ -50,17 +51,16 @@ def main():
             print(F"    flow_angle in [{np.min(angle)}, {np.max(angle)}]"
                   F" estimate in [{np.min(angle_estimates)},{np.max(angle_estimates)}]")
 
-            plt.figure()
-            plt.plot(track_times[1:-1], np.rad2deg(angle_estimates[:-1]), label="Differential feature position angle")
-            plt.plot(track_times[1:-1], np.rad2deg(angle[:-1]), label="Optimized angle")
-            plt.ylabel("angle [deg]")
-            plt.legend()
-
             filename = F"track_{cur_id}.svg"
             file = os.path.join(args.output_folder, filename)
-            plt.savefig(file)
-            plt.clf()
-            plt.close()
+            with PlotContext(file) as f:
+                ax = f.get_axis()
+
+                ax.plot(track_times[1:-1], np.rad2deg(angle_estimates[:-1]), label="Differential feature position "
+                                                                                   "angle")
+                ax.plot(track_times[1:-1], np.rad2deg(angle[:-1]), label="Optimized angle")
+                ax.set_ylabel("angle [deg]")
+                ax.legend()
 
             analyzed_tracks += 1
 

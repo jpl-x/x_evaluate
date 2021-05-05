@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
-from x_evaluate.plots import boxplot, time_series_plot
+from x_evaluate.plots import boxplot, time_series_plot, PlotContext
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -101,30 +101,29 @@ def plot_optimization_iterations(evaluations: Collection[EvaluationData], filena
 
 
 def plot_realtime_factor(evaluations: Collection[EvaluationData], filename, labels=None):
-    plt.figure()
-    max_length = 0
+    with PlotContext(filename) as f:
+        ax = f.get_axis()
+        max_length = 0
 
-    i = 0
+        i = 0
 
-    for d in evaluations:
-        length = len(d.performance_data.rt_factors)
-        max_length = max(length, max_length)
-        t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
-        label = d.name
-        if labels is not None:
-            label = labels[i]
-            # this causes issues, quick fix:
-            if label.startswith('_'):
-                label = label[1:]
-            i += 1
-        plt.plot(t_targets, d.performance_data.rt_factors, label=label)
+        for d in evaluations:
+            length = len(d.performance_data.rt_factors)
+            max_length = max(length, max_length)
+            t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
+            label = d.name
+            if labels is not None:
+                label = labels[i]
+                # this causes issues, quick fix:
+                if label.startswith('_'):
+                    label = label[1:]
+                i += 1
+            ax.plot(t_targets, d.performance_data.rt_factors, label=label)
 
-    t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
-    plt.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
-    plt.legend()
-    plt.title(F"Realtime factor")
-    plt.savefig(filename)
-    plt.clf()
+        t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
+        ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
+        ax.legend()
+        ax.set_title(F"Realtime factor")
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
@@ -142,26 +141,24 @@ def combine_rt_factors(evaluations: Collection[EvaluationData]) -> np.ndarray:
 
 
 def plot_events_per_second(eval_data: EvaluationData, filename):
-    plt.figure()
-    plt.title(F"Events per second ({eval_data.name})")
-    t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec))
-    plt.plot(t, eval_data.eklt_performance_data.events_per_sec, label="processed")
-    t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec_sim))
-    plt.plot(t, eval_data.eklt_performance_data.events_per_sec_sim, label="demanded")
-    plt.xlabel("time")
-    plt.ylabel("events/s")
-    plt.legend()
-    plt.savefig(filename)
-    plt.clf()
+    with PlotContext(filename) as f:
+        ax = f.get_axis()
+        ax.set_title(F"Events per second ({eval_data.name})")
+        t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec))
+        ax.plot(t, eval_data.eklt_performance_data.events_per_sec, label="processed")
+        t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec_sim))
+        ax.plot(t, eval_data.eklt_performance_data.events_per_sec_sim, label="demanded")
+        ax.set_xlabel("time")
+        ax.set_ylabel("events/s")
+        ax.legend()
 
 
 def plot_optimizations_per_second(eval_data: EvaluationData, filename):
-    plt.figure()
-    plt.title(F"Optimizations per second ({eval_data.name})")
-    t = np.arange(0.0, len(eval_data.eklt_performance_data.optimizations_per_sec))
-    plt.plot(t, eval_data.eklt_performance_data.optimizations_per_sec)
-    plt.xlabel("time")
-    plt.ylabel("optimizations/s")
-    # plt.legend()
-    plt.savefig(filename)
-    plt.clf()
+    with PlotContext(filename) as f:
+        ax = f.get_axis()
+        ax.set_title(F"Optimizations per second ({eval_data.name})")
+        t = np.arange(0.0, len(eval_data.eklt_performance_data.optimizations_per_sec))
+        ax.plot(t, eval_data.eklt_performance_data.optimizations_per_sec)
+        ax.set_xlabel("time")
+        ax.set_ylabel("optimizations/s")
+        # ax.legend()
