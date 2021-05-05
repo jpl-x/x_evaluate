@@ -1,7 +1,8 @@
 import os
 from typing import Collection
 
-from x_evaluate.utils import convert_to_evo_trajectory, boxplot, time_series_plot
+from x_evaluate.utils import convert_to_evo_trajectory
+from x_evaluate.plots import boxplot, time_series_plot, PlotType
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
@@ -9,7 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, PlotType, ErrorType
+from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, ErrorType
 
 POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
                   metrics.PoseRelation.translation_part]
@@ -142,7 +143,8 @@ def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kin
         if e.trajectory_data is not None:
             t = e.trajectory_data.traj_est.timestamps.flatten()
             if error_type == ErrorType.APE:
-                data.append(np.log1p(e.trajectory_data.ape_error_arrays[kind]))
+                # data.append(np.log1p(e.trajectory_data.ape_error_arrays[kind]))
+                data.append(e.trajectory_data.ape_error_arrays[kind])
             elif error_type == ErrorType.RPE:
                 # relative error available only for n-1 values
                 t = t[:-1]
@@ -162,6 +164,7 @@ def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kin
     if plot_type == PlotType.BOXPLOT:
         boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
     elif plot_type == PlotType.TIME_SERIES:
+        # time_series_plot(filename, time_arrays, data, labels, F"APE w.r.t. {kind.value}", ylabel="log error")
         time_series_plot(filename, time_arrays, data, labels, F"APE w.r.t. {kind.value}")
     else:
         raise ValueError(F"Invalid plot type '{plot_type}'")

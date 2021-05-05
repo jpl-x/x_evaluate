@@ -5,7 +5,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary
-from x_evaluate.utils import boxplot, time_series_plot, timestamp_to_real_time, timestamp_to_rosbag_time_zero
+from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
+from x_evaluate.plots import boxplot, time_series_plot
 
 RT_FACTOR_RESOLUTION = 0.2
 

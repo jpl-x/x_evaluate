@@ -5,7 +5,8 @@ import os
 from typing import List, Dict
 
 from evo.core import metrics
-from x_evaluate.evaluation_data import PlotType, ErrorType, EvaluationDataSummary
+from x_evaluate.evaluation_data import ErrorType, EvaluationDataSummary
+from x_evaluate.plots import PlotType
 from x_evaluate.utils import read_evaluation_pickle, name_to_identifier
 
 import x_evaluate.tracking_evaluation as fe
@@ -43,7 +44,7 @@ def main():
     for f in input_folders:
         name = str(f.split('/')[-1])
         # print("Reading", os.path.join(f, "evaluation.pickle"))
-        s = read_evaluation_pickle(f)
+        s = read_evaluation_pickle(os.path.join(f, "evaluation.pickle"))
         summaries[name] = s
         # print(args.input_folder)
 

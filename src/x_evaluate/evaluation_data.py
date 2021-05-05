@@ -13,11 +13,6 @@ class ErrorType(Enum):
     RPE = 2
 
 
-class PlotType(Enum):
-    BOXPLOT = 1
-    TIME_SERIES = 2
-
-
 class TrajectoryData:
     ape_error_arrays: Dict[PoseRelation, np.ndarray]
     rpe_error_arrays: Dict[PoseRelation, np.ndarray]

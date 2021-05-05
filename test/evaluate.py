@@ -3,7 +3,6 @@ import pickle
 import sys
 
 import argparse
-import pandas as pd
 
 from envyaml import EnvYAML
 import yaml
@@ -12,7 +11,9 @@ from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
-from x_evaluate.utils import run_evaluate_cpp, envyaml_to_archive_dict, get_git_info, name_to_identifier
+from x_evaluate.utils import envyaml_to_archive_dict, get_git_info, name_to_identifier, \
+    read_output_files, read_eklt_output_files
+from x_evaluate.scriptlets import run_evaluate_cpp
 
 
 def main():
@@ -144,26 +145,6 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 
     d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
     return d
-
-
-def read_output_files(output_folder, gt_available):
-    df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
-    df_features = pd.read_csv(os.path.join(output_folder, "features.csv"), delimiter=";")
-    df_resources = pd.read_csv(os.path.join(output_folder, "resource.csv"), delimiter=";")
-    df_groundtruth = None
-    if gt_available:
-        df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
-    df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
-
-    # profiling_json = read_json_file(output_folder)
-    return df_groundtruth, df_poses, df_realtime, df_features, df_resources
-
-
-def read_eklt_output_files(output_folder):
-    df_events = pd.read_csv(os.path.join(output_folder, "events.csv"), delimiter=";")
-    df_optimizations = pd.read_csv(os.path.join(output_folder, "optimizations.csv"), delimiter=";")
-    df_tracks = pd.read_csv(os.path.join(output_folder, "tracks.csv"), delimiter=";")
-    return df_events, df_optimizations, df_tracks
 
 
 # def read_json_file(output_folder):

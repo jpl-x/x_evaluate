@@ -5,7 +5,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary
-from x_evaluate.utils import time_series_plot, boxplot, timestamp_to_rosbag_time_zero
+from x_evaluate.utils import timestamp_to_rosbag_time_zero
+from x_evaluate.plots import boxplot, time_series_plot
 
 
 def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFrame,
