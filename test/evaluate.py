@@ -11,9 +11,9 @@ from x_evaluate.evaluation_data import EvaluationDataSummary, EvaluationData
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
-from x_evaluate.utils import envyaml_to_archive_dict, get_git_info, name_to_identifier, \
+from x_evaluate.utils import envyaml_to_archive_dict, name_to_identifier, \
     read_output_files, read_eklt_output_files, ArgparseKeyValueAction
-from x_evaluate.scriptlets import run_evaluate_cpp
+from x_evaluate.scriptlets import run_evaluate_cpp, get_git_info
 
 
 def main():
@@ -72,7 +72,7 @@ def main():
     print(F"Processing the following datasets: {str.join(', ', (d['name'] for d in eval_config['datasets']))}")
     print()
 
-    N = len(eval_config['datasets'])
+    n = len(eval_config['datasets'])
 
     summary = EvaluationDataSummary()
 
@@ -83,7 +83,7 @@ def main():
     try:
         for i, dataset in enumerate(eval_config['datasets']):
             output_folder = F"{i+1:>03}_{name_to_identifier(dataset['name'])}"
-            print(F"Processing dataset {i+1} of {N}, writing to {output_folder}")
+            print(F"Processing dataset {i+1} of {n}, writing to {output_folder}")
             output_folder = os.path.join(args.output_folder, output_folder)
 
             d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config, cmdline_override_params)
@@ -94,7 +94,7 @@ def main():
 
             summary.data[dataset['name']] = d
 
-            print(F"Analysis of output {i+1} of {N} completed")
+            print(F"Analysis of output {i+1} of {n} completed")
 
         te.plot_summary_plots(summary, args.output_folder)
         te.print_trajectory_summary(summary)

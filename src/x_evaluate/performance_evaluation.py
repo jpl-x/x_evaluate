@@ -4,9 +4,10 @@ from typing import Collection
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary
+from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary, \
+    DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
-from x_evaluate.plots import boxplot, time_series_plot, PlotContext
+from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_from_summary
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -47,8 +48,7 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
     optimization_times = timestamp_to_real_time(df_optimizations['ts_start'], df_rt)
     bins = np.arange(0.0, optimization_times[-1], 1.0)
     d.optimizations_per_sec, _ = np.histogram(optimization_times, bins=bins)
-    d.optimization_iterations = df_optimizations['num_iterations'].to_numpy()
-
+    d.optimization_iterations = DistributionSummary(df_optimizations['num_iterations'].to_numpy())
     return d
 
 
@@ -97,7 +97,7 @@ def plot_optimization_iterations(evaluations: Collection[EvaluationData], filena
     if labels is None:
         labels = auto_labels
 
-    boxplot(filename, data, labels, "Optimization iterations")
+    boxplot_from_summary(filename, data, labels, "Optimization iterations")
 
 
 def plot_realtime_factor(evaluations: Collection[EvaluationData], filename, labels=None):

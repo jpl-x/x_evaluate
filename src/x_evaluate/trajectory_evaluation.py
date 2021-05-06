@@ -1,7 +1,7 @@
 import os
 from typing import Collection
 
-from x_evaluate.utils import convert_to_evo_trajectory
+from x_evaluate.utils import convert_to_evo_trajectory, rms
 from x_evaluate.plots import boxplot, time_series_plot, PlotType
 from evo.core import sync
 from evo.core import metrics
@@ -91,8 +91,8 @@ def print_trajectory_summary(summary: EvaluationDataSummary):
         return
     rpe_array = combine_rpe_error(summary.data.values(), metrics.PoseRelation.full_transformation)
 
-    rpe_rms = np.linalg.norm(rpe_array) / np.sqrt(len(rpe_array))
-    ape_rms = np.linalg.norm(ape_array) / np.sqrt(len(rpe_array))
+    rpe_rms = rms(rpe_array)
+    ape_rms = rms(rpe_array)
 
     print(F"Overall [RPE] [APE]: {rpe_rms:>15.2f} {ape_rms:>15.2f}")
 

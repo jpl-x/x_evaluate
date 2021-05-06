@@ -1,6 +1,9 @@
 from enum import Enum
+from typing import List
 
 from matplotlib import pyplot as plt
+
+from x_evaluate.evaluation_data import DistributionSummary
 
 
 class PlotType(Enum):
@@ -44,6 +47,29 @@ def boxplot(filename, data, labels, title="", outlier_params=1.5):
         ax.set_title(title)
 
 
+def summary_to_dict(distribution_summary: DistributionSummary, label):
+    return {
+        'label': label,
+        'whislo': distribution_summary.min,  # Bottom whisker position
+        'q1': distribution_summary.quantiles[0.25],  # First quartile (25th percentile)
+        'med': distribution_summary.quantiles[0.5],  # Median         (50th percentile)
+        'q3': distribution_summary.quantiles[0.75],  # Third quartile (75th percentile)
+        'whishi': distribution_summary.max,  # Top whisker position
+        'fliers': []  # Outliers
+    }
+
+
+def boxplot_from_summary(filename, distribution_summaries: List[DistributionSummary], labels, title=""):
+    with PlotContext(filename) as f:
+        ax = f.get_axis()
+        boxes = []
+
+        for i in range(len(distribution_summaries)):
+            boxes.append(summary_to_dict(distribution_summaries[i], labels[i]))
+        ax.bxp(boxes, showfliers=False)
+        ax.set_title(title)
+
+
 def time_series_plot(filename, time, data, labels, title="", ylabel=None):
     with PlotContext(filename) as f:
         ax = f.get_axis()
@@ -56,14 +82,13 @@ def time_series_plot(filename, time, data, labels, title="", ylabel=None):
                 label = label[1:]
 
             if isinstance(time, list):
-                plt.plot(time[i], data[i], label=label)
+                ax.plot(time[i], data[i], label=label)
             else:
-                plt.plot(time, data[i], label=label)
+                ax.plot(time, data[i], label=label)
 
-        plt.legend()
-        plt.title(title)
-        plt.xlabel("Time [s]")
+        ax.legend()
+        ax.set_title(title)
+        ax.set_xlabel("Time [s]")
 
         if ylabel is not None:
-            plt.ylabel(ylabel)
-
+            ax.set_ylabel(ylabel)

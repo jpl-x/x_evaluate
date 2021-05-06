@@ -1,15 +1,12 @@
 import argparse
 import os
-import pickle
 from typing import Dict
 
-import git
 import numpy as np
 import pandas as pd
 import distutils.util
 from envyaml import EnvYAML
 from evo.core.trajectory import PoseTrajectory3D
-from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo
 
 
 class ArgparseKeyValueAction(argparse.Action):
@@ -44,12 +41,6 @@ def convert_to_evo_trajectory(df_poses, prefix="") -> PoseTrajectory3D:
     return PoseTrajectory3D(xyz_est, wxyz_est, df_poses[['t']].to_numpy())
 
 
-def read_evaluation_pickle(file) -> EvaluationDataSummary:
-    with open(file, 'rb') as f:
-        data = pickle.load(f)
-    return data
-
-
 def timestamp_to_rosbag_time(timestamps, df_rt):
     return np.interp(timestamps, df_rt['ts_real'], df_rt['t_sim'])
 
@@ -68,13 +59,6 @@ def envyaml_to_archive_dict(eval_config: EnvYAML) -> Dict:
     for k in os.environ.keys():
         conf.pop(k)
     return conf
-
-
-def get_git_info(path) -> GitInfo:
-    x = git.Repo(path)
-    return GitInfo(branch=x.active_branch.name,
-                   last_commit=x.head.object.hexsha,
-                   files_changed=len(x.index.diff(None)) > 0)
 
 
 def name_to_identifier(name):
@@ -105,3 +89,13 @@ def read_eklt_output_files(output_folder):
     df_optimizations = pd.read_csv(os.path.join(output_folder, "optimizations.csv"), delimiter=";")
     df_tracks = pd.read_csv(os.path.join(output_folder, "tracks.csv"), delimiter=";")
     return df_events, df_optimizations, df_tracks
+
+
+def rms(data):
+    return np.linalg.norm(data) / np.sqrt(len(data))
+
+
+def nanrms(data):
+    without_nans = data[~np.isnan(data)]
+    return np.linalg.norm(without_nans) / np.sqrt(len(without_nans))
+

@@ -1,4 +1,9 @@
 import os
+import pickle
+
+import git
+
+from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
@@ -28,3 +33,16 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, eve
     print("################### </STDOUT> ################")
 
     return command
+
+
+def read_evaluation_pickle(file) -> EvaluationDataSummary:
+    with open(file, 'rb') as f:
+        data = pickle.load(f)
+    return data
+
+
+def get_git_info(path) -> GitInfo:
+    x = git.Repo(path)
+    return GitInfo(branch=x.active_branch.name,
+                   last_commit=x.head.object.hexsha,
+                   files_changed=len(x.index.diff(None)) > 0)
