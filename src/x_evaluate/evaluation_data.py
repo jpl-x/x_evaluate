@@ -41,10 +41,12 @@ class ErrorType(Enum):
 
 
 class TrajectoryData:
-    ape_error_arrays: Dict[PoseRelation, np.ndarray]
-    rpe_error_arrays: Dict[PoseRelation, np.ndarray]
     traj_ref: PoseTrajectory3D
     traj_est: PoseTrajectory3D
+    raw_estimate_t_xyz_wxyz: np.ndarray
+
+    ape_error_arrays: Dict[PoseRelation, np.ndarray]
+    rpe_error_arrays: Dict[PoseRelation, np.ndarray]
 
     def __init__(self):
         self.ape_error_arrays = dict()

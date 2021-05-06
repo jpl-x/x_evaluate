@@ -20,8 +20,8 @@ POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation
 
 def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) -> TrajectoryData:
     d = TrajectoryData()
-    d.traj_est = convert_to_evo_trajectory(df_poses, prefix="estimated_")
-    d.traj_ref = convert_to_evo_trajectory(df_groundtruth)
+    d.traj_est, d.raw_estimate_t_xyz_wxyz = convert_to_evo_trajectory(df_poses, prefix="estimated_")
+    d.traj_ref, _ = convert_to_evo_trajectory(df_groundtruth)
 
     max_diff = 0.01
     d.traj_ref, d.traj_est = sync.associate_trajectories(d.traj_ref, d.traj_est, max_diff)
