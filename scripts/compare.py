@@ -6,8 +6,8 @@ from typing import List, Dict
 
 from evo.core import metrics
 from x_evaluate.evaluation_data import ErrorType, EvaluationDataSummary
-from x_evaluate.plots import PlotType
-from x_evaluate.utils import name_to_identifier
+from x_evaluate.plots import PlotType, PlotContext
+from x_evaluate.utils import name_to_identifier, n_to_grid_size
 from x_evaluate.scriptlets import read_evaluation_pickle
 
 import x_evaluate.tracking_evaluation as fe
@@ -65,16 +65,23 @@ def main():
 
         evaluations = [s.data[dataset] for s in summaries.values()]
 
-        file = os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")
+        with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:
+            te.plot_error_comparison(pc, evaluations, metrics.PoseRelation.full_transformation,
+                                     ErrorType.APE, PlotType.TIME_SERIES, names)
 
-        te.plot_error_comparison(evaluations, file, metrics.PoseRelation.full_transformation,
-                                 ErrorType.APE, PlotType.TIME_SERIES, names)
+        with PlotContext(os.path.join(args.output_folder, F"compare_rt_factor_{d_id}.svg")) as pc:
+            pe.plot_realtime_factor(pc, evaluations, names)
 
-        file = os.path.join(args.output_folder, F"compare_rt_factor_{d_id}.svg")
-        pe.plot_realtime_factor(evaluations, file, names)
+        rows, cols = n_to_grid_size(len(evaluations))
 
-        file = os.path.join(args.output_folder, F"compare_optimizations_{d_id}.svg")
-        pe.plot_optimization_iterations(evaluations, file)
+        with PlotContext(os.path.join(args.output_folder, F"compare_rt_factor_{d_id}_subplot.svg"), subplot_rows=rows,
+                         subplot_cols=cols) as pc:
+            for k, s in summaries.items():
+                pe.plot_realtime_factor(pc, [s.data[dataset]], [k])
+
+        with PlotContext(os.path.join(args.output_folder, F"compare_optimizations_{d_id}.svg")) as pc:
+            pe.plot_optimization_iterations(pc, evaluations)
+
     
 
 if __name__ == '__main__':

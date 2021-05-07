@@ -3,7 +3,6 @@ from typing import Collection
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary, \
     DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
@@ -52,7 +51,7 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
     return d
 
 
-def plot_resources(eval_data: EvaluationData, output_folder):
+def plot_cpu_usage(pc: PlotContext, eval_data: EvaluationData):
     df_rt = eval_data.performance_data.df_realtime
     df_resources = eval_data.performance_data.df_resources
 
@@ -60,9 +59,13 @@ def plot_resources(eval_data: EvaluationData, output_folder):
 
     data = [df_resources['cpu_usage'], df_resources['cpu_user_mode_usage'], df_resources['cpu_kernel_mode_usage']]
     labels = ["CPU total", "CPU user mode", "CPU kernel mode"]
-    file = os.path.join(output_folder, "cpu_usage.svg")
-    time_series_plot(file, resource_times, data, labels, F"CPU Usage ({eval_data.name})", "cpu time : real time [%]")
+    time_series_plot(pc, resource_times, data, labels, F"CPU Usage ({eval_data.name})", "cpu time : real time [%]")
 
+
+def plot_memory_usage(pc: PlotContext, eval_data: EvaluationData):
+    df_rt = eval_data.performance_data.df_realtime
+    df_resources = eval_data.performance_data.df_resources
+    resource_times = timestamp_to_real_time(df_resources['ts'], df_rt)
     mem_usage = df_resources['memory_usage_in_bytes'].to_numpy() / 1024 / 1024
     mem_usage_debug = df_resources['debug_memory_in_bytes'].to_numpy() / 1024 / 1024
 
@@ -70,20 +73,26 @@ def plot_resources(eval_data: EvaluationData, output_folder):
 
     data = [actual_mem, mem_usage_debug]
     labels = ["memory usage", "additional debug memory"]
-    file = os.path.join(output_folder, "memory_usage.svg")
-    time_series_plot(file, resource_times, data, labels, F"Memory Usage ({eval_data.name})", "MB")
+    time_series_plot(pc, resource_times, data, labels, F"Memory Usage ({eval_data.name})", "MB")
 
 
 def plot_performance_plots(eval_data: EvaluationData, output_folder):
-    plot_realtime_factor([eval_data], os.path.join(output_folder, "realtime_factor.svg"))
-    plot_resources(eval_data, output_folder)
+    with PlotContext(os.path.join(os.path.join(output_folder, "realtime_factor.svg"))) as pc:
+        plot_realtime_factor(pc, [eval_data])
+    with PlotContext(os.path.join(output_folder, "cpu_usage.svg")) as pc:
+        plot_cpu_usage(pc, eval_data)
+    with PlotContext(os.path.join(output_folder, "memory_usage.svg")) as pc:
+        plot_memory_usage(pc, eval_data)
     if eval_data.eklt_performance_data is not None:
-        plot_events_per_second(eval_data, os.path.join(output_folder, "events_per_second.svg"))
-        plot_optimizations_per_second(eval_data, os.path.join(output_folder, "optimizations_per_second.svg"))
-        plot_optimization_iterations([eval_data], os.path.join(output_folder, "optimization_iterations.svg"))
+        with PlotContext(os.path.join(output_folder, "events_per_second.svg")) as pc:
+            plot_events_per_second(pc, eval_data)
+        with PlotContext(os.path.join(output_folder, "optimizations_per_second.svg")) as pc:
+            plot_optimizations_per_second(pc, eval_data)
+        # with PlotContext(os.path.join(output_folder, "optimization_iterations.svg")) as pc:
+        #     plot_optimization_iterations(pc, [eval_data], os.path.join(output_folder, "optimization_iterations.svg"))
 
 
-def plot_optimization_iterations(evaluations: Collection[EvaluationData], filename, labels=None):
+def plot_optimization_iterations(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):
     auto_labels = []
     data = []
     for d in evaluations:
@@ -97,37 +106,37 @@ def plot_optimization_iterations(evaluations: Collection[EvaluationData], filena
     if labels is None:
         labels = auto_labels
 
-    boxplot_from_summary(filename, data, labels, "Optimization iterations")
+    boxplot_from_summary(pc, data, labels, "Optimization iterations")
 
 
-def plot_realtime_factor(evaluations: Collection[EvaluationData], filename, labels=None):
-    with PlotContext(filename) as f:
-        ax = f.get_axis()
-        max_length = 0
+def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):
+    ax = pc.get_axis()
+    max_length = 0
 
-        i = 0
+    i = 0
 
-        for d in evaluations:
-            length = len(d.performance_data.rt_factors)
-            max_length = max(length, max_length)
-            t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
-            label = d.name
-            if labels is not None:
-                label = labels[i]
-                # this causes issues, quick fix:
-                if label.startswith('_'):
-                    label = label[1:]
-                i += 1
-            ax.plot(t_targets, d.performance_data.rt_factors, label=label)
+    for d in evaluations:
+        length = len(d.performance_data.rt_factors)
+        max_length = max(length, max_length)
+        t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
+        label = d.name
+        if labels is not None:
+            label = labels[i]
+            # this causes issues, quick fix:
+            if label.startswith('_'):
+                label = label[1:]
+            i += 1
+        ax.plot(t_targets, d.performance_data.rt_factors, label=label)
 
-        t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
-        ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
-        ax.legend()
-        ax.set_title(F"Realtime factor")
+    t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
+    ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
+    ax.legend()
+    ax.set_title(F"Realtime factor")
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
-    plot_optimization_iterations(summary.data.values(), os.path.join(output_folder, "optimization_iterations.svg"))
+    with PlotContext(os.path.join(output_folder, "optimization_iterations.svg")) as pc:
+        plot_optimization_iterations(pc, summary.data.values())
 
 
 def print_realtime_factor_summary(eval_data_summary: EvaluationDataSummary):
@@ -140,25 +149,23 @@ def combine_rt_factors(evaluations: Collection[EvaluationData]) -> np.ndarray:
     return np.hstack(arrays)
 
 
-def plot_events_per_second(eval_data: EvaluationData, filename):
-    with PlotContext(filename) as f:
-        ax = f.get_axis()
-        ax.set_title(F"Events per second ({eval_data.name})")
-        t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec))
-        ax.plot(t, eval_data.eklt_performance_data.events_per_sec, label="processed")
-        t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec_sim))
-        ax.plot(t, eval_data.eklt_performance_data.events_per_sec_sim, label="demanded")
-        ax.set_xlabel("time")
-        ax.set_ylabel("events/s")
-        ax.legend()
+def plot_events_per_second(pc: PlotContext, eval_data: EvaluationData):
+    ax = pc.get_axis()
+    ax.set_title(F"Events per second ({eval_data.name})")
+    t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec))
+    ax.plot(t, eval_data.eklt_performance_data.events_per_sec, label="processed")
+    t = np.arange(0.0, len(eval_data.eklt_performance_data.events_per_sec_sim))
+    ax.plot(t, eval_data.eklt_performance_data.events_per_sec_sim, label="demanded")
+    ax.set_xlabel("time")
+    ax.set_ylabel("events/s")
+    ax.legend()
 
 
-def plot_optimizations_per_second(eval_data: EvaluationData, filename):
-    with PlotContext(filename) as f:
-        ax = f.get_axis()
-        ax.set_title(F"Optimizations per second ({eval_data.name})")
-        t = np.arange(0.0, len(eval_data.eklt_performance_data.optimizations_per_sec))
-        ax.plot(t, eval_data.eklt_performance_data.optimizations_per_sec)
-        ax.set_xlabel("time")
-        ax.set_ylabel("optimizations/s")
-        # ax.legend()
+def plot_optimizations_per_second(pc: PlotContext, eval_data: EvaluationData):
+    ax = pc.get_axis()
+    ax.set_title(F"Optimizations per second ({eval_data.name})")
+    t = np.arange(0.0, len(eval_data.eklt_performance_data.optimizations_per_sec))
+    ax.plot(t, eval_data.eklt_performance_data.optimizations_per_sec)
+    ax.set_xlabel("time")
+    ax.set_ylabel("optimizations/s")
+    # ax.legend()

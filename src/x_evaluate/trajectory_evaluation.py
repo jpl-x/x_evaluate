@@ -2,7 +2,7 @@ import os
 from typing import Collection
 
 from x_evaluate.utils import convert_to_evo_trajectory, rms
-from x_evaluate.plots import boxplot, time_series_plot, PlotType
+from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
@@ -124,17 +124,17 @@ def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
     for r in POSE_RELATIONS:
-        filename = os.path.join(output_folder, "ape_boxplot_" + r.name + ".svg")
-        plot_error_comparison(summary.data.values(), filename, r, ErrorType.APE, PlotType.BOXPLOT)
-        filename = os.path.join(output_folder, "rpe_boxplot_" + r.name + ".svg")
-        plot_error_comparison(summary.data.values(), filename, r, ErrorType.RPE, PlotType.BOXPLOT)
-        filename = os.path.join(output_folder, "ape_" + r.name + ".svg")
-        plot_error_comparison(summary.data.values(), filename, r, ErrorType.APE, PlotType.TIME_SERIES)
-        filename = os.path.join(output_folder, "rpe_" + r.name + ".svg")
-        plot_error_comparison(summary.data.values(), filename, r, ErrorType.RPE, PlotType.TIME_SERIES)
+        with PlotContext(os.path.join(output_folder, "ape_boxplot_" + r.name + ".svg")) as pc:
+            plot_error_comparison(pc, summary.data.values(), r, ErrorType.APE, PlotType.BOXPLOT)
+        with PlotContext(os.path.join(output_folder, "rpe_boxplot_" + r.name + ".svg")) as pc:
+            plot_error_comparison(pc, summary.data.values(), r, ErrorType.RPE, PlotType.BOXPLOT)
+        with PlotContext(os.path.join(output_folder, "ape_" + r.name + ".svg")) as pc:
+            plot_error_comparison(pc, summary.data.values(), r, ErrorType.APE, PlotType.TIME_SERIES)
+        with PlotContext(os.path.join(output_folder, "rpe_" + r.name + ".svg")) as pc:
+            plot_error_comparison(pc, summary.data.values(), r, ErrorType.RPE, PlotType.TIME_SERIES)
 
 
-def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kind: metrics.PoseRelation,
+def plot_error_comparison(pc: PlotContext, evaluations: Collection[EvaluationData], kind: metrics.PoseRelation,
                           error_type: ErrorType = ErrorType.APE, plot_type: PlotType = PlotType.BOXPLOT, labels=None):
     auto_labels = []
     data = []
@@ -162,9 +162,9 @@ def plot_error_comparison(evaluations: Collection[EvaluationData], filename, kin
         labels = auto_labels
 
     if plot_type == PlotType.BOXPLOT:
-        boxplot(filename, data, labels, F"APE w.r.t. {kind.value} comparison")
+        boxplot(pc, data, labels, F"APE w.r.t. {kind.value} comparison")
     elif plot_type == PlotType.TIME_SERIES:
         # time_series_plot(filename, time_arrays, data, labels, F"APE w.r.t. {kind.value}", ylabel="log error")
-        time_series_plot(filename, time_arrays, data, labels, F"APE w.r.t. {kind.value}")
+        time_series_plot(pc, time_arrays, data, labels, F"APE w.r.t. {kind.value}")
     else:
         raise ValueError(F"Invalid plot type '{plot_type}'")

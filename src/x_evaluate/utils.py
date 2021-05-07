@@ -113,3 +113,14 @@ def nanrms(data):
     without_nans = data[~np.isnan(data)]
     return np.linalg.norm(without_nans) / np.sqrt(len(without_nans))
 
+
+def n_to_grid_size(n):
+    cols = 1
+    rows = 1
+    while n > cols * rows:
+        if cols - rows < 2:  # this number should adapt, but works fine up to ~30
+            cols = cols + 1
+        else:
+            cols = cols - 1
+            rows = rows + 1
+    return rows, cols

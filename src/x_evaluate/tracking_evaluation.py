@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary
 from x_evaluate.utils import timestamp_to_rosbag_time_zero
-from x_evaluate.plots import boxplot, time_series_plot
+from x_evaluate.plots import boxplot, time_series_plot, PlotContext
 
 
 def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFrame,
@@ -60,25 +60,23 @@ def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFr
 
 
 def plot_feature_plots(d: EvaluationData, output_folder):
-    plot_xvio_num_features(d, os.path.join(output_folder, "xvio_features.svg"))
+    with PlotContext(os.path.join(output_folder, "xvio_features.svg"), subplot_rows=2, subplot_cols=2) as pc:
+        plot_xvio_num_features(pc, d)
 
     if d.feature_data.df_eklt_features is not None:
         df = d.feature_data.df_eklt_features
-        time_series_plot(os.path.join(output_folder, "eklt_features.svg"), df['t'], [df['num_features']],
-                         ["EKLT features"], "Number of tracked features")
 
-        bins = np.arange(0.0, df['t'].to_numpy()[-1], 1.0)
-        # d.optimizations_per_sec, _ = np.histogram(optimization_times, bins=bins)
-        # d.optimization_iterations = df_optimizations['num_iterations'].to_numpy()
-
-    # axs[0, 0].
+        with PlotContext(os.path.join(output_folder, "eklt_features.svg")) as pc:
+            time_series_plot(pc, df['t'], [df['num_features']], ["EKLT features"], "Number of tracked features")
 
 
-def plot_xvio_num_features(d, filename=None):
-    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(2, 2)
-    fig.set_size_inches(10, 7)
+def plot_xvio_num_features(pc: PlotContext, d: EvaluationData):
+    ax0 = pc.get_axis()
+    ax1 = pc.get_axis()
+    ax2 = pc.get_axis()
+    ax3 = pc.get_axis()
     t = d.feature_data.df_x_vio_features['t']
-    fig.suptitle("Number of tracked features")
+    pc.figure.suptitle("Number of tracked features")
     # plt.title("Number of tracked features")
     ax0.set_title("SLAM")
     ax0.plot(t, d.feature_data.df_x_vio_features['num_slam_features'], color="blue")
@@ -88,12 +86,6 @@ def plot_xvio_num_features(d, filename=None):
     ax2.plot(t, d.feature_data.df_x_vio_features['num_opportunistic_features'], color="green")
     ax3.set_title("Potential")
     ax3.plot(t, d.feature_data.df_x_vio_features['num_potential_features'], color="orange")
-
-    if filename is None:
-        plt.show()
-    else:
-        plt.savefig(filename)
-    plt.clf()
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
@@ -108,5 +100,5 @@ def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
 
     if len(data) <= 0:
         return
-
-    boxplot(os.path.join(output_folder, "eklt_feature_ages.svg"), data, auto_labels, "Feature age comparison", [1, 99])
+    with PlotContext(os.path.join(output_folder, "eklt_feature_ages.svg")) as pc:
+        boxplot(pc, data, auto_labels, "Feature age comparison", [1, 99])

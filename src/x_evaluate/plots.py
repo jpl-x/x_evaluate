@@ -40,11 +40,10 @@ class PlotContext:
         plt.close(self.figure)
 
 
-def boxplot(filename, data, labels, title="", outlier_params=1.5):
-    with PlotContext(filename) as f:
-        ax = f.get_axis()
-        ax.boxplot(data, vert=True, labels=labels, whis=outlier_params)
-        ax.set_title(title)
+def boxplot(pc: PlotContext, data, labels, title="", outlier_params=1.5):
+    ax = pc.get_axis()
+    ax.boxplot(data, vert=True, labels=labels, whis=outlier_params)
+    ax.set_title(title)
 
 
 def summary_to_dict(distribution_summary: DistributionSummary, label):
@@ -59,36 +58,33 @@ def summary_to_dict(distribution_summary: DistributionSummary, label):
     }
 
 
-def boxplot_from_summary(filename, distribution_summaries: List[DistributionSummary], labels, title=""):
-    with PlotContext(filename) as f:
-        ax = f.get_axis()
-        boxes = []
+def boxplot_from_summary(pc: PlotContext, distribution_summaries: List[DistributionSummary], labels, title=""):
+    ax = pc.get_axis()
+    boxes = []
 
-        for i in range(len(distribution_summaries)):
-            boxes.append(summary_to_dict(distribution_summaries[i], labels[i]))
-        ax.bxp(boxes, showfliers=False)
-        ax.set_title(title)
+    for i in range(len(distribution_summaries)):
+        boxes.append(summary_to_dict(distribution_summaries[i], labels[i]))
+    ax.bxp(boxes, showfliers=False)
+    ax.set_title(title)
 
 
-def time_series_plot(filename, time, data, labels, title="", ylabel=None):
-    with PlotContext(filename) as f:
-        ax = f.get_axis()
+def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None):
+    ax = pc.get_axis()
+    for i in range(len(data)):
 
-        for i in range(len(data)):
+        # this causes issues, quick fix:
+        label = labels[i]
+        if label.startswith('_'):
+            label = label[1:]
 
-            # this causes issues, quick fix:
-            label = labels[i]
-            if label.startswith('_'):
-                label = label[1:]
+        if isinstance(time, list):
+            ax.plot(time[i], data[i], label=label)
+        else:
+            ax.plot(time, data[i], label=label)
 
-            if isinstance(time, list):
-                ax.plot(time[i], data[i], label=label)
-            else:
-                ax.plot(time, data[i], label=label)
+    ax.legend()
+    ax.set_title(title)
+    ax.set_xlabel("Time [s]")
 
-        ax.legend()
-        ax.set_title(title)
-        ax.set_xlabel("Time [s]")
-
-        if ylabel is not None:
-            ax.set_ylabel(ylabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
