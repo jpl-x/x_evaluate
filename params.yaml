@@ -155,7 +155,8 @@ event_cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
 event_cam1_p_ic: [0.0, 0.0, 0.0] # [x,y,z]
 event_cam1_time_offset: 0.0
 
-
+event_accumulation_methode: 0
+event_accumulation_period: 0.1
 n_events_min: 15000
 n_events_max: 40000
 n_events_noise_detection_min: 40
