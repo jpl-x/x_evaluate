@@ -20,7 +20,7 @@ class FrontEnd(Enum):
 
 class DistributionSummary:
     N_BINS = 50
-    QUANTILES = np.arange(0, 1.01, 0.05)
+    QUANTILES = np.round(np.arange(0, 1.01, 0.05), 2)
 
     def __init__(self, data: np.ndarray):
         self.n = np.size(data)
@@ -86,6 +86,7 @@ class EKLTPerformanceData:
     events_per_sec_sim: np.ndarray
     optimizations_per_sec: np.ndarray
     optimization_iterations: DistributionSummary
+    event_processing_times: DistributionSummary
 
 
 class EvaluationData:

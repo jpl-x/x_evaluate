@@ -28,9 +28,7 @@ def main():
     parser.add_argument('--configuration', type=str, default="", help="YAML file specifying what to run")
     parser.add_argument('--dataset_dir', type=str, default="", help="substitutes XVIO_DATASET_DIR in yaml file")
     parser.add_argument('--output_folder', type=str, required=True)
-    # parser.add_argument('--use_eklt', action="store_true", default=False)
     parser.add_argument('--frontend', type=FrontEnd, choices=list(FrontEnd), required=True)
-    # adding an arguments
     parser.add_argument('--overrides', nargs='*', action=ArgparseKeyValueAction)
 
     args = parser.parse_args()

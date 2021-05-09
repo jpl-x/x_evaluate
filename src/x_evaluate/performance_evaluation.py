@@ -38,6 +38,7 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
 
     # calculate events / s in simulated and processing time
     event_times = timestamp_to_real_time(df_events['ts_start'], df_rt)
+    event_times_end = timestamp_to_real_time(df_events['ts_stop'], df_rt)
     bins = np.arange(0.0, event_times[-1], 1.0)
     d.events_per_sec, _ = np.histogram(event_times, bins=bins)
     event_times_sim = timestamp_to_rosbag_time_zero(df_events['ts_start'], df_rt)
@@ -48,6 +49,8 @@ def evaluate_ektl_performance(perf_data: PerformanceData, df_events: pd.DataFram
     bins = np.arange(0.0, optimization_times[-1], 1.0)
     d.optimizations_per_sec, _ = np.histogram(optimization_times, bins=bins)
     d.optimization_iterations = DistributionSummary(df_optimizations['num_iterations'].to_numpy())
+    d.event_processing_times = DistributionSummary(event_times_end - event_times)
+
     return d
 
 
