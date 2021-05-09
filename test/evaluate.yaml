@@ -47,17 +47,6 @@ datasets:
     pose_topic: /cam0/pose
     imu_topic: /imu
     params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
-    use_eklt: false
-
-  -
-    name: 45 Deg Carpet EKLT
-    rosbag: ${XVIO_DATASET_DIR}/esim_45deg_2021-03-17.bag
-    events_topic: /cam0/events
-    image_topic: /cam0/image_raw
-    pose_topic: /cam0/pose
-    imu_topic: /imu
-    params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
-    use_eklt: true
     override_params:
       eklt_k: 0
       eklt_quality_level: 0.3
@@ -71,17 +60,6 @@ datasets:
     pose_topic: /cam0/pose
     imu_topic: /imu
     params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
-    use_eklt: false
-
-  -
-    name: ESA Mars EKLT
-    rosbag: ${XVIO_DATASET_DIR}/mars_xplorer.bag
-    events_topic: /cam0/events
-    image_topic: /cam0/image_raw
-    pose_topic: /cam0/pose
-    imu_topic: /imu
-    params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
-    use_eklt: true
     override_params:
       eklt_k: 0
       eklt_quality_level: 0.3
@@ -94,16 +72,6 @@ datasets:
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    use_eklt: false
-#
-#  - name: Boxes 6DOF EKLT
-#    rosbag: ${XVIO_DATASET_DIR}/boxes_6dof.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    use_eklt: true
 
   - name: Poster 6DOF
     rosbag: ${XVIO_DATASET_DIR}/poster_6dof.bag
@@ -112,20 +80,6 @@ datasets:
     pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-    use_eklt: false
-    override_params:
-      p: [ 4.435079, -0.451290, 1.436505 ]
-      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-      q: [ -0.486852, 0.506501, -0.501093, 0.505309]
-
-  - name: Poster 6DOF EKLT
-    rosbag: ${XVIO_DATASET_DIR}/poster_6dof.bag
-    events_topic: /dvs/events
-    image_topic: /dvs/image_raw
-    pose_topic: /optitrack/davis
-    imu_topic: /dvs/imu
-    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-    use_eklt: true
     override_params:
       p: [ 4.435079, -0.451290, 1.436505 ]
       v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
@@ -138,20 +92,6 @@ datasets:
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    use_eklt: false
-#    override_params:
-#      p: [ 4.418570, -0.446416, 1.362028 ]
-#      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-#      q: [ 0.475324, -0.513829, 0.531269, -0.477284 ]
-#
-#  - name: HDR Poster EKLT
-#    rosbag: ${XVIO_DATASET_DIR}/hdr_poster.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    use_eklt: true
 #    override_params:
 #      p: [ 4.418570, -0.446416, 1.362028 ]
 #      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
@@ -164,20 +104,6 @@ datasets:
     pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-    use_eklt: false
-    override_params:
-      p: [  0.546509, 1.317912, 1.065833 ]
-      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-      q: [  0.019303, -0.056709,  0.845480, -0.530636 ]
-
-  - name: HDR Boxes EKLT
-    rosbag: ${XVIO_DATASET_DIR}/hdr_boxes.bag
-    events_topic: /dvs/events
-    image_topic: /dvs/image_raw
-    pose_topic: /optitrack/davis
-    imu_topic: /dvs/imu
-    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-    use_eklt: true
     override_params:
       p: [  0.546509, 1.317912, 1.065833 ]
       v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
@@ -190,7 +116,6 @@ datasets:
     pose_topic:
     imu_topic: /fcu/imu
     params: ${XVIO_SRC_ROOT}/params.yaml
-    use_eklt: false
 
 
 
@@ -202,7 +127,6 @@ datasets:
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    use_eklt: false
 #    override_params:
 #      p: [ 4.346317, 1.735782, 1.358593 ]
 #      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
@@ -215,7 +139,6 @@ datasets:
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    use_eklt: false
 #    override_params:
 #      p: [ 0.871623, 0.444748, 0.998951 ]
 #      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]

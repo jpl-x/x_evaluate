@@ -88,8 +88,8 @@ def plot_performance_plots(eval_data: EvaluationData, output_folder):
             plot_events_per_second(pc, eval_data)
         with PlotContext(os.path.join(output_folder, "optimizations_per_second.svg")) as pc:
             plot_optimizations_per_second(pc, eval_data)
-        # with PlotContext(os.path.join(output_folder, "optimization_iterations.svg")) as pc:
-        #     plot_optimization_iterations(pc, [eval_data], os.path.join(output_folder, "optimization_iterations.svg"))
+        with PlotContext(os.path.join(output_folder, "optimization_iterations.svg")) as pc:
+            plot_optimization_iterations(pc, [eval_data], os.path.join(output_folder, "optimization_iterations.svg"))
 
 
 def plot_optimization_iterations(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):

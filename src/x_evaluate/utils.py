@@ -85,6 +85,16 @@ def convert_to_tracks_txt(df_tracks: pd.DataFrame, out_file):
     return df_tracks
 
 
+# def read_json_file(output_folder):
+#     profile_json_filename = os.path.join(output_folder, "profiling.json")
+#     if os.path.exists(profile_json_filename):
+#         with open(profile_json_filename, "rb") as f:
+#             profiling_json = orjson.loads(f.read())
+#     else:
+#         profiling_json = None
+#     return profiling_json
+
+
 def read_output_files(output_folder, gt_available):
     df_poses = pd.read_csv(os.path.join(output_folder, "pose.csv"), delimiter=";")
     df_features = pd.read_csv(os.path.join(output_folder, "features.csv"), delimiter=";")

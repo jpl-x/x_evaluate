@@ -10,6 +10,14 @@ from evo.core.trajectory import PoseTrajectory3D
 from x_evaluate.utils import nanrms
 
 
+class FrontEnd(Enum):
+    XVIO = 'XVIO'
+    EKLT = 'EKLT'
+
+    def __str__(self):
+        return self.value
+
+
 class DistributionSummary:
     N_BINS = 50
     QUANTILES = np.arange(0, 1.01, 0.05)
@@ -111,6 +119,7 @@ class EvaluationDataSummary:
     trajectory_result_table: pd.DataFrame
 
     configuration: Dict
+    frontend: FrontEnd
 
     x_git_info: GitInfo
     x_vio_ros_git_info: GitInfo

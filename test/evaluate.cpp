@@ -29,6 +29,17 @@
 
 namespace fs = std::filesystem;
 
+enum class Frontend : int8_t {
+  XVIO = 0,
+  EKLT = 1,
+};
+
+std::map<std::string, Frontend> frontends {
+  {"XVIO", Frontend::XVIO},
+  {"EKLT", Frontend::EKLT}
+};
+
+
 DEFINE_string(input_bag, "", "filename of the bag to scan");
 DEFINE_string(events_topic, "", "topic in rosbag publishing dvs_msgs::EventArray");
 DEFINE_string(image_topic, "/cam0/image_raw", "topic in rosbag publishing sensor_msgs::Image");
@@ -36,7 +47,26 @@ DEFINE_string(pose_topic, "", "(optional) topic publishing IMU pose ground truth
 DEFINE_string(imu_topic, "/imu", "topic in rosbag publishing sensor_msgs::Imu");
 DEFINE_string(params_file, "", "filename of the params.yaml to use");
 DEFINE_string(output_folder, "", "folder where to write output files, is created if not existent");
-DEFINE_bool(use_eklt, false, "use eklt front end");
+
+static bool validateFrontend(const char* flagname, const std::string& value) {
+  if (frontends.find(value) != frontends.end())
+    return true;
+  std::string possible_values;
+  bool is_first = true;
+  for (const auto& v : frontends) {
+    if (is_first) {
+      possible_values += v.first;
+      is_first = false;
+    } else {
+      possible_values += ", " + v.first;
+    }
+  }
+  std::cerr << "Invalid error for '" << flagname << "'. Possible values: " << possible_values << std::endl;
+  return false;
+}
+
+DEFINE_string(frontend, "XVIO", "which frontend to use");
+DEFINE_validator(frontend, &validateFrontend);
 
 
 using PoseCsv = x::CsvWriter<std::string,
@@ -108,7 +138,7 @@ int evaluate() {
     x::XVioPerformanceLoggerPtr xvio_logger = std::make_shared<x::XVioPerformanceLogger>(output_path);
 
     x::EkltPerformanceLoggerPtr  eklt_logger;
-    if (FLAGS_use_eklt) {
+    if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
       eklt_logger = std::make_shared<x::EkltPerformanceLogger>(output_path);
     }
 
@@ -313,9 +343,13 @@ int main(int argc, char **argv) {
 
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  if (FLAGS_use_eklt) {
-    return evaluate<x::EKLTVIO>();
+  switch(frontends[FLAGS_frontend]) {
+    case Frontend::XVIO:
+      return evaluate<x::VIO>();
+    case Frontend::EKLT:
+      return evaluate<x::EKLTVIO>();
+    default:
+      std::cerr << "Invalid frontend type, unable to evaluate" << std::endl;
+      return 1;
   }
-
-  return evaluate<x::VIO>();
 }
