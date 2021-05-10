@@ -118,6 +118,12 @@ set (SOURCE
 
 add_executable(x_vio_ros ${SOURCE} src/x_vio_ros/main.cpp)
 
+set (FS_LIBRARY "")
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
+  set(FS_LIBRARY stdc++fs)
+endif()
+
+
 # add generic evaluation program as executable to be a able to call it from python
 add_executable(evaluate ${SOURCE} test/evaluate.cpp)
 target_link_libraries(evaluate
@@ -125,7 +131,10 @@ target_link_libraries(evaluate
         ${catkin_LIBRARIES}
         ${rostest_LIBRARIES}
         ${YAML_CPP_LIBRARIES}
-        ${easy_profiler_catkin_LIBRARIES})
+        ${easy_profiler_catkin_LIBRARIES}
+        ${FS_LIBRARY}
+)
+
 target_compile_definitions(evaluate PUBLIC -DUSING_EASY_PROFILER)
 catkin_install_python(PROGRAMS test/evaluate.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

@@ -6,7 +6,15 @@
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include <iostream>
-#include <filesystem>
+#if __has_include(<filesystem>)
+  #include <filesystem>
+  namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+#else
+  error "Missing the <filesystem> header."
+#endif
 #include <memory>
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
@@ -27,8 +35,6 @@
 
 #include <sys/resource.h>
 #include <ctime>
-
-namespace fs = std::filesystem;
 
 enum class Frontend : int8_t {
   XVIO = 0,
