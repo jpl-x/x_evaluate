@@ -9,7 +9,7 @@ set(PROFILING false)  # Set true to disable compiler flags which are not
 		      # compatible with Callgrind profiling tool.
 set(UNIT_TESTS false) # Set true to enable unit tests
 
-set(USE_EKLT_NODE true) # replaces original xVIO node with new EKLT node
+set(USE_EKLT_NODE false) # replaces original xVIO node with new EKLT node
 
 ################################################################################
 
