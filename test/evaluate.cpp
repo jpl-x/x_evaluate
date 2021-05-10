@@ -15,6 +15,7 @@
 #include <x_vio_ros/parameter_loader.h>
 #include <x/vio/vio.h>
 #include <x/eklt/eklt_vio.h>
+#include <x/events/e_vio.h>
 #include <x/common/csv_writer.h>
 
 #include <geometry_msgs/PoseStamped.h>
@@ -32,11 +33,13 @@ namespace fs = std::filesystem;
 enum class Frontend : int8_t {
   XVIO = 0,
   EKLT = 1,
+  EVIO = 2,
 };
 
 std::map<std::string, Frontend> frontends {
   {"XVIO", Frontend::XVIO},
-  {"EKLT", Frontend::EKLT}
+  {"EKLT", Frontend::EKLT},
+  {"EVIO", Frontend::EVIO},
 };
 
 
@@ -221,7 +224,7 @@ int evaluate() {
       } else if (!FLAGS_events_topic.empty() && m.getTopic() == FLAGS_events_topic) {
 
         // this constexpr if is necessary, since VIO.processEventsMeasurement(...) would not compile with same arguments
-        if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
+        if constexpr (!std::is_same<VioClass, x::VIO>::value) {
           EASY_BLOCK("Events Message", profiler::colors::Blue);
           process_type = "Events";
           auto msg = m.instantiate<dvs_msgs::EventArray>();
@@ -229,9 +232,18 @@ int evaluate() {
 
           x::EventArray::Ptr x_events = x::msgToEvents(msg);
 
-          x::TiledImage tracker_img, feature_img;
+          if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
+            x::TiledImage tracker_img, feature_img;
 
-          state = vio.processEventsMeasurement(x_events, tracker_img, feature_img);
+            state = vio.processEventsMeasurement(x_events, tracker_img, feature_img);
+          } else if constexpr (std::is_same<VioClass, x::EVIO>::value) {
+            // Initialize plain image to plot features on
+            cv::Mat event_img(x_events->height,
+                              x_events->width,
+                              CV_32F,
+                              cv::Scalar(0.0));
+            state = vio.processEventsMeasurement(x_events, event_img);
+          }
           EASY_END_BLOCK;
         }
       } else if (!FLAGS_pose_topic.empty() && m.getTopic() == FLAGS_pose_topic) {
@@ -348,6 +360,8 @@ int main(int argc, char **argv) {
       return evaluate<x::VIO>();
     case Frontend::EKLT:
       return evaluate<x::EKLTVIO>();
+    case Frontend::EVIO:
+      return evaluate<x::EVIO>();
     default:
       std::cerr << "Invalid frontend type, unable to evaluate" << std::endl;
       return 1;

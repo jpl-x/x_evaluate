@@ -13,6 +13,7 @@ from x_evaluate.utils import nanrms
 class FrontEnd(Enum):
     XVIO = 'XVIO'
     EKLT = 'EKLT'
+    EVIO = 'EVIO'
 
     def __str__(self):
         return self.value
