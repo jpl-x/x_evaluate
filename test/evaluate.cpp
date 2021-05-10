@@ -10,7 +10,7 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
-#include <easy/converter/converter.h>
+//#include <easy/converter/converter.h>
 
 #include <x_vio_ros/parameter_loader.h>
 #include <x/vio/vio.h>
