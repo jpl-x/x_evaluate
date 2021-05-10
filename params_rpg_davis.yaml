@@ -167,17 +167,16 @@ init_at_startup: False
 # Events #
 ##########
 
-# Event camera calibration for DVxplorer without distortion
-event_cam1_fx: 0.8333333333333333333
-event_cam1_fy: 1.1111111111111111111
-event_cam1_cx: 0.5
-event_cam1_cy: 0.5
-event_cam1_dist_model: FOV
-event_cam1_dist_params: [0.0]
+event_cam1_fx: 0.829551527
+event_cam1_fy: 1.104604558
+event_cam1_cx: 0.550800297
+event_cam1_cy: 0.615070333
+event_cam1_dist_model: radial-tangential
+event_cam1_dist_params: [-0.3684363117977873, 0.1509472435566583, -0.0002961305343848646, -0.000759431726241032, 0]
 event_cam1_img_width: 240
 event_cam1_img_height: 180
-event_cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
-event_cam1_p_ic: [0.0, 0.0, 0.0] # [x,y,z]
+event_cam1_q_ic: [0.999965419952174, 0.004660206319180, -0.003190841088148, -0.006104089619662]
+event_cam1_p_ic: [0.00674696422488, 0.0007279224709, 0.0342573613538] # [x,y,z]
 event_cam1_time_offset: 0.0
 
 

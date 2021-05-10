@@ -163,3 +163,28 @@ traj_timeout_gui: 3
 
 # Initialize at startup
 init_at_startup: False
+
+##########
+# Events #
+##########
+
+event_cam1_fx: 0.8333333333333333333
+event_cam1_fy: 1.1111111111111111111
+event_cam1_cx: 0.5
+event_cam1_cy: 0.5
+event_cam1_dist_model: FOV
+event_cam1_dist_params: [0.0]
+event_cam1_img_width: 240
+event_cam1_img_height: 180
+event_cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
+event_cam1_p_ic: [0.0, 0.0, 0.0] # [x,y,z]
+event_cam1_time_offset: 0.0
+
+event_accumulation_methode: 0
+event_accumulation_period: 0.1
+n_events_min: 15000
+n_events_max: 40000
+n_events_noise_detection_min: 40
+noise_event_rate: 20000
+event_norm_factor: 4.0
+correct_event_motion: False
