@@ -43,25 +43,46 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) ->
 
 
 def create_trajectory_result_table(s: EvaluationDataSummary) -> pd.DataFrame:
-    columns = ["Name"] + ["RPE " + r.value + " [RMS]" for r in POSE_RELATIONS] + \
-              ["APE " + r.value + " [RMS]" for r in POSE_RELATIONS]
+    stats = {'RMS': lambda x: rms(x)}
+    stats = {'MAX': lambda x: np.max(x)}
+    columns = ["Name"] + [F"RPE {r.value} [{k}]" for r in POSE_RELATIONS for k in stats.keys()] + \
+              [F"APE {r.value} [{k}]" for r in POSE_RELATIONS for k in stats.keys()]
 
     result_table = pd.DataFrame(columns=columns)
 
-    for d in s.data.values():
+    def add_result_row(name, ape_arrays, rpe_arrays):
         ape_results = []
         rpe_results = []
-
         for r in POSE_RELATIONS:
-            ape_array = d.trajectory_data.ape_error_arrays[r]
-            ape_rmse = np.linalg.norm(ape_array) / np.sqrt(len(ape_array))
-            rpe_array = d.trajectory_data.rpe_error_arrays[r]
-            rpe_rmse = np.linalg.norm(rpe_array) / np.sqrt(len(rpe_array))
-            ape_rmse += [ape_rmse]
-            rpe_results += [rpe_rmse]
+            for l in stats.values():
+                ape_array = ape_arrays[r]
+                rpe_array = rpe_arrays[r]
+                ape_results += [l(ape_array)]
+                rpe_results += [l(rpe_array)]
 
-        result_row = [d.name] + ape_results + rpe_results
+        result_row = [name] + ape_results + rpe_results
         result_table.loc[len(result_table)] = result_row
+
+    for d in s.data.values():
+        if d.trajectory_data is None:
+            continue
+        add_result_row(d.name, d.trajectory_data.ape_error_arrays, d.trajectory_data.rpe_error_arrays)
+
+    overall_ape_arrays = dict()
+    overall_rpe_arrays = dict()
+
+    is_empty = False
+
+    for r in POSE_RELATIONS:
+        overall_ape_arrays[r] = combine_ape_error(s.data.values(), r)
+        if len(overall_ape_arrays[r]) <= 0:
+            is_empty = True
+            break
+        overall_rpe_arrays[r] = combine_rpe_error(s.data.values(), r)
+
+    if not is_empty:
+        add_result_row("OVERALL", overall_ape_arrays, overall_rpe_arrays)
+
     return result_table
 
 
@@ -85,16 +106,8 @@ def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
     plot_trajectory(os.path.join(output_folder, "xy_plot.svg"), [eval_data])
 
 
-def print_trajectory_summary(summary: EvaluationDataSummary):
-    ape_array = combine_ape_error(summary.data.values(), metrics.PoseRelation.full_transformation)
-    if len(ape_array) <= 0:
-        return
-    rpe_array = combine_rpe_error(summary.data.values(), metrics.PoseRelation.full_transformation)
-
-    rpe_rms = rms(rpe_array)
-    ape_rms = rms(rpe_array)
-
-    print(F"Overall [RPE] [APE]: {rpe_rms:>15.2f} {ape_rms:>15.2f}")
+def create_summary_info(summary: EvaluationDataSummary):
+    summary.trajectory_summary_table = create_trajectory_result_table(summary)
 
 
 def plot_trajectory(filename, trajectories: Collection[EvaluationData]):

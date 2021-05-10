@@ -98,7 +98,7 @@ def main():
             print(F"Analysis of output {i+1} of {n} completed")
 
         te.plot_summary_plots(summary, args.output_folder)
-        te.print_trajectory_summary(summary)
+        te.create_summary_info(summary)
         pe.plot_summary_plots(summary, args.output_folder)
         pe.print_realtime_factor_summary(summary)
         fe.plot_summary_plots(summary, args.output_folder)

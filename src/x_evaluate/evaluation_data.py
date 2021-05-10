@@ -117,7 +117,8 @@ class GitInfo:
 
 class EvaluationDataSummary:
     data: Dict[str, EvaluationData]
-    trajectory_result_table: pd.DataFrame
+
+    trajectory_summary_table: pd.DataFrame
 
     configuration: Dict
     frontend: FrontEnd
