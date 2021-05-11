@@ -4,9 +4,10 @@ import pickle
 import git
 import yaml
 
-from x_evaluate import trajectory_evaluation as te, performance_evaluation as pe, tracking_evaluation as fe
+from x_evaluate import performance_evaluation as pe, tracking_evaluation as fe, trajectory_evaluation as te
 from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo, FrontEnd, EvaluationData
-from x_evaluate.utils import read_output_files, read_eklt_output_files
+from x_evaluate.rpg_tracking_analysis.evaluate_tracks import rpg_evaluate_tracks
+from x_evaluate.utils import read_output_files, read_eklt_output_files, convert_to_tracks_txt, DynamicAttributes
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
@@ -78,8 +79,37 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
         df_events, df_optimize, df_tracks = read_eklt_output_files(output_folder)
         d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize)
 
+        call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder)
+
     d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
     return d
+
+
+def call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder):
+    track_file = os.path.join(output_folder, "tracks.txt")
+    convert_to_tracks_txt(df_tracks, track_file)
+    args = DynamicAttributes()
+    root_path = os.path.dirname(dataset["rosbag"])
+    rosbag_name = os.path.basename(dataset["rosbag"])
+    args.root = root_path  # Directory where datasets are found
+    # args.dataset = None  # Params yaml-file for dataset
+    args.file = track_file  # Tracks file for ground truth computation
+    args.tracker_type = "KLT"
+    args.error_threshold = 10
+    args.plot_3d = True
+    args.plot_errors = True
+    args.video_preview = True
+    tracker_config = {
+        "type": "KLT",  # ['KLT', 'reprojection'] type of algorithm used.
+        "window_size": 21,  # window size of tracked patch
+        "num_pyramidal_layers": 1,  # number of layers in pyramidal search
+    }
+    dataset_config = {
+        "type": "bag",
+        "name": rosbag_name,
+        "image_topic": dataset['image_topic']
+    }
+    rpg_evaluate_tracks(args, dataset_config, tracker_config)
 
 
 def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename, cmdline_override_params):

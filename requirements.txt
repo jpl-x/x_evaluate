@@ -4,4 +4,7 @@ envyaml>=1.7
 pyyaml>=5.4.1
 evo>=1.13.4
 pandas>=1.2.3
-gitpython>=3.1.14
+gitpython
+pycryptodomex
+gnupg
+tqdm

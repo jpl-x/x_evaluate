@@ -134,3 +134,13 @@ def n_to_grid_size(n):
             cols = cols - 1
             rows = rows + 1
     return rows, cols
+
+
+class DynamicAttributes:
+    def __getattr__(self, item):
+        if item not in self.__dict__.keys():
+            return None
+        return self.__dict__[item]
+
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
