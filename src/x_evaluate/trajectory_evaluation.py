@@ -9,6 +9,7 @@ from evo.tools import plot
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import x_evaluate.rpg_trajectory_evaluation.trajectory_evaluation as rpg
 
 from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, ErrorType
 
@@ -25,6 +26,14 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) ->
 
     max_diff = 0.01
     d.traj_ref, d.traj_est = sync.associate_trajectories(d.traj_ref, d.traj_est, max_diff)
+
+    sub_ground, sub_traj = rpg.rpg_sub_trajectories(d.traj_ref, d.traj_est, 5)
+
+    for i in range(5):
+        rpg.rpg_align(sub_ground[i], sub_traj[i], "se3")
+        rpg.rpg_align(sub_ground[i], sub_traj[i], "sim3")
+        rpg.rpg_align(sub_ground[i], sub_traj[i], "posyaw")
+        rpg.rpg_align(sub_ground[i], sub_traj[i], "none")
 
     for r in POSE_RELATIONS:
         ape_metric = metrics.APE(r)
