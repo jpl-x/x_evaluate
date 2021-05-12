@@ -1,8 +1,13 @@
 import copy
+from typing import List, Tuple
+
 import numpy as np
 from evo.core.trajectory import PoseTrajectory3D
 from evo.core import lie_algebra as lie
 from evo.core import sync
+
+from x_evaluate.evaluation_data import AlignmentType
+
 
 def get_best_yaw(C):
     '''
@@ -83,36 +88,42 @@ def rpg_get_alignment_umeyama(ground_truth: PoseTrajectory3D, trajectory_estimat
     return s, R, t
 
 
-def rpg_align(ground_truth, trajectory_estimate, alignment_type='none'):
+def rpg_align(ground_truth, trajectory_estimate, alignment_type: AlignmentType = AlignmentType.Disabled):
 
-    if alignment_type == "posyaw":
+    if alignment_type == AlignmentType.PosYaw:
         s, r, t = rpg_get_alignment_umeyama(ground_truth, trajectory_estimate, known_scale=True, yaw_only=True)
-    elif alignment_type == "se3":
+    elif alignment_type == AlignmentType.SE3:
         s, r, t = rpg_get_alignment_umeyama(ground_truth, trajectory_estimate, known_scale=True, yaw_only=False)
-    elif alignment_type == "sim3":
+    elif alignment_type == AlignmentType.SIM3:
         s, r, t = rpg_get_alignment_umeyama(ground_truth, trajectory_estimate, known_scale=False, yaw_only=False)
-    elif alignment_type == "none":
+    elif alignment_type == AlignmentType.Disabled:
         s = 1
         r = np.identity(3)
         t = np.zeros((3, ))
     else:
-        print("Alignment type unknown!")
-        return False
+        raise ValueError(F"Invalid alignment type {alignment_type}")
 
     trajectory_estimate.scale(s)
     trajectory_estimate.transform(lie.se3(r, t))
-    return True
 
 
-def rpg_sub_trajectories(ground_truth: PoseTrajectory3D, trajectory_estimate: PoseTrajectory3D, num_trajectories=5, max_diff=0.01):
-
+def split_trajectory_into_equal_parts(ground_truth: PoseTrajectory3D, num_parts=5):
     distance = ground_truth.distances[-1]
 
-    interval = distance / num_trajectories
+    interval = distance / num_parts
+    split_distances = [interval * i for i in range(1, num_parts)]
+    return split_distances
 
-    split_points = [-1 for i in range(num_trajectories-1)]
 
-    split_distances = [interval * i for i in range(1, num_trajectories)]
+def split_trajectory_on_traveled_distance_grid(ground_truth: PoseTrajectory3D, step_size=5):
+    distance = ground_truth.distances[-1]
+    return np.arange(0, distance, step_size)
+
+
+def rpg_sub_trajectories(ground_truth: PoseTrajectory3D, trajectory_estimate: PoseTrajectory3D, split_distances,
+                         max_diff=0.01) -> List[Tuple[PoseTrajectory3D, PoseTrajectory3D, float]]:
+
+    split_points = [-1] * len(split_distances)
 
     for i in range(len(split_distances)):
         split_points[i] = np.argmin(np.abs(ground_truth.distances-split_distances[i]))
@@ -120,12 +131,12 @@ def rpg_sub_trajectories(ground_truth: PoseTrajectory3D, trajectory_estimate: Po
     split_times = [ground_truth.timestamps[index] for index in split_points]
 
     split_times.insert(0, ground_truth.timestamps[0])
+    split_distances.insert(0, 0.0)
     split_times.append(ground_truth.timestamps[-1])
 
-    sub_trajectories = []
-    sub_ground_truths = []
+    trajectory_tuples = []
 
-    for i in range(num_trajectories):
+    for i in range(len(split_distances)):
         sub_ground_truth = copy.deepcopy(ground_truth)
         sub_ground_truth.reduce_to_time_range(split_times[i], split_times[i+1])
 
@@ -134,9 +145,8 @@ def rpg_sub_trajectories(ground_truth: PoseTrajectory3D, trajectory_estimate: Po
 
         sub_ground_truth, sub_trajectory = sync.associate_trajectories(sub_ground_truth, sub_trajectory, max_diff)
 
-        sub_ground_truths.append(sub_ground_truth)
-        sub_trajectories.append(sub_trajectory)
+        trajectory_tuples.append((sub_ground_truth, sub_trajectory, np.round(split_distances[i], 2)))
 
-    return sub_ground_truths, sub_trajectories
+    return trajectory_tuples
 
 

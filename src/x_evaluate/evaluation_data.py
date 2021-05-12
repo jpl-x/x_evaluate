@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional
 
-from evo.core.metrics import PoseRelation
 from evo.core.trajectory import PoseTrajectory3D
 
 from x_evaluate.utils import nanrms
@@ -17,6 +16,13 @@ class FrontEnd(Enum):
 
     def __str__(self):
         return self.value
+
+
+class AlignmentType(Enum):
+    Disabled = 1
+    PosYaw = 2
+    SE3 = 3
+    SIM3 = 4
 
 
 class DistributionSummary:
@@ -54,12 +60,12 @@ class TrajectoryData:
     traj_est: PoseTrajectory3D
     raw_estimate_t_xyz_wxyz: np.ndarray
 
-    ape_error_arrays: Dict[PoseRelation, np.ndarray]
-    rpe_error_arrays: Dict[PoseRelation, np.ndarray]
+    errors: Dict[str, np.ndarray]
+    sub_traj_errors: Dict[float, Dict[str, np.ndarray]]
 
     def __init__(self):
-        self.ape_error_arrays = dict()
-        self.rpe_error_arrays = dict()
+        self.errors = dict()
+        self.sub_traj_errors = dict()
 
 
 class FeatureTrackingData:
