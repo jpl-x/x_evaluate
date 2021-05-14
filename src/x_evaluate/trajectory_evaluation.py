@@ -6,7 +6,7 @@ from evo.core.metrics import APE, RPE, PoseRelation, PE
 from x_evaluate.rpg_trajectory_evaluation import split_trajectory_into_equal_parts, \
     split_trajectory_on_traveled_distance_grid
 from x_evaluate.utils import convert_to_evo_trajectory, rms, name_to_identifier
-from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext
+from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext, boxplot_compare
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
@@ -104,15 +104,35 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     return np.hstack(tuple(arrays))
 
 
+def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData]):
+    errors = []
+    for t in trajectories:
+        if t.trajectory_data is not None:
+            errors.append(t.trajectory_data.sub_traj_errors)
+
+    distances = list(errors[0].keys())
+
+
+    m = APE_METRICS[0]
+    data = [errors[0][k][str(m)] for k in distances]
+    boxplot_compare(pc, distances, [data], ["My hero"])
+
+    # print(errors)
+
+
 def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
-    plot_trajectory(os.path.join(output_folder, "xy_plot.svg"), [eval_data])
+    with PlotContext(os.path.join(output_folder, "xy_plot.svg")) as pc:
+        plot_trajectory(pc, [eval_data])
+
+    with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors.svg")) as pc:
+        plot_rpg_error_arrays(pc, [eval_data])
 
 
 def create_summary_info(summary: EvaluationDataSummary):
     summary.trajectory_summary_table = create_trajectory_result_table(summary)
 
 
-def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
+def plot_trajectory(pc: PlotContext, trajectories: Collection[EvaluationData]):
     traj_by_label = dict()
 
     if len(trajectories) <= 0:
@@ -127,14 +147,7 @@ def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
                 traj_by_label[F"{t.name} reference"] = t.trajectory_data.traj_ref
             traj_by_label[F"{t.name} estimate"] = t.trajectory_data.traj_est
 
-    fig = plt.figure()
-    plot.trajectories(fig, traj_by_label, plot.PlotMode.xy)
-
-    if filename is None:
-        plt.show()
-    else:
-        plt.savefig(filename)
-    plt.clf()
+    plot.trajectories(pc.figure, traj_by_label, plot.PlotMode.xy)
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):

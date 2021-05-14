@@ -131,7 +131,7 @@ def rpg_sub_trajectories(ground_truth: PoseTrajectory3D, trajectory_estimate: Po
     split_times = [ground_truth.timestamps[index] for index in split_points]
 
     split_times.insert(0, ground_truth.timestamps[0])
-    split_distances.insert(0, 0.0)
+    split_distances.append(ground_truth.distances[-1])
     split_times.append(ground_truth.timestamps[-1])
 
     trajectory_tuples = []
