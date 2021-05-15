@@ -111,14 +111,14 @@ def main():
         summary.x_git_info = get_git_info(x_root)
         summary.x_vio_ros_git_info = get_git_info(x_vio_ros_root)
 
-        filename = os.path.join(args.output_folder, 'evaluation.pickle')
-
-        print(F"Dumping evaluation results to '{filename}'")
-
-        with open(filename, 'wb') as f:
-            pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
-
     finally:
+        if summary is not None:
+            filename = os.path.join(args.output_folder, 'evaluation.pickle')
+            print(F"Dumping evaluation results to '{filename}'")
+
+            with open(filename, 'wb') as f:
+                pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
+
         if os.path.exists(tmp_yaml_filename):
             os.remove(tmp_yaml_filename)
 

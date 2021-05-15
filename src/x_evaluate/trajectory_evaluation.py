@@ -17,7 +17,7 @@ import x_evaluate.rpg_trajectory_evaluation as rpg
 
 from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, AlignmentType
 
-POSE_RELATIONS = [metrics.PoseRelation.rotation_angle_deg, metrics.PoseRelation.translation_part]
+POSE_RELATIONS = [metrics.PoseRelation.translation_part, metrics.PoseRelation.rotation_angle_deg]
 
 # POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
 
@@ -104,26 +104,44 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     return np.hstack(tuple(arrays))
 
 
-def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData]):
+def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData], labels=None, use_log=False):
+    auto_labels = []
     errors = []
     for t in trajectories:
         if t.trajectory_data is not None:
             errors.append(t.trajectory_data.sub_traj_errors)
+            auto_labels.append(t.name)
+
+    if len(errors) <= 0:
+        return
+
+    if labels is None:
+        labels = auto_labels
+
+    labels = [l[1:] if l.startswith('_') else l for l in labels]
 
     distances = list(errors[0].keys())
 
+    for m in APE_METRICS:
+        if use_log:
+            data = [[np.log1p(e[k][str(m)]) / np.log(10) for k in distances] for e in errors]
+        else:
+            data = [[e[k][str(m)] for k in distances] for e in errors]
 
-    m = APE_METRICS[0]
-    data = [errors[0][k][str(m)] for k in distances]
-    boxplot_compare(pc, distances, [data], ["My hero"])
-
-    # print(errors)
+        ax = pc.get_axis()
+        ax.set_xlabel("Distance traveled [m]")
+        if use_log:
+            ax.set_ylabel(F"APE (log {m.unit.name})")
+        else:
+            ax.set_ylabel(F"APE ({m.unit.name})")
+        boxplot_compare(ax, distances, data, labels)
 
 
 def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
     with PlotContext(os.path.join(output_folder, "xy_plot.svg")) as pc:
         plot_trajectory(pc, [eval_data])
 
+    # with PlotContext(None) as pc:
     with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors.svg")) as pc:
         plot_rpg_error_arrays(pc, [eval_data])
 

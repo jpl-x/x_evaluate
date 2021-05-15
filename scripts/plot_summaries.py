@@ -39,7 +39,7 @@ def main():
         i += 1
 
     te.plot_summary_plots(s, output_root)
-    te.print_trajectory_summary(s)
+    te.create_summary_info(s)
     pe.plot_summary_plots(s, output_root)
     pe.print_realtime_factor_summary(s)
     fe.plot_summary_plots(s, output_root)

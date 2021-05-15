@@ -66,8 +66,8 @@ def main():
         evaluations = [s.data[dataset] for s in summaries.values()]
 
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:
-            te.plot_error_comparison(pc, evaluations, metrics.PoseRelation.full_transformation,
-                                     ErrorType.APE, PlotType.TIME_SERIES, names)
+            te.plot_error_comparison(pc, evaluations, str(metrics.APE(metrics.PoseRelation.translation_part)),
+                                     PlotType.TIME_SERIES, names)
 
         with PlotContext(os.path.join(args.output_folder, F"compare_rt_factor_{d_id}.svg")) as pc:
             pe.plot_realtime_factor(pc, evaluations, names)
@@ -82,7 +82,12 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_optimizations_{d_id}.svg")) as pc:
             pe.plot_optimization_iterations(pc, evaluations)
 
-    
+        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_{d_id}.svg"), subplot_cols=2) as pc:
+            te.plot_rpg_error_arrays(pc, evaluations, names)
+
+        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_{d_id}_log.svg"), subplot_cols=2) as pc:
+            te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True)
+
 
 if __name__ == '__main__':
     main()

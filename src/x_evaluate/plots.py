@@ -100,15 +100,15 @@ def color_box(bp, color):
     return
 
 
-def boxplot_compare(pc: PlotContext, x_tick_labels, data, legend_labels, colors=None, legend=True):
+def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True):
     if colors is None:
         colors = list(mcolors.TABLEAU_COLORS.values())
 
-    ax = pc.get_axis()
     n_data = len(data)
     n_xlabel = len(x_tick_labels)
     leg_handles = []
     leg_labels = []
+    bps = []
     for idx, d in enumerate(data):
         # print("idx and d: {0} and {1}".format(idx, d))
         w = 1 / (1.5 * n_data + 1.5)
@@ -116,8 +116,14 @@ def boxplot_compare(pc: PlotContext, x_tick_labels, data, legend_labels, colors=
         positions = [pos - 0.5 + 1.5 * w + idx * w
                      for pos in np.arange(n_xlabel)]
         # print("Positions: {0}".format(positions))
-        bp = ax.boxplot(d, 0, '', positions=positions, widths=widths)
+        props = {
+            'facecolor': colors[idx]
+        }
+        bp = ax.boxplot(d, 0, '', positions=positions, widths=widths, patch_artist=True, boxprops=props) # ,
+        # boxprops=dict(
+        # facecolor=colors[idx]))
         color_box(bp, colors[idx])
+        bps.append(bp)
         tmp, = plt.plot([1, 1], c=colors[idx], alpha=0)
         leg_handles.append(tmp)
         leg_labels.append(legend_labels[idx])
@@ -129,5 +135,7 @@ def boxplot_compare(pc: PlotContext, x_tick_labels, data, legend_labels, colors=
     if legend:
         # ax.legend(leg_handles, leg_labels, bbox_to_anchor=(
             # 1.05, 1), loc=2, borderaxespad=0.)
-        ax.legend(leg_handles, leg_labels)
-    map(lambda x: x.set_visible(False), leg_handles)
+        # ax.legend(leg_handles, leg_labels)
+        ax.legend([element["boxes"][0] for element in bps],
+                  [legend_labels[idx] for idx, _ in enumerate(data)])
+    # map(lambda x: x.set_visible(False), leg_handles)
