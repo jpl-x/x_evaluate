@@ -1,3 +1,4 @@
+import copy
 import os
 import pickle
 
@@ -79,6 +80,7 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
         d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize)
 
     d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
+    d.configuration = copy.deepcopy(dataset)
     return d
 
 
