@@ -2,15 +2,16 @@ import argparse
 import glob
 import os
 
-from typing import List, Dict
+from typing import Dict
 
 from evo.core import metrics
-from x_evaluate.evaluation_data import ErrorType, EvaluationDataSummary
+
+from x_evaluate.comparisons import identify_common_datasets, compare_trajectory_performance_wrt_traveled_dist
+from x_evaluate.evaluation_data import EvaluationDataSummary
 from x_evaluate.plots import PlotType, PlotContext
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
 from x_evaluate.scriptlets import read_evaluation_pickle
 
-import x_evaluate.tracking_evaluation as fe
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 
@@ -49,16 +50,15 @@ def main():
         summaries[name] = s
         # print(args.input_folder)
 
-    common_datasets = None
-
-    for s in summaries.values():
-        if common_datasets is None:
-            common_datasets = set(s.data.keys())
-        common_datasets = common_datasets.intersection(s.data.keys())
+    common_datasets = identify_common_datasets(summaries)
 
     print(F"Comparing {', '.join(summaries.keys())} on following datasets: {', '.join(common_datasets)}")
 
     names = list(summaries.keys())
+
+    result_table = compare_trajectory_performance_wrt_traveled_dist(summaries)
+
+    print(result_table.to_latex(index=False))
 
     for dataset in common_datasets:
         d_id = name_to_identifier(dataset)

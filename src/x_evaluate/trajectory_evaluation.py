@@ -58,7 +58,30 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) ->
     return d
 
 
-def create_trajectory_result_table(s: EvaluationDataSummary) -> pd.DataFrame:
+def create_trajectory_result_table_wrt_traveled_dist(s: EvaluationDataSummary) -> pd.DataFrame:
+    columns = ["Dataset", F"Mean Position Error ({s.name}) [%]", F"Mean Rotation error ({s.name}) [deg/m]"]
+    result_table = pd.DataFrame(columns=columns)
+
+    for d in s.data.values():
+        if d.trajectory_data is None:
+            continue
+        position_metric = metrics.APE(metrics.PoseRelation.translation_part)
+        orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
+
+        mask = d.trajectory_data.traj_ref.distances > 0
+
+        pos_error = d.trajectory_data.errors[str(position_metric)][mask] / d.trajectory_data.traj_ref.distances[mask]
+        deg_error = d.trajectory_data.errors[str(orientation_metric)][mask] / d.trajectory_data.traj_ref.distances[mask]
+
+        pos_error = np.round(np.mean(pos_error*100), 2)  # in percent
+        deg_error = np.round(np.mean(deg_error), 2)
+
+        result_table.loc[len(result_table)] = [d.name, pos_error, deg_error]
+
+    return result_table
+
+
+def create_absolute_trajectory_result_table(s: EvaluationDataSummary) -> pd.DataFrame:
     stats = {'RMS': lambda x: rms(x)}
     stats = {'MAX': lambda x: np.max(x)}
     columns = ["Name"] + [F"{str(m)} [{k}]" for m in METRICS for k in stats.keys()]
@@ -142,12 +165,12 @@ def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
         plot_trajectory(pc, [eval_data])
 
     # with PlotContext(None) as pc:
-    with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors.svg"), subplot_cols=2) as pc:
         plot_rpg_error_arrays(pc, [eval_data])
 
 
 def create_summary_info(summary: EvaluationDataSummary):
-    summary.trajectory_summary_table = create_trajectory_result_table(summary)
+    summary.trajectory_summary_table = create_absolute_trajectory_result_table(summary)
 
 
 def plot_trajectory(pc: PlotContext, trajectories: Collection[EvaluationData]):
