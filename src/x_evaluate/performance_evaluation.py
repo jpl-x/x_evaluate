@@ -1,12 +1,12 @@
 import os
-from typing import Collection
+from typing import Collection, Dict, List
 
 import pandas as pd
 import numpy as np
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary, \
     DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
-from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_from_summary
+from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_from_summary, barplot_compare
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -172,3 +172,25 @@ def plot_optimizations_per_second(pc: PlotContext, eval_data: EvaluationData):
     ax.set_xlabel("time")
     ax.set_ylabel("optimizations/s")
     # ax.legend()
+
+
+def plot_processing_times(pc: PlotContext, summaries: Dict[str, EvaluationDataSummary], common_datasets: List[str]):
+    data = [[s.data[k].performance_data.df_realtime.iloc[-1]['t_real'] for k in common_datasets] for s in
+            summaries.values()]
+
+    summary_labels = [s.name for s in summaries.values()]
+    dataset_labels = common_datasets
+
+    barplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Total processing time [s]")
+
+
+    #
+    #
+    # ax = pc.get_axis()
+    # ax.set_xlabel("Distance traveled [m]")
+    # if use_log:
+    #     ax.set_ylabel(F"APE (log {m.unit.name})")
+    # else:
+    #     ax.set_ylabel(F"APE ({m.unit.name})")
+    # boxplot_compare(ax, distances, data, labels)
+

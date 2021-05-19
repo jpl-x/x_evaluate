@@ -100,6 +100,29 @@ def color_box(bp, color):
     return
 
 
+def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=None, colors=None, legend=True):
+    if colors is None:
+        colors = list(mcolors.TABLEAU_COLORS.values())
+
+    n_data = len(data)
+    n_xlabel = len(x_tick_labels)
+    w = 1 / (1.5 * n_data + 1.5)
+
+    for idx, d in enumerate(data):
+        positions = [pos - 0.5 + 1.5 * w + idx * w
+                     for pos in np.arange(n_xlabel)]
+
+        ax.bar(positions, d, w, label=legend_labels[idx], color=colors[idx])
+
+    ax.set_xticks(np.arange(n_xlabel))
+    ax.set_xticklabels(x_tick_labels)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+
+    if legend:
+        ax.legend()
+
+
 def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True):
     if colors is None:
         colors = list(mcolors.TABLEAU_COLORS.values())
@@ -109,17 +132,15 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
     leg_handles = []
     leg_labels = []
     bps = []
+    w = 1 / (1.5 * n_data + 1.5)
+    widths = [w] * n_xlabel
     for idx, d in enumerate(data):
-        # print("idx and d: {0} and {1}".format(idx, d))
-        w = 1 / (1.5 * n_data + 1.5)
-        widths = [w for pos in np.arange(n_xlabel)]
         positions = [pos - 0.5 + 1.5 * w + idx * w
                      for pos in np.arange(n_xlabel)]
-        # print("Positions: {0}".format(positions))
         props = {
             'facecolor': colors[idx]
         }
-        bp = ax.boxplot(d, 0, '', positions=positions, widths=widths, patch_artist=True, boxprops=props) # ,
+        bp = ax.boxplot(d, 0, '', positions=positions, widths=widths, patch_artist=True, boxprops=props)  # ,
         # boxprops=dict(
         # facecolor=colors[idx]))
         color_box(bp, colors[idx])

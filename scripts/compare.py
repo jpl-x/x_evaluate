@@ -88,6 +88,9 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_{d_id}_log.svg"), subplot_cols=2) as pc:
             te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True)
 
+    with PlotContext(os.path.join(args.output_folder, F"compare_processing_times.svg")) as pc:
+        pe.plot_processing_times(pc, summaries, common_datasets)
+
 
 if __name__ == '__main__':
     main()
