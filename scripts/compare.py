@@ -7,7 +7,7 @@ from typing import Dict
 from evo.core import metrics
 
 from x_evaluate.comparisons import identify_common_datasets, compare_trajectory_performance_wrt_traveled_dist
-from x_evaluate.evaluation_data import EvaluationDataSummary
+from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
 from x_evaluate.plots import PlotType, PlotContext
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
 from x_evaluate.scriptlets import read_evaluation_pickle
@@ -54,9 +54,15 @@ def main():
 
     print(F"Comparing {', '.join(summaries.keys())} on following datasets: {', '.join(common_datasets)}")
 
-    names = list(summaries.keys())
+    names = [s.name for s in summaries.values()]
+    eklt_names = [s.name for s in summaries.values() if s.frontend == FrontEnd.EKLT]
 
     result_table = compare_trajectory_performance_wrt_traveled_dist(summaries)
+
+    eklt_summaries = []
+    for s in summaries.values():
+        if s.frontend == FrontEnd.EKLT:
+            eklt_summaries.append(s)
 
     print(result_table.to_latex(index=False))
 
@@ -64,6 +70,7 @@ def main():
         d_id = name_to_identifier(dataset)
 
         evaluations = [s.data[dataset] for s in summaries.values()]
+        eklt_evaluations = [s.data[dataset] for s in summaries.values() if s.frontend == FrontEnd.EKLT]
 
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:
             te.plot_error_comparison(pc, evaluations, str(metrics.APE(metrics.PoseRelation.translation_part)),
@@ -87,6 +94,12 @@ def main():
 
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_{d_id}_log.svg"), subplot_cols=2) as pc:
             te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True)
+
+        if len(eklt_evaluations) > 0:
+            with PlotContext(os.path.join(args.output_folder, F"compare_event_processing_times_{d_id}.svg"),
+                             subplot_rows=len(eklt_evaluations), base_height_inch=3) as pc:
+                pc.figure.suptitle(F"Event processing times on '{dataset}'")
+                pe.plot_event_processing_times(pc, eklt_evaluations, eklt_names)
 
     with PlotContext(os.path.join(args.output_folder, F"compare_processing_times.svg")) as pc:
         pe.plot_processing_times(pc, summaries, common_datasets)

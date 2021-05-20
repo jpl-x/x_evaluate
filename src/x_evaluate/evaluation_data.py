@@ -49,6 +49,10 @@ class DistributionSummary:
             bins = np.linspace(lower, upper, upper - lower + 1)
         self.hist, self.bins = np.histogram(data, bins=bins)
 
+        if np.all(data > 0):
+            bins_log = np.logspace(np.log10(self.min), np.log10(self.max), self.N_BINS)
+            self.hist_log, self.bins_log = np.histogram(data, bins_log)
+
 
 class ErrorType(Enum):
     APE = 1

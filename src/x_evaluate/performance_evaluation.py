@@ -6,7 +6,7 @@ import numpy as np
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary, \
     DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
-from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_from_summary, barplot_compare
+from x_evaluate.plots import time_series_plot, PlotContext, boxplot_from_summary, barplot_compare, hist_from_bin_values
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -183,6 +183,26 @@ def plot_processing_times(pc: PlotContext, summaries: Dict[str, EvaluationDataSu
 
     barplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Total processing time [s]")
 
+
+def plot_event_processing_times(pc: PlotContext, eklt_evaluations: List[EvaluationData], names: List[str]):
+    share_axis = None
+
+    axis = []
+
+    for idx, e in enumerate(eklt_evaluations):
+        if share_axis is None:
+            share_axis = pc.get_axis()
+            ax = share_axis
+        else:
+            ax = pc.get_axis(sharex=share_axis)
+        hist_from_bin_values(ax, e.eklt_performance_data.event_processing_times.bins_log,
+                             e.eklt_performance_data.event_processing_times.hist_log, "Time / event [s]", True, True)
+
+        ax.set_title(names[idx])
+        axis.append(ax)
+
+    for a in axis:
+        a.label_outer()
 
     #
     #
