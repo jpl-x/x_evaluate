@@ -7,7 +7,7 @@ from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, Eva
     DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
 from x_evaluate.plots import time_series_plot, PlotContext, boxplot_from_summary, barplot_compare, hist_from_bin_values, \
-    boxplot_compare, summary_to_dict
+    boxplot_compare, summary_to_dict, draw_lines_on_top_of_comparison_plots
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -259,8 +259,12 @@ def plot_processing_times(pc: PlotContext, summaries: Dict[str, EvaluationDataSu
     summary_labels = [s.name for s in summaries.values()]
     dataset_labels = common_datasets
 
-    barplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Total processing time [s]",
+    ax = pc.get_axis()
+    barplot_compare(ax, dataset_labels, data, summary_labels, ylabel="Total processing time [s]",
                     title="Total processing times")
+
+    data = [[list(summaries.values())[0].data[k].trajectory_data.traj_ref.timestamps.max()] for k in common_datasets]
+    draw_lines_on_top_of_comparison_plots(ax, data, len(summary_labels))
 
 
 def plot_event_processing_times(pc: PlotContext, eklt_evaluations: List[EvaluationData], names: List[str]):
