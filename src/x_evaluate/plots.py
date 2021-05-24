@@ -127,13 +127,11 @@ def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=Non
 
     n_data = len(data)
     n_xlabel = len(x_tick_labels)
-    w = 1 / (1.5 * n_data + 1.5)
 
     for idx, d in enumerate(data):
-        positions = [pos - 0.5 + 1.5 * w + idx * w
-                     for pos in np.arange(n_xlabel)]
+        positions, widths = evenly_distribute_plot_positions(idx, n_xlabel, n_data)
 
-        ax.bar(positions, d, w, label=legend_labels[idx], color=colors[idx])
+        ax.bar(positions, d, widths, label=legend_labels[idx], color=colors[idx])
 
     ax.set_xticks(np.arange(n_xlabel))
     ax.set_xticklabels(x_tick_labels)
@@ -175,11 +173,9 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
     leg_handles = []
     leg_labels = []
     bps = []
-    w = 1 / (1.5 * n_data + 1.5)
-    widths = [w] * n_xlabel
+
     for idx, d in enumerate(data):
-        positions = [pos - 0.5 + 1.5 * w + idx * w
-                     for pos in np.arange(n_xlabel)]
+        positions, widths = evenly_distribute_plot_positions(idx, n_xlabel, n_data)
         props = {
             'facecolor': colors[idx]
         }
@@ -214,3 +210,30 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
         ax.set_title(title)
 
     # map(lambda x: x.set_visible(False), leg_handles)
+
+
+def draw_lines_on_top_of_comparison_plots(ax: plt.Axes, data, num_comparisons):
+    n_xlabel = len(data)
+    n_data = num_comparisons
+    positions_start, widths_start = evenly_distribute_plot_positions(0, n_xlabel, n_data)
+    positions_end, widths_end = evenly_distribute_plot_positions(num_comparisons - 1, n_xlabel, n_data)
+    for idx, d in enumerate(data):
+        x_start = positions_start[idx] - widths_start[idx]/2
+        x_end = positions_end[idx] + widths_end[idx]/2
+
+        if len(d) == 1:
+            val = d[0]
+            d = [val, val]
+
+        x = np.linspace(x_start, x_end, len(d))
+        ax.plot(x, d, color="black", linestyle="--", linewidth=1)
+
+
+def evenly_distribute_plot_positions(idx, num_slots, num_entries):
+    width = 1 / (1.5 * num_entries + 1.5)
+    widths = [width] * num_slots
+
+    positions = [pos - 0.5 + 1.5 * width + idx * width
+                 for pos in np.arange(num_slots)]
+
+    return positions, widths
