@@ -120,7 +120,8 @@ def color_box(bp, color):
     return
 
 
-def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=None, colors=None, legend=True):
+def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=None, colors=None, legend=True,
+                    title=None):
     if colors is None:
         colors = list(mcolors.TABLEAU_COLORS.values())
 
@@ -142,6 +143,9 @@ def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=Non
     if legend:
         ax.legend()
 
+    if title:
+        ax.set_title(title)
+
 
 def hist_from_bin_values(ax: plt.Axes, bins, hist, xlabel=None, use_percentages=False, use_log=False):
     widths = bins[1:] - bins[:-1]
@@ -161,7 +165,8 @@ def hist_from_bin_values(ax: plt.Axes, bins, hist, xlabel=None, use_percentages=
         ax.set_xlabel(xlabel)
 
 
-def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True, ylabel=None):
+def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True, ylabel=None,
+                    title=None):
     if colors is None:
         colors = list(mcolors.TABLEAU_COLORS.values())
 
@@ -204,5 +209,8 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
 
     if ylabel is not None:
         ax.set_ylabel(ylabel)
+
+    if title:
+        ax.set_title(title)
 
     # map(lambda x: x.set_visible(False), leg_handles)

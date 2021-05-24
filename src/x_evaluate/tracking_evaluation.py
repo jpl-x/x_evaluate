@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import pandas as pd
 import numpy as np
@@ -6,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary
 from x_evaluate.utils import timestamp_to_rosbag_time_zero
-from x_evaluate.plots import boxplot, time_series_plot, PlotContext
+from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_compare
 
 
 def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFrame,
@@ -68,6 +69,28 @@ def plot_feature_plots(d: EvaluationData, output_folder):
 
         with PlotContext(os.path.join(output_folder, "eklt_features.svg")) as pc:
             time_series_plot(pc, df['t'], [df['num_features']], ["EKLT features"], "Number of tracked features")
+
+
+def plot_eklt_num_features_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    data = []
+    times = []
+
+    for e in eval_data:
+        data.append(e.feature_data.df_eklt_features['num_features'])
+        times.append(e.feature_data.df_eklt_features['t'])
+
+    time_series_plot(pc, times, data, labels, F"Number of tracked EKLT features on '{dataset_name}')",
+                     "number of features")
+
+
+def plot_eklt_feature_age_comparison(pc: PlotContext, summaries: List[EvaluationDataSummary], common_datasets):
+    data = [[s.data[k].feature_data.df_eklt_feature_age['age']
+             for k in common_datasets] for s in summaries]
+
+    summary_labels = [s.name for s in summaries]
+    dataset_labels = common_datasets
+    boxplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="feature age [s]",
+                    title="EKLT feature age")
 
 
 def plot_xvio_num_features(pc: PlotContext, d: EvaluationData):

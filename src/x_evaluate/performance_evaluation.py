@@ -6,7 +6,8 @@ import numpy as np
 from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, EvaluationData, EvaluationDataSummary, \
     DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
-from x_evaluate.plots import time_series_plot, PlotContext, boxplot_from_summary, barplot_compare, hist_from_bin_values
+from x_evaluate.plots import time_series_plot, PlotContext, boxplot_from_summary, barplot_compare, hist_from_bin_values, \
+    boxplot_compare, summary_to_dict
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -65,6 +66,25 @@ def plot_cpu_usage(pc: PlotContext, eval_data: EvaluationData):
     time_series_plot(pc, resource_times, data, labels, F"CPU Usage ({eval_data.name})", "cpu time : real time [%]")
 
 
+def plot_cpu_usage_in_time_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    data = []
+    times = []
+
+    for e in eval_data:
+        data.append(e.performance_data.df_resources['cpu_usage'])
+        times.append(timestamp_to_real_time(e.performance_data.df_resources['ts'], e.performance_data.df_realtime))
+
+    time_series_plot(pc, times, data, labels, F"CPU usage on '{dataset_name}')", "cpu time : real time [%]")
+
+
+def plot_cpu_usage_boxplot_comparison(pc: PlotContext, summaries: Dict[str, EvaluationDataSummary], common_datasets):
+    data = [[s.data[k].performance_data.df_resources['cpu_usage'] for k in common_datasets] for s in summaries.values()]
+
+    summary_labels = [s.name for s in summaries.values()]
+    dataset_labels = common_datasets
+    boxplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="CPU usage [%]", title="Total CPU usage")
+
+
 def plot_memory_usage(pc: PlotContext, eval_data: EvaluationData):
     df_rt = eval_data.performance_data.df_realtime
     df_resources = eval_data.performance_data.df_resources
@@ -77,6 +97,30 @@ def plot_memory_usage(pc: PlotContext, eval_data: EvaluationData):
     data = [actual_mem, mem_usage_debug]
     labels = ["memory usage", "additional debug memory"]
     time_series_plot(pc, resource_times, data, labels, F"Memory Usage ({eval_data.name})", "MB")
+
+
+def plot_memory_usage_in_time_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    data = []
+    times = []
+
+    for e in eval_data:
+        df_resources = e.performance_data.df_resources
+        resource_times = timestamp_to_real_time(df_resources['ts'], e.performance_data.df_realtime)
+        mem_usage = df_resources['memory_usage_in_bytes'].to_numpy() / 1024 / 1024
+        data.append(mem_usage)
+        times.append(resource_times)
+
+    time_series_plot(pc, times, data, labels, F"Memory usage on '{dataset_name}')", "Memory usage [MB]")
+
+
+def plot_memory_usage_boxplot_comparison(pc: PlotContext, summaries: Dict[str, EvaluationDataSummary], common_datasets):
+    data = [[s.data[k].performance_data.df_resources['memory_usage_in_bytes'].to_numpy() / 1024 / 1024
+             for k in common_datasets] for s in summaries.values()]
+
+    summary_labels = [s.name for s in summaries.values()]
+    dataset_labels = common_datasets
+    boxplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Memory usage [MB]",
+                    title="Total memory usage")
 
 
 def plot_performance_plots(eval_data: EvaluationData, output_folder):
@@ -110,6 +154,18 @@ def plot_optimization_iterations(pc: PlotContext, evaluations: Collection[Evalua
         labels = auto_labels
 
     boxplot_from_summary(pc, data, labels, "Optimization iterations")
+
+
+def plot_optimization_iterations_comparison(pc: PlotContext, summaries: List[EvaluationDataSummary], common_datasets):
+    data = [[summary_to_dict(s.data[k].eklt_performance_data.optimization_iterations)
+             for k in common_datasets] for s in summaries]
+
+    summary_labels = [s.name for s in summaries]
+    dataset_labels = common_datasets
+    boxplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Number of iterations",
+                    title="Optimization iterations")
+    # boxplot_compare()
+    # boxplot_from_summary(pc, data, labels, "Optimization iterations")
 
 
 def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):
@@ -164,6 +220,17 @@ def plot_events_per_second(pc: PlotContext, eval_data: EvaluationData):
     ax.legend()
 
 
+def plot_events_per_seconds_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    times = []
+    data = []
+
+    for e in eval_data:
+        times.append(np.arange(0.0, len(e.eklt_performance_data.events_per_sec)))
+        data.append(e.eklt_performance_data.events_per_sec)
+
+    time_series_plot(pc, times, data, labels, F"Processed events on '{dataset_name}'", "events/s")
+
+
 def plot_optimizations_per_second(pc: PlotContext, eval_data: EvaluationData):
     ax = pc.get_axis()
     ax.set_title(F"Optimizations per second ({eval_data.name})")
@@ -174,6 +241,17 @@ def plot_optimizations_per_second(pc: PlotContext, eval_data: EvaluationData):
     # ax.legend()
 
 
+def plot_optimizations_per_seconds_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    times = []
+    data = []
+
+    for e in eval_data:
+        times.append(np.arange(0.0, len(e.eklt_performance_data.optimizations_per_sec)))
+        data.append(e.eklt_performance_data.optimizations_per_sec)
+
+    time_series_plot(pc, times, data, labels, F"Performed optimizations on '{dataset_name}'", "optimizations/s")
+
+
 def plot_processing_times(pc: PlotContext, summaries: Dict[str, EvaluationDataSummary], common_datasets: List[str]):
     data = [[s.data[k].performance_data.df_realtime.iloc[-1]['t_real'] for k in common_datasets] for s in
             summaries.values()]
@@ -181,7 +259,8 @@ def plot_processing_times(pc: PlotContext, summaries: Dict[str, EvaluationDataSu
     summary_labels = [s.name for s in summaries.values()]
     dataset_labels = common_datasets
 
-    barplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Total processing time [s]")
+    barplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="Total processing time [s]",
+                    title="Total processing times")
 
 
 def plot_event_processing_times(pc: PlotContext, eklt_evaluations: List[EvaluationData], names: List[str]):
