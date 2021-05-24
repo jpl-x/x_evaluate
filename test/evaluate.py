@@ -26,6 +26,7 @@ def main():
     parser = argparse.ArgumentParser(description='Automatic evaluation of X library according to evaluate.yaml')
     parser.add_argument('--evaluate', type=str, default="", help='location of c++ evaluate executable')
     parser.add_argument('--configuration', type=str, default="", help="YAML file specifying what to run")
+    parser.add_argument('--name', type=str, help="optional name, if not the output folder name is used")
     parser.add_argument('--dataset_dir', type=str, default="", help="substitutes XVIO_DATASET_DIR in yaml file")
     parser.add_argument('--output_folder', type=str, required=True)
     parser.add_argument('--frontend', type=FrontEnd, choices=list(FrontEnd), required=True)
@@ -79,6 +80,9 @@ def main():
 
     summary.configuration = conf
     summary.frontend = args.frontend
+    summary.name = args.name
+    if summary.name is None:
+        summary.name = os.path.basename(os.path.normpath(args.output_folder))
 
     try:
         for i, dataset in enumerate(eval_config['datasets']):
@@ -111,14 +115,14 @@ def main():
         summary.x_git_info = get_git_info(x_root)
         summary.x_vio_ros_git_info = get_git_info(x_vio_ros_root)
 
-        filename = os.path.join(args.output_folder, 'evaluation.pickle')
-
-        print(F"Dumping evaluation results to '{filename}'")
-
-        with open(filename, 'wb') as f:
-            pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
-
     finally:
+        if summary is not None:
+            filename = os.path.join(args.output_folder, 'evaluation.pickle')
+            print(F"Dumping evaluation results to '{filename}'")
+
+            with open(filename, 'wb') as f:
+                pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
+
         if os.path.exists(tmp_yaml_filename):
             os.remove(tmp_yaml_filename)
 
