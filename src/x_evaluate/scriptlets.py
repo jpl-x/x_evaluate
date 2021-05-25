@@ -3,12 +3,14 @@ import os
 import pickle
 
 import git
+import numpy as np
 import yaml
 
 from x_evaluate import performance_evaluation as pe, tracking_evaluation as fe, trajectory_evaluation as te
 from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo, FrontEnd, EvaluationData
 from x_evaluate.rpg_tracking_analysis.evaluate_tracks import rpg_evaluate_tracks
-from x_evaluate.utils import read_output_files, read_eklt_output_files, convert_to_tracks_txt, DynamicAttributes
+from x_evaluate.utils import read_output_files, read_eklt_output_files, DynamicAttributes, \
+    convert_eklt_df_tracks_to_rpg_tracks_numpy
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
@@ -74,22 +76,24 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 
     d.performance_data = pe.evaluate_computational_performance(df_realtime, df_resources)
 
-    df_tracks = None
-
     if frontend == FrontEnd.EKLT:
         df_events, df_optimize, df_tracks = read_eklt_output_files(output_folder)
         d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize)
 
-        call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder)
+        d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
 
-    d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
+        gt_tracks, error_data = call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder)
+        d.feature_data.eklt_tracks_gt = gt_tracks
+        d.feature_data.eklt_tracks_error = error_data
+    else:
+        d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, None)
     d.configuration = copy.deepcopy(dataset)
     return d
 
 
-def call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder):
+def call_rpg_feature_tracking_evaluation(dataset, df_eklt_tracks, output_folder):
     track_file = os.path.join(output_folder, "tracks.txt")
-    convert_to_tracks_txt(df_tracks, track_file)
+    np.savetxt(track_file, convert_eklt_df_tracks_to_rpg_tracks_numpy(df_eklt_tracks))
     args = DynamicAttributes()
     root_path = os.path.dirname(dataset["rosbag"])
     rosbag_name = os.path.basename(dataset["rosbag"])
@@ -111,7 +115,7 @@ def call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder):
         "name": rosbag_name,
         "image_topic": dataset['image_topic']
     }
-    rpg_evaluate_tracks(args, dataset_config, tracker_config)
+    return rpg_evaluate_tracks(args, dataset_config, tracker_config)
 
 
 def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename, cmdline_override_params):

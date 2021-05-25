@@ -5,8 +5,9 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary
-from x_evaluate.utils import timestamp_to_rosbag_time_zero
+from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary, \
+    FrontEnd
+from x_evaluate.utils import timestamp_to_rosbag_time_zero, convert_eklt_df_tracks_to_rpg_tracks_numpy
 from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_compare
 
 
@@ -20,6 +21,7 @@ def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFr
     d.df_x_vio_features = df_features.rename(columns={'ts': 't'})
 
     if df_eklt_tracks is not None:
+        d.df_eklt_tracks = df_eklt_tracks.copy()
         track_times = timestamp_to_rosbag_time_zero(df_eklt_tracks['ts'], perf_data.df_realtime)
         df_eklt_tracks['ts'] = track_times
         df_eklt_tracks = df_eklt_tracks.rename(columns={'ts': 't'})
@@ -37,7 +39,7 @@ def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFr
         df_eklt_tracks.loc[eol_mask, 'change'] = -1
 
         df_eklt_tracks['num_features'] = df_eklt_tracks['change'].cumsum()
-        d.df_eklt_features = df_eklt_tracks.loc[df_eklt_tracks.change != 0][['t', 'num_features']]
+        d.df_eklt_num_features = df_eklt_tracks.loc[df_eklt_tracks.change != 0][['t', 'num_features']]
 
         starting_times = df_eklt_tracks.loc[useful_tracks.index].sort_values('id')
         eol_times = df_eklt_tracks.loc[eol_mask].sort_values('id')
@@ -60,15 +62,69 @@ def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFr
     return d
 
 
+def plot_tracking_error(pc: PlotContext, eklt_tracks_error):
+    c = "blue"
+    ax = pc.get_axis()
+    t = eklt_tracks_error[:, 1]
+    t_uniq = np.unique(t)
+    resolution = t_uniq[1] - t_uniq[0]
+    resolution = 0.1
+    buckets = np.arange(np.min(t), np.max(t), resolution)
+    bucket_index = np.digitize(eklt_tracks_error[:, 1], buckets)
+    indices = np.unique(bucket_index)
+    stats = np.empty((len(indices), 8))
+    for i, idx in enumerate(indices):
+        # tracking_errors = euclidean_error[bucket_index == idx]
+        tracking_errors = eklt_tracks_error[bucket_index == idx]
+
+        # only account for each track once per bucket
+        plot_ids, first_ids = np.unique(tracking_errors[:, 0], return_index=True)
+        tracking_errors = tracking_errors[first_ids, :]
+        euclidean_error = np.linalg.norm(tracking_errors[:, 2:3], axis=1)
+        stats[i, 0] = np.median(euclidean_error)
+        stats[i, 1] = np.min(euclidean_error)
+        stats[i, 2] = np.max(euclidean_error)
+        stats[i, 3] = np.quantile(euclidean_error, 0.25)
+        stats[i, 4] = np.quantile(euclidean_error, 0.75)
+        stats[i, 5] = np.quantile(euclidean_error, 0.05)
+        stats[i, 6] = np.quantile(euclidean_error, 0.95)
+        stats[i, 7] = len(euclidean_error)
+
+    ax.plot(buckets, stats[:, 0], color=c)
+    # ax.plot(t_mean, euclidean_errors, color=color, label=label.replace("_", " "), linewidth=2)
+
+    ax.set_ylabel("Tracking error [px]")
+    ax.set_xlabel("time [s]")
+    ax.set_title("Pixel tracking errors")
+
+    # 50% range
+    ax.fill_between(buckets, stats[:, 3], stats[:, 4], alpha=0.5, lw=0, facecolor=c)
+
+    # 90% range
+    ax.fill_between(buckets, stats[:, 3], stats[:, 5], alpha=0.25, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats[:, 4], stats[:, 6], alpha=0.25, lw=0, facecolor=c)
+
+    # MIN-MAX
+    ax.fill_between(buckets, stats[:, 1], stats[:, 5], alpha=0.1, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats[:, 2], stats[:, 6], alpha=0.1, lw=0, facecolor=c)
+
+    # right_y_axis = ax.twinx()
+    # right_y_axis.plot(buckets, stats[:, 7])
+
+
 def plot_feature_plots(d: EvaluationData, output_folder):
     with PlotContext(os.path.join(output_folder, "xvio_features.svg"), subplot_rows=2, subplot_cols=2) as pc:
         plot_xvio_num_features(pc, d)
 
-    if d.feature_data.df_eklt_features is not None:
-        df = d.feature_data.df_eklt_features
+    if d.feature_data.df_eklt_num_features is not None:
+        df = d.feature_data.df_eklt_num_features
 
         with PlotContext(os.path.join(output_folder, "eklt_features.svg")) as pc:
             time_series_plot(pc, df['t'], [df['num_features']], ["EKLT features"], "Number of tracked features")
+
+    if d.feature_data.eklt_tracks_error is not None:
+        with PlotContext(os.path.join(output_folder, "eklt_tracking_error.svg")) as pc:
+            plot_tracking_error(pc, d.feature_data.eklt_tracks_error)
 
 
 def plot_eklt_num_features_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
@@ -76,8 +132,8 @@ def plot_eklt_num_features_comparison(pc: PlotContext, eval_data: List[Evaluatio
     times = []
 
     for e in eval_data:
-        data.append(e.feature_data.df_eklt_features['num_features'])
-        times.append(e.feature_data.df_eklt_features['t'])
+        data.append(e.feature_data.df_eklt_num_features['num_features'])
+        times.append(e.feature_data.df_eklt_num_features['t'])
 
     time_series_plot(pc, times, data, labels, F"Number of tracked EKLT features on '{dataset_name}')",
                      "number of features")
@@ -113,15 +169,15 @@ def plot_xvio_num_features(pc: PlotContext, d: EvaluationData):
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
 
-    data = []
-    auto_labels = []
-
-    for e in summary.data.values():
-        if e.feature_data.df_eklt_feature_age is not None:
-            data.append(e.feature_data.df_eklt_feature_age['age'])
-            auto_labels.append(e.name)
-
-    if len(data) <= 0:
+    # EKLT plots only for now
+    if summary.frontend != FrontEnd.EKLT:
         return
+
     with PlotContext(os.path.join(output_folder, "eklt_feature_ages.svg")) as pc:
-        boxplot(pc, data, auto_labels, "Feature age comparison", [1, 99])
+        plot_eklt_feature_age(pc, summary)
+
+
+def plot_eklt_feature_age(pc, summary):
+    data = [d.feature_data.df_eklt_feature_age['age'] for d in summary.data.values()]
+    auto_labels = [d.name for d in summary.data.values()]
+    boxplot(pc, data, auto_labels, "Feature age comparison", [1, 99])

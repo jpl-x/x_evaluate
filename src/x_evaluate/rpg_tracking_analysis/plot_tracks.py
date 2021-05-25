@@ -214,6 +214,7 @@ def plot_num_features(f, config_path=None, root=None, error_threshold=10, method
                     t_break = error[-1, 0]
                     track = track[track[:, 0] <= t_break]
 
+            # Left align all errors to initialization time t=0
             error[:, 0] -= error[0, 0]
 
             errors_dict[i] = error

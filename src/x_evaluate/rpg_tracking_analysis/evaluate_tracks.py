@@ -123,6 +123,8 @@ def rpg_evaluate_tracks(args, dataset_config=None, tracker_config=None):
         with open(os.path.join(results_folder, "feature_age.txt"), "w") as f:
             f.write(age_table)
 
+    return tracked_features, error_data
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''Generates ground truth tracks for a given set of feature tracks. 

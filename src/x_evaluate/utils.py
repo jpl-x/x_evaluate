@@ -79,10 +79,8 @@ def name_to_identifier(name):
     return name.lower().replace(' ', '_')
 
 
-def convert_to_tracks_txt(df_tracks: pd.DataFrame, out_file):
-    tracks = df_tracks.loc[df_tracks.update_type != 'Lost', ['id', 'patch_t_current', 'center_x', 'center_y']]
-    np.savetxt(out_file, tracks)
-    return df_tracks
+def convert_eklt_df_tracks_to_rpg_tracks_numpy(df_tracks):
+    return df_tracks.loc[df_tracks.update_type != 'Lost', ['id', 'patch_t_current', 'center_x', 'center_y']].to_numpy()
 
 
 # def read_json_file(output_folder):

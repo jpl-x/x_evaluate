@@ -75,12 +75,18 @@ class TrajectoryData:
 class FeatureTrackingData:
     df_x_vio_features: pd.DataFrame
 
-    df_eklt_features: Optional[pd.DataFrame]
+    df_eklt_num_features: Optional[pd.DataFrame]
     df_eklt_feature_age: Optional[pd.DataFrame]
+    df_eklt_tracks: Optional[pd.DataFrame]
+    eklt_tracks_gt: Optional[np.ndarray]
+    eklt_tracks_error: Optional[np.ndarray]
 
     def __init__(self):
-        self.df_eklt_features = None
+        self.df_eklt_num_features = None
         self.df_eklt_feature_age = None
+        self.df_eklt_tracks = None
+        self.eklt_tracks_gt = None
+        self.eklt_tracks_error = None
 
 
 class PerformanceData:
