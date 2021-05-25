@@ -54,26 +54,26 @@ def project_landmarks(landmarks_global, pose, K):
 
 def get_track_data(path, delimiter=" ", filter_too_short=False):
     data = np.genfromtxt(path, delimiter=delimiter)
-    valid_ids, data = filter_first_tracks(data, filter_too_short)
+    valid_ids, data = filter_tracks(data, filter_too_short, only_first_frame=False)
     track_data = {i: data[data[:, 0] == i, 1:] for i in valid_ids}
     return track_data
 
 
-def filter_first_tracks(tracks, filter_too_short=False):
+def filter_tracks(tracks, filter_too_short=False, only_first_frame=True):
     tmin = tracks[0, 1]
     valid_ids = np.unique(tracks[tracks[:, 1] == tmin, 0]).astype(int)
     all_ids = np.unique(tracks[:, 0]).astype(int)
-    for id in all_ids:
-        if id not in valid_ids:
-            tracks = tracks[tracks[:, 0] != id]
+    for i in all_ids:
+        if only_first_frame and i not in valid_ids:
+            tracks = tracks[tracks[:, 0] != i]
         else:
             if filter_too_short:
-                num_samples = len(tracks[tracks[:, 0] == id])
+                num_samples = len(tracks[tracks[:, 0] == i])
                 if num_samples < 3:
-                    tracks = tracks[tracks[:, 0] != id]
-                    valid_ids = valid_ids[valid_ids != id]
+                    tracks = tracks[tracks[:, 0] != i]
+                    valid_ids = valid_ids[valid_ids != i]
 
-    return valid_ids, tracks
+    return np.unique(tracks[:, 0]).astype(int), tracks
 
 
 def get_error(est_data, gt_data):
@@ -83,11 +83,11 @@ def get_error(est_data, gt_data):
     est_t, est_x, est_y = est_data.T
     gt_t, gt_x, gt_y = gt_data.T
 
-    if np.abs(gt_t[0] - est_t[0]) < 1e-5:
-        gt_t[0] = est_t[0]
-
     if len(est_t) < 2:
         return gt_t, np.array([0]), np.array([0])
+
+    if np.abs(gt_t[0] - est_t[0]) < 1e-5:
+        gt_t[0] = est_t[0]
 
     # find samples which have dt > threshold
     error_x = np.interp(gt_t, est_t, est_x) - gt_x

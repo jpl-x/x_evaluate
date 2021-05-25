@@ -5,7 +5,7 @@ from os.path import join
 import numpy as np
 import tqdm
 
-from x_evaluate.rpg_tracking_analysis.tracker_utils import filter_first_tracks, get_track_data
+from x_evaluate.rpg_tracking_analysis.tracker_utils import filter_tracks, get_track_data
 
 
 class FeatureTracksVisualizer:
@@ -81,7 +81,7 @@ class FeatureTracksVisualizer:
         data = np.genfromtxt(file, delimiter=" ")
         first_len_tracks = len(data)
 
-        valid_ids, data = filter_first_tracks(data, filter_too_short=True)
+        valid_ids, data = filter_tracks(data, filter_too_short=True)
         track_data = {i: data[data[:, 0] == i, 1:] for i in valid_ids}
         tracks[method] = track_data
 

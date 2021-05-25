@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import os
 import yaml
 from os.path import isfile, join, isdir
-from x_evaluate.rpg_tracking_analysis.tracker_utils import mean_filtering, filter_first_tracks
+from x_evaluate.rpg_tracking_analysis.tracker_utils import mean_filtering, filter_tracks
 import matplotlib.ticker as mticker
 
 
@@ -35,7 +35,7 @@ def load_method(directory):
     # load and parse tracks
     f_tracks = os.path.join(directory, "tracks.txt")
     tracks = np.genfromtxt(f_tracks)
-    valid_ids, tracks = filter_first_tracks(tracks, filter_too_short=True)
+    valid_ids, tracks = filter_tracks(tracks, filter_too_short=True, only_first_frame=False)
     track_ids = np.unique(tracks[:, 0])
 
     # check that errors and error ids are correct
@@ -66,10 +66,9 @@ def plot_tracks_3d(frame_dataset, est_file, gt_file=None, t_max=-1, method="esti
     """
     est_tracks_data = np.genfromtxt(est_file)
 
-    # filter first frame
     plot_ids, first_ids = np.unique(est_tracks_data[:, 0], return_index=True)
-    initialization_times = est_tracks_data[first_ids, 1]
-    plot_ids = plot_ids[initialization_times < initialization_times[0] + 1e-3]
+    # initialization_times = est_tracks_data[first_ids, 1]
+    # plot_ids = plot_ids[initialization_times < initialization_times[0] + 1e-3]
 
     plot_features_dict = {i: est_tracks_data[est_tracks_data[:, 0] == i, 1:] for i in plot_ids}
 

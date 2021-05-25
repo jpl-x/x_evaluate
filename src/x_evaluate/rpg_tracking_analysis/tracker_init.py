@@ -1,7 +1,7 @@
 import yaml
 from x_evaluate.rpg_tracking_analysis.dataset import Dataset
 import numpy as np
-from x_evaluate.rpg_tracking_analysis.tracker_utils import back_project_features, grid_sample, filter_first_tracks
+from x_evaluate.rpg_tracking_analysis.tracker_utils import back_project_features, grid_sample, filter_tracks
 from x_evaluate.rpg_tracking_analysis.tracks import Tracks
 import os
 
@@ -32,7 +32,7 @@ class TrackerInitializer:
         print("[1/3] Loading tracks in %s" % os.path.basename(config["tracks_csv"]))
         tracks = np.genfromtxt(config["tracks_csv"])
         first_len_tracks = len(tracks)
-        valid_ids, tracks = filter_first_tracks(tracks, filter_too_short=True)
+        valid_ids, tracks = filter_tracks(tracks, filter_too_short=True)
 
         if len(tracks) < first_len_tracks:
             print("WARNING: This package only supports evaluation of tracks which have been initialized at the same"
@@ -79,11 +79,11 @@ class TrackerInitializer:
 
         # check that all features start at the same timestamp, if not, discard features that occur later
         first_len_tracks = len(tracks)
-        valid_ids, tracks = filter_first_tracks(tracks, filter_too_short=True)
+        valid_ids, tracks = filter_tracks(tracks, filter_too_short=True, only_first_frame=False)
 
-        if len(tracks) < first_len_tracks:
-            print("WARNING: This package only supports evaluation of tracks which have been initialized at the same"
-                  " time. All tracks except the first have been discarded.")
+        # if len(tracks) < first_len_tracks:
+        #     print("WARNING: This package only supports evaluation of tracks which have been initialized at the same"
+        #           " time. All tracks except the first have been discarded.")
 
         tracks_dict = {i: tracks[tracks[:, 0] == i, 1:] for i in valid_ids}
 
