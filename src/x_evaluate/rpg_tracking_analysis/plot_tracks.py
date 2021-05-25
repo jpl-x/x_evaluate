@@ -65,7 +65,11 @@ def plot_tracks_3d(frame_dataset, est_file, gt_file=None, t_max=-1, method="esti
     :return:
     """
     est_tracks_data = np.genfromtxt(est_file)
-    plot_ids = np.unique(est_tracks_data[:, 0])
+
+    # filter first frame
+    plot_ids, first_ids = np.unique(est_tracks_data[:, 0], return_index=True)
+    initialization_times = est_tracks_data[first_ids, 1]
+    plot_ids = plot_ids[initialization_times < initialization_times[0] + 1e-3]
 
     plot_features_dict = {i: est_tracks_data[est_tracks_data[:, 0] == i, 1:] for i in plot_ids}
 
@@ -133,8 +137,8 @@ def plot_tracks_3d(frame_dataset, est_file, gt_file=None, t_max=-1, method="esti
             gt_track[:, 0] -= t_min
             if t_max != -1:
                 gt_track = gt_track[gt_track[:, 0] <= t_max]
-
-            gt_track = gt_track[gt_track[:, 0] <= t[-1]]
+            else:
+                gt_track = gt_track[gt_track[:, 0] <= t[-1]]
             t_gt, x_gt, y_gt = gt_track.T
 
             if i == 0:

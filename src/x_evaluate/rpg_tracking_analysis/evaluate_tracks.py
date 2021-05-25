@@ -81,12 +81,12 @@ def rpg_evaluate_tracks(args, dataset_config=None, tracker_config=None):
             "Saving 3d space-time curves to results/3d_plot.pdf and results/3d_plot_with_gt.pdf. This may take some time.")
         dataset = Dataset(args.root, dataset_config, dataset_type="frames")
         fig1, ax1 = plot_tracks_3d(dataset, args.file, out_csv)
-        # fig1.savefig(join(results_folder, "3d_plot_with_gt.pdf"), bbox_inches="tight")
+        # fig1.savefig(join(results_folder, "3d_plot_with_gt.pdf"), bbox_inches="tight")  # BUG: matplotlib API changed?
         fig1.savefig(join(results_folder, "3d_plot_with_gt.pdf"))
 
         dataset = Dataset(args.root, dataset_config, dataset_type="frames")
         fig2, ax2 = plot_tracks_3d(dataset, args.file)
-        # fig2.savefig(os.path.join(results_folder, "3d_plot.pdf"), bbox_inches="tight")
+        # fig2.savefig(os.path.join(results_folder, "3d_plot.pdf"), bbox_inches="tight")  # BUG: matplotlib API changed?
         fig2.savefig(os.path.join(results_folder, "3d_plot.pdf"))
 
     if args.video_preview:
