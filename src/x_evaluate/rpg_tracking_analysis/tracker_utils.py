@@ -24,6 +24,21 @@ def back_project_features(K, features, depths, poses):
 
     landmarks_global = landmarks_global_hom[:, :3, 0] / landmarks_global_hom[:, 3:4, 0]
 
+    # # Landmark debugging:
+    # np.min(landmarks_global[:, 0]), np.median(landmarks_global[:, 0]), np.max(landmarks_global[:, 0])
+    # np.min(landmarks_global[:, 1]), np.median(landmarks_global[:, 1]), np.max(landmarks_global[:, 1])
+    # np.min(landmarks_global[:, 2]), np.median(landmarks_global[:, 2]), np.max(landmarks_global[:, 2])
+    # np.min(features[:, 0, 0]), np.median(features[:, 0, 0]), np.max(features[:, 0, 0])
+    # np.min(features[:, 0, 1]), np.median(features[:, 0, 1]), np.max(features[:, 0, 1])
+    #
+    # import matplotlib.pyplot as plt
+    # plt.figure()
+    # ax = plt.axes(projection='3d')
+    # xs, ys, zs = landmarks_global[:, 0], landmarks_global[:, 1], landmarks_global[:, 2]
+    # ax.set_box_aspect((np.ptp(xs), np.ptp(ys), np.ptp(zs)))
+    # ax.scatter(xs, ys, zs)
+    # plt.show()
+
     return landmarks_global
 
 

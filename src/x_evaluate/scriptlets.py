@@ -82,9 +82,10 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_tracks)
 
-        gt_tracks, error_data = call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder)
+        gt_tracks, error_data, tracker_config = call_rpg_feature_tracking_evaluation(dataset, df_tracks, output_folder)
         d.feature_data.eklt_tracks_gt = gt_tracks
         d.feature_data.eklt_tracks_error = error_data
+        d.feature_data.eklt_tracking_evaluation_config = tracker_config
     else:
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, None)
     d.configuration = copy.deepcopy(dataset)
@@ -100,22 +101,37 @@ def call_rpg_feature_tracking_evaluation(dataset, df_eklt_tracks, output_folder)
     args.root = root_path  # Directory where datasets are found
     # args.dataset = None  # Params yaml-file for dataset
     args.file = track_file  # Tracks file for ground truth computation
-    args.tracker_type = "KLT"
     args.error_threshold = 10
-    args.plot_3d = True
-    args.plot_errors = True
-    args.video_preview = True
-    tracker_config = {
-        "type": "KLT",  # ['KLT', 'reprojection'] type of algorithm used.
-        "window_size": 21,  # window size of tracked patch
-        "num_pyramidal_layers": 1,  # number of layers in pyramidal search
-    }
-    dataset_config = {
-        "type": "bag",
-        "name": rosbag_name,
-        "image_topic": dataset['image_topic']
-    }
-    return rpg_evaluate_tracks(args, dataset_config, tracker_config)
+    args.plot_3d = False
+    args.plot_errors = False
+    args.video_preview = False
+
+    if dataset['pose_topic'] and dataset['depth_map_topic'] and dataset['camera_info_topic']:
+        tracker_config = {
+            "type": "reprojection"
+        }
+        dataset_config = {
+            "type": "bag",
+            "name": rosbag_name,
+            "image_topic": dataset['image_topic'],
+            "depth_map_topic": "/cam0/depthmap",
+            "camera_info_topic": "/cam0/camera_info",
+            "pose_topic": dataset['pose_topic']
+        }
+    else:
+        tracker_config = {
+            "type": "KLT",  # ['KLT', 'reprojection'] type of algorithm used.
+            "window_size": 21,  # window size of tracked patch
+            "num_pyramidal_layers": 1,  # number of layers in pyramidal search
+        }
+
+        dataset_config = {
+            "type": "bag",
+            "name": rosbag_name,
+            "image_topic": dataset['image_topic']
+        }
+    tracked_features, error_data = rpg_evaluate_tracks(args, dataset_config, tracker_config)
+    return tracked_features, error_data, tracker_config
 
 
 def create_temporary_params_yaml(dataset, common_params, tmp_yaml_filename, cmdline_override_params):

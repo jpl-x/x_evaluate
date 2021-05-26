@@ -46,6 +46,8 @@ datasets:
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
     params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
     override_params:
       eklt_k: 0
@@ -59,6 +61,8 @@ datasets:
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
     params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
     override_params:
       eklt_k: 0
@@ -71,6 +75,8 @@ datasets:
 #    image_topic: /dvs/image_raw
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
+#    depth_map_topic:
+#    camera_info_topic:
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
 
   - name: Poster 6DOF
@@ -79,6 +85,8 @@ datasets:
     image_topic: /dvs/image_raw
     pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     override_params:
       p: [ 4.435079, -0.451290, 1.436505 ]
@@ -91,6 +99,8 @@ datasets:
 #    image_topic: /dvs/image_raw
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
+#    depth_map_topic:
+#    camera_info_topic:
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
 #    override_params:
 #      p: [ 4.418570, -0.446416, 1.362028 ]
@@ -103,6 +113,8 @@ datasets:
     image_topic: /dvs/image_raw
     pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     override_params:
       p: [  0.546509, 1.317912, 1.065833 ]
@@ -115,6 +127,8 @@ datasets:
     image_topic: /camera/image_raw
     pose_topic:
     imu_topic: /fcu/imu
+    depth_map_topic:
+    camera_info_topic:
     params: ${XVIO_SRC_ROOT}/params.yaml
 
 
@@ -126,6 +140,8 @@ datasets:
 #    image_topic: /dvs/image_raw
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
+#    depth_map_topic:
+#    camera_info_topic:
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
 #    override_params:
 #      p: [ 4.346317, 1.735782, 1.358593 ]
@@ -138,6 +154,8 @@ datasets:
 #    image_topic: /dvs/image_raw
 #    pose_topic: /optitrack/davis
 #    imu_topic: /dvs/imu
+#    depth_map_topic:
+#    camera_info_topic:
 #    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
 #    override_params:
 #      p: [ 0.871623, 0.444748, 0.998951 ]

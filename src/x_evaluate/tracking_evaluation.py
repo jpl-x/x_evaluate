@@ -62,7 +62,15 @@ def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFr
     return d
 
 
-def plot_tracking_error(pc: PlotContext, eklt_tracks_error):
+def tracker_config_to_info_string(tracker_config):
+    if tracker_config["type"] == "KLT":
+        return "KLT"
+    if tracker_config["type"] == "reprojection":
+        return "depthmap reprojection"
+    raise ValueError(F"Unknown tracking evaluation GT type {tracker_config['type']}")
+
+
+def plot_tracking_error(pc: PlotContext, eklt_tracks_error, tracker_config):
     c = "blue"
     ax = pc.get_axis()
     t = eklt_tracks_error[:, 1]
@@ -95,7 +103,8 @@ def plot_tracking_error(pc: PlotContext, eklt_tracks_error):
 
     ax.set_ylabel("Tracking error [px]")
     ax.set_xlabel("time [s]")
-    ax.set_title("Pixel tracking errors")
+
+    ax.set_title(F"Pixel tracking errors w.r.t. {tracker_config_to_info_string(tracker_config)}")
 
     # 50% range
     ax.fill_between(buckets, stats[:, 3], stats[:, 4], alpha=0.5, lw=0, facecolor=c)
@@ -124,7 +133,7 @@ def plot_feature_plots(d: EvaluationData, output_folder):
 
     if d.feature_data.eklt_tracks_error is not None:
         with PlotContext(os.path.join(output_folder, "eklt_tracking_error.svg")) as pc:
-            plot_tracking_error(pc, d.feature_data.eklt_tracks_error)
+            plot_tracking_error(pc, d.feature_data.eklt_tracks_error, d.feature_data.eklt_tracking_evaluation_config)
 
 
 def plot_eklt_num_features_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
