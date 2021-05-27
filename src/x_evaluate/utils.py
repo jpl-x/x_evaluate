@@ -37,7 +37,7 @@ def str_to_likely_type(value):
 
 def convert_to_evo_trajectory(df_poses, prefix="", filter_invalid_entries=True) -> (PoseTrajectory3D, np.ndarray):
     t_xyz_wxyz = df_poses[['t', prefix + 'p_x', prefix + 'p_y', prefix + 'p_z',
-                            prefix + 'q_w', prefix + 'q_x', prefix + 'q_y', prefix + 'q_z']].to_numpy()
+                           prefix + 'q_w', prefix + 'q_x', prefix + 'q_y', prefix + 'q_z']].to_numpy()
 
     traj_has_nans = np.any(np.isnan(t_xyz_wxyz), axis=1)
     t_is_minus_one = t_xyz_wxyz[:, 0] == 1
@@ -79,8 +79,19 @@ def name_to_identifier(name):
     return name.lower().replace(' ', '_')
 
 
-def convert_eklt_df_tracks_to_rpg_tracks_numpy(df_tracks):
-    return df_tracks.loc[df_tracks.update_type != 'Lost', ['id', 'patch_t_current', 'center_x', 'center_y']].to_numpy()
+def convert_eklt_to_rpg_tracks(df_tracks, file=None):
+    tracks = df_tracks.loc[df_tracks.update_type != 'Lost', ['id', 'patch_t_current', 'center_x',
+                                                             'center_y']].to_numpy()
+    if file is not None:
+        np.savetxt(file, tracks)
+    return tracks
+
+
+def convert_xvio_to_rpg_tracks(df_tracks, file=None):
+    tracks = df_tracks[['id', 't', 'x_dist', 'y_dist']].to_numpy()
+    if file is not None:
+        np.savetxt(file, tracks)
+    return tracks
 
 
 # def read_json_file(output_folder):
@@ -102,15 +113,17 @@ def read_output_files(output_folder, gt_available):
         df_groundtruth = pd.read_csv(os.path.join(output_folder, "gt.csv"), delimiter=";")
     df_realtime = pd.read_csv(os.path.join(output_folder, "realtime.csv"), delimiter=";")
 
+    df_xvio_tracks = pd.read_csv(os.path.join(output_folder, "xvio_tracks.csv"), delimiter=";")
+
     # profiling_json = read_json_file(output_folder)
-    return df_groundtruth, df_poses, df_realtime, df_features, df_resources
+    return df_groundtruth, df_poses, df_realtime, df_features, df_resources, df_xvio_tracks
 
 
 def read_eklt_output_files(output_folder):
     df_events = pd.read_csv(os.path.join(output_folder, "events.csv"), delimiter=";")
     df_optimizations = pd.read_csv(os.path.join(output_folder, "optimizations.csv"), delimiter=";")
-    df_tracks = pd.read_csv(os.path.join(output_folder, "tracks.csv"), delimiter=";")
-    return df_events, df_optimizations, df_tracks
+    df_eklt_tracks = pd.read_csv(os.path.join(output_folder, "eklt_tracks.csv"), delimiter=";")
+    return df_events, df_optimizations, df_eklt_tracks
 
 
 def rms(data):

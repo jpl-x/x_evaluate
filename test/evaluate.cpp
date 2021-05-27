@@ -338,13 +338,14 @@ int evaluate() {
     rt_csv.flush();
     pose_csv.flush();
     xvio_logger->features_csv.flush();
+    xvio_logger->tracks_csv.flush();
     resource_csv.flush();
     if (gt_csv)
       gt_csv->flush();
     if (eklt_logger) {
       eklt_logger->events_csv.flush();
       eklt_logger->optimizations_csv.flush();
-      eklt_logger->tracks_csv.flush();
+      eklt_logger->eklt_tracks_csv.flush();
     }
 
     // destructor calls (--> CSV flushing) happening here

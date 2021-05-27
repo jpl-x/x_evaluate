@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary, \
     FrontEnd
-from x_evaluate.utils import timestamp_to_rosbag_time_zero, convert_eklt_df_tracks_to_rpg_tracks_numpy
+from x_evaluate.utils import timestamp_to_rosbag_time_zero, convert_eklt_to_rpg_tracks
 from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_compare
 
 
@@ -70,10 +70,10 @@ def tracker_config_to_info_string(tracker_config):
     raise ValueError(F"Unknown tracking evaluation GT type {tracker_config['type']}")
 
 
-def plot_tracking_error(pc: PlotContext, eklt_tracks_error, tracker_config):
+def plot_tracking_error(pc: PlotContext, tracks_error, tracker_config, title):
     c = "blue"
     ax = pc.get_axis()
-    buckets, stats = get_tracking_error_statistics(eklt_tracks_error)
+    buckets, stats = get_tracking_error_statistics(tracks_error)
 
     ax.plot(buckets, stats['median'], color=c)
     # ax.plot(t_mean, euclidean_errors, color=color, label=label.replace("_", " "), linewidth=2)
@@ -81,14 +81,13 @@ def plot_tracking_error(pc: PlotContext, eklt_tracks_error, tracker_config):
     ax.set_ylabel("Tracking error [px]")
     ax.set_xlabel("time [s]")
 
-    ax.set_title(F"Pixel tracking errors w.r.t. {tracker_config_to_info_string(tracker_config)}")
+    ax.set_title(F"{title} w.r.t. {tracker_config_to_info_string(tracker_config)}")
 
     # 50% range
     ax.fill_between(buckets, stats['q25'], stats['q75'], alpha=0.5, lw=0, facecolor=c)
 
     # 90% range
     ax.fill_between(buckets, stats['q05'], stats['q25'], alpha=0.25, lw=0, facecolor=c)
-    ax.fill_between(buckets, stats['q75'], stats['q95'], alpha=0.25, lw=0, facecolor=c)
     ax.fill_between(buckets, stats['q75'], stats['q95'], alpha=0.25, lw=0, facecolor=c)
 
     # MIN-MAX
@@ -107,6 +106,9 @@ def get_tracking_error_statistics(eklt_tracks_error):
     buckets = np.arange(np.min(t), np.max(t), resolution)
     bucket_index = np.digitize(eklt_tracks_error[:, 1], buckets)
     indices = np.unique(bucket_index)
+
+    # filter empty buckets:  (-1 to convert upper bound --> lower bound, as we always take the first errors per bucket)
+    buckets = buckets[np.clip(indices-1, 0, len(buckets))]
 
     stats_func = {
         'mean': lambda x: np.mean(x),
@@ -133,10 +135,12 @@ def get_tracking_error_statistics(eklt_tracks_error):
 
         for k, v in stats.items():
             stats[k][i] = stats_func[k](euclidean_error)
+
     return buckets, stats
 
 
-def plot_eklt_feature_tracking_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+def plot_feature_tracking_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, title,
+                                     feature_data_to_error_and_config):
     means = []
     maxima = []
     times = []
@@ -144,36 +148,63 @@ def plot_eklt_feature_tracking_comparison(pc: PlotContext, eval_data: List[Evalu
     tracker_info = None
 
     for e in eval_data:
-        time, stats = get_tracking_error_statistics(e.feature_data.eklt_tracks_error)
+        tracks_error, config = feature_data_to_error_and_config(e.feature_data)
+        time, stats = get_tracking_error_statistics(tracks_error)
         means.append(stats['mean'])
         maxima.append(stats['max'])
         times.append(time)
-        info_string = tracker_config_to_info_string(e.feature_data.eklt_tracking_evaluation_config)
+        info_string = tracker_config_to_info_string(config)
         if tracker_info is None:
             tracker_info = info_string
         else:
-            assert tracker_info == info_string, F"Expecting same feature tracking evaluation settings on dataset" \
-                                                F" '{dataset_name}': '{tracker_info}' != '{tracker_info}"
+            assert tracker_info == info_string, F"Expecting same feature tracking evaluation settings on common " \
+                                                F"dataset: '{tracker_info}' != '{tracker_info}"
 
-    time_series_plot(pc, times, means, labels, F"Average pixel error on '{dataset_name}' w.r.t. {tracker_info}'",
-                     "error [px]")
+    time_series_plot(pc, times, means, labels, F"{title}  w.r.t. {tracker_info}", "error [px]")
 
 
-def plot_eklt_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary], common_datasets):
-    data = [[np.linalg.norm(s.data[k].feature_data.eklt_tracks_error[:, 2:3], axis=1)
+def plot_eklt_feature_tracking_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    plot_feature_tracking_comparison(pc, eval_data, labels, F"EKLT feature tracking error on '{dataset_name}'",
+                                     lambda x: (x.eklt_tracks_error, x.eklt_tracking_evaluation_config))
+
+
+def plot_xvio_feature_tracking_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    plot_feature_tracking_comparison(pc, eval_data, labels, F"SLAM and MSCKF feature tracking error on "
+                                                            F"'{dataset_name}'",
+                                     lambda x: (x.xvio_tracks_error, x.xvio_tracking_evaluation_config))
+
+
+def plot_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                             common_datasets, title, feature_data_to_error, feature_data_to_config):
+    data = [[np.linalg.norm(feature_data_to_error(s.data[k].feature_data)[:, 2:3], axis=1)
              for k in common_datasets] for s in summaries]
 
     summary_labels = [s.name for s in summaries]
-    info_strings = [tracker_config_to_info_string(summaries[0].data[k].feature_data.eklt_tracking_evaluation_config)
+    info_strings = [tracker_config_to_info_string(feature_data_to_config(summaries[0].data[k].feature_data))
                     for k in common_datasets]
     dataset_labels = [F"{d} w.r.t. {info_strings[i]}" for i, d in enumerate(common_datasets)]
     boxplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="error [px]",
-                    title="EKLT tracking error")
+                    title=title)
+
+
+def plot_eklt_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary], common_datasets):
+    plot_feature_tracking_comparison_boxplot(pc, summaries, common_datasets, "EKLT feature tracking error",
+                                             lambda x: x.eklt_tracks_error, lambda x: x.eklt_tracking_evaluation_config)
+
+
+def plot_xvio_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                  common_datasets):
+    plot_feature_tracking_comparison_boxplot(pc, summaries, common_datasets, "SLAM and MSCKF feature tracking error",
+                                             lambda x: x.xvio_tracks_error, lambda x: x.xvio_tracking_evaluation_config)
 
 
 def plot_feature_plots(d: EvaluationData, output_folder):
-    with PlotContext(os.path.join(output_folder, "xvio_features.svg"), subplot_rows=2, subplot_cols=2) as pc:
+    with PlotContext(os.path.join(output_folder, "xvio_num_features.svg"), subplot_rows=2, subplot_cols=2) as pc:
         plot_xvio_num_features(pc, d)
+
+    with PlotContext(os.path.join(output_folder, "tracking_error.svg")) as pc:
+        plot_tracking_error(pc, d.feature_data.xvio_tracks_error, d.feature_data.xvio_tracking_evaluation_config,
+                            "SLAM and MSCKF feature tracking errors")
 
     if d.feature_data.df_eklt_num_features is not None:
         df = d.feature_data.df_eklt_num_features
@@ -183,7 +214,8 @@ def plot_feature_plots(d: EvaluationData, output_folder):
 
     if d.feature_data.eklt_tracks_error is not None:
         with PlotContext(os.path.join(output_folder, "eklt_tracking_error.svg")) as pc:
-            plot_tracking_error(pc, d.feature_data.eklt_tracks_error, d.feature_data.eklt_tracking_evaluation_config)
+            plot_tracking_error(pc, d.feature_data.eklt_tracks_error, d.feature_data.eklt_tracking_evaluation_config,
+                                "EKLT feature tracking errors")
 
 
 def plot_eklt_num_features_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):

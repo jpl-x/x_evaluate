@@ -51,8 +51,9 @@ class TrackerInitializer:
 
         # find poses and depths at features
         print("[3/3] Backprojecting first feature positions")
-        depth_maps_interp = depth_dataset.get_interpolated(features[:, 0, 0])
-        depths = grid_sample(features[:, 0, 1:], depth_maps_interp)
+        depth_map_times = np.unique(features[:, 0, 0])
+        depth_maps_interp = depth_dataset.get_interpolated(depth_map_times)
+        depths = grid_sample(features[:, 0, 0], features[:, 0, 1:], depth_map_times, depth_maps_interp)
 
         # Depth map debugging:
         # import cv2

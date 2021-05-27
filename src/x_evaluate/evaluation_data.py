@@ -74,6 +74,10 @@ class TrajectoryData:
 
 class FeatureTrackingData:
     df_x_vio_features: pd.DataFrame
+    df_xvio_tracks: pd.DataFrame
+    xvio_tracks_gt: np.ndarray
+    xvio_tracks_error: np.ndarray
+    xvio_tracking_evaluation_config: Dict
 
     df_eklt_num_features: Optional[pd.DataFrame]
     df_eklt_feature_age: Optional[pd.DataFrame]

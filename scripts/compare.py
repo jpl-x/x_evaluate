@@ -97,6 +97,10 @@ def main():
     with PlotContext(os.path.join(args.output_folder, F"compare_all_memory_usage.svg")) as pc:
         pe.plot_memory_usage_boxplot_comparison(pc, summaries, common_datasets)
 
+    #   - [x] Pixel tracking accuracy
+    with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_tracking.svg")) as pc:
+        fe.plot_xvio_feature_tracking_comparison_boxplot(pc, list(summaries.values()), common_datasets)
+
     if len(eklt_summaries) > 0:
         #   - [x] Optimization iterations
         with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_optimization_iterations.svg")) as pc:
@@ -148,6 +152,10 @@ def main():
         #   - [x] Memory usage
         with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_memory_usage_in_time.svg")) as pc:
             pe.plot_memory_usage_in_time_comparison(pc, evaluations, names, dataset)
+
+        #   - [x] Pixel tracking accuracy
+        with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_feature_tracking.svg")) as pc:
+            fe.plot_xvio_feature_tracking_comparison(pc, evaluations, names, dataset)
 
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:
             te.plot_error_comparison(pc, evaluations, str(metrics.APE(metrics.PoseRelation.translation_part)),

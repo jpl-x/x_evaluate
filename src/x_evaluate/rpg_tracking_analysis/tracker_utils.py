@@ -177,7 +177,9 @@ def interpolate(tq, ts, Ts):
     return T_interp
 
 
-def grid_sample(positions, depth_maps):
+def grid_sample(feature_times, positions, depth_map_times, depth_maps):
+    # assumes depth_map_times to be sorted(!)
+
     D, H, W = depth_maps.shape
 
     x_left, y_down = positions.astype(int).T
@@ -186,7 +188,7 @@ def grid_sample(positions, depth_maps):
 
     r_x, r_y = positions.T - positions.T.astype(int)
 
-    d_index = np.arange(D).astype(int)
+    d_index = np.searchsorted(depth_map_times, feature_times)
 
     d_up_left = depth_maps[d_index, y_up, x_left]
     d_down_left = depth_maps[d_index, y_down, x_left]
