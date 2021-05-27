@@ -74,9 +74,9 @@ def main():
     #   - [x] Optimization iterations
     #   - [x] Number of tracked features
     #   - [x] Feature age
-    #   - [ ] Pixel tracking accuracy:
-    #      - [ ] w.r.t. KLT groundtruth on real data
-    #      - [ ] w.r.t. reprojection on simulated data
+    #   - [x] Pixel tracking accuracy:
+    #      - [x] w.r.t. KLT groundtruth on real data
+    #      - [x] w.r.t. reprojection on simulated data
     #   - [ ] Pixel change histograms
     #   - [ ] Tracking error over traveled distance
     # Backend performance
@@ -106,6 +106,10 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_ages.svg")) as pc:
             fe.plot_eklt_feature_age_comparison(pc, eklt_summaries, common_datasets)
 
+        #   - [x] Pixel tracking accuracy
+        with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_tracking.svg")) as pc:
+            fe.plot_eklt_feature_tracking_comparison_boxplot(pc, eklt_summaries, common_datasets)
+
     for dataset in common_datasets:
         d_id = name_to_identifier(dataset)
 
@@ -132,6 +136,10 @@ def main():
             #   - [x] Number of tracked features
             with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_eklt_num_features.svg")) as pc:
                 fe.plot_eklt_num_features_comparison(pc, eklt_evaluations, eklt_names, dataset)
+
+            #   - [x] Pixel tracking accuracy
+            with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_eklt_feature_tracking.svg")) as pc:
+                fe.plot_eklt_feature_tracking_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
         #   - [x] CPU usage
         with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_cpu_usage_in_time.svg")) as pc:

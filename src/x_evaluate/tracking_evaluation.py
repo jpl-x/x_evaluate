@@ -73,32 +73,9 @@ def tracker_config_to_info_string(tracker_config):
 def plot_tracking_error(pc: PlotContext, eklt_tracks_error, tracker_config):
     c = "blue"
     ax = pc.get_axis()
-    t = eklt_tracks_error[:, 1]
-    t_uniq = np.unique(t)
-    resolution = t_uniq[1] - t_uniq[0]
-    resolution = 0.1
-    buckets = np.arange(np.min(t), np.max(t), resolution)
-    bucket_index = np.digitize(eklt_tracks_error[:, 1], buckets)
-    indices = np.unique(bucket_index)
-    stats = np.empty((len(indices), 8))
-    for i, idx in enumerate(indices):
-        # tracking_errors = euclidean_error[bucket_index == idx]
-        tracking_errors = eklt_tracks_error[bucket_index == idx]
+    buckets, stats = get_tracking_error_statistics(eklt_tracks_error)
 
-        # only account for each track once per bucket
-        plot_ids, first_ids = np.unique(tracking_errors[:, 0], return_index=True)
-        tracking_errors = tracking_errors[first_ids, :]
-        euclidean_error = np.linalg.norm(tracking_errors[:, 2:3], axis=1)
-        stats[i, 0] = np.median(euclidean_error)
-        stats[i, 1] = np.min(euclidean_error)
-        stats[i, 2] = np.max(euclidean_error)
-        stats[i, 3] = np.quantile(euclidean_error, 0.25)
-        stats[i, 4] = np.quantile(euclidean_error, 0.75)
-        stats[i, 5] = np.quantile(euclidean_error, 0.05)
-        stats[i, 6] = np.quantile(euclidean_error, 0.95)
-        stats[i, 7] = len(euclidean_error)
-
-    ax.plot(buckets, stats[:, 0], color=c)
+    ax.plot(buckets, stats['median'], color=c)
     # ax.plot(t_mean, euclidean_errors, color=color, label=label.replace("_", " "), linewidth=2)
 
     ax.set_ylabel("Tracking error [px]")
@@ -107,18 +84,91 @@ def plot_tracking_error(pc: PlotContext, eklt_tracks_error, tracker_config):
     ax.set_title(F"Pixel tracking errors w.r.t. {tracker_config_to_info_string(tracker_config)}")
 
     # 50% range
-    ax.fill_between(buckets, stats[:, 3], stats[:, 4], alpha=0.5, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats['q25'], stats['q75'], alpha=0.5, lw=0, facecolor=c)
 
     # 90% range
-    ax.fill_between(buckets, stats[:, 3], stats[:, 5], alpha=0.25, lw=0, facecolor=c)
-    ax.fill_between(buckets, stats[:, 4], stats[:, 6], alpha=0.25, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats['q05'], stats['q25'], alpha=0.25, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats['q75'], stats['q95'], alpha=0.25, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats['q75'], stats['q95'], alpha=0.25, lw=0, facecolor=c)
 
     # MIN-MAX
-    ax.fill_between(buckets, stats[:, 1], stats[:, 5], alpha=0.1, lw=0, facecolor=c)
-    ax.fill_between(buckets, stats[:, 2], stats[:, 6], alpha=0.1, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats['min'], stats['q25'], alpha=0.1, lw=0, facecolor=c)
+    ax.fill_between(buckets, stats['q75'], stats['max'], alpha=0.1, lw=0, facecolor=c)
 
     # right_y_axis = ax.twinx()
-    # right_y_axis.plot(buckets, stats[:, 7])
+    # right_y_axis.plot(buckets, stats['num'])
+
+
+def get_tracking_error_statistics(eklt_tracks_error):
+    t = eklt_tracks_error[:, 1]
+    t_uniq = np.unique(t)
+    resolution = t_uniq[1] - t_uniq[0]
+    resolution = 0.1
+    buckets = np.arange(np.min(t), np.max(t), resolution)
+    bucket_index = np.digitize(eklt_tracks_error[:, 1], buckets)
+    indices = np.unique(bucket_index)
+
+    stats_func = {
+        'mean': lambda x: np.mean(x),
+        'median': lambda x: np.median(x),
+        'min': lambda x: np.min(x),
+        'max': lambda x: np.max(x),
+        'q25': lambda x: np.quantile(x, 0.25),
+        'q75': lambda x: np.quantile(x, 0.75),
+        'q05': lambda x: np.quantile(x, 0.05),
+        'q95': lambda x: np.quantile(x, 0.95),
+        'num': lambda x: len(x),
+    }
+
+    stats = {x: np.empty((len(indices))) for x in stats_func.keys()}
+
+    for i, idx in enumerate(indices):
+        # tracking_errors = euclidean_error[bucket_index == idx]
+        tracking_errors = eklt_tracks_error[bucket_index == idx]
+
+        # only account for each track once per bucket
+        plot_ids, first_ids = np.unique(tracking_errors[:, 0], return_index=True)
+        tracking_errors = tracking_errors[first_ids, :]
+        euclidean_error = np.linalg.norm(tracking_errors[:, 2:3], axis=1)
+
+        for k, v in stats.items():
+            stats[k][i] = stats_func[k](euclidean_error)
+    return buckets, stats
+
+
+def plot_eklt_feature_tracking_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, dataset_name):
+    means = []
+    maxima = []
+    times = []
+
+    tracker_info = None
+
+    for e in eval_data:
+        time, stats = get_tracking_error_statistics(e.feature_data.eklt_tracks_error)
+        means.append(stats['mean'])
+        maxima.append(stats['max'])
+        times.append(time)
+        info_string = tracker_config_to_info_string(e.feature_data.eklt_tracking_evaluation_config)
+        if tracker_info is None:
+            tracker_info = info_string
+        else:
+            assert tracker_info == info_string, F"Expecting same feature tracking evaluation settings on dataset" \
+                                                F" '{dataset_name}': '{tracker_info}' != '{tracker_info}"
+
+    time_series_plot(pc, times, means, labels, F"Average pixel error on '{dataset_name}' w.r.t. {tracker_info}'",
+                     "error [px]")
+
+
+def plot_eklt_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary], common_datasets):
+    data = [[np.linalg.norm(s.data[k].feature_data.eklt_tracks_error[:, 2:3], axis=1)
+             for k in common_datasets] for s in summaries]
+
+    summary_labels = [s.name for s in summaries]
+    info_strings = [tracker_config_to_info_string(summaries[0].data[k].feature_data.eklt_tracking_evaluation_config)
+                    for k in common_datasets]
+    dataset_labels = [F"{d} w.r.t. {info_strings[i]}" for i, d in enumerate(common_datasets)]
+    boxplot_compare(pc.get_axis(), dataset_labels, data, summary_labels, ylabel="error [px]",
+                    title="EKLT tracking error")
 
 
 def plot_feature_plots(d: EvaluationData, output_folder):
@@ -144,7 +194,7 @@ def plot_eklt_num_features_comparison(pc: PlotContext, eval_data: List[Evaluatio
         data.append(e.feature_data.df_eklt_num_features['num_features'])
         times.append(e.feature_data.df_eklt_num_features['t'])
 
-    time_series_plot(pc, times, data, labels, F"Number of tracked EKLT features on '{dataset_name}')",
+    time_series_plot(pc, times, data, labels, F"Number of tracked EKLT features on '{dataset_name}'",
                      "number of features")
 
 
