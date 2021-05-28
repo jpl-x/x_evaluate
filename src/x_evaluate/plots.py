@@ -89,7 +89,7 @@ def boxplot_from_summary(pc: PlotContext, distribution_summaries: List[Distribut
     ax.set_title(title)
 
 
-def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None):
+def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None, use_scatter=False):
     ax = pc.get_axis()
     for i in range(len(data)):
 
@@ -99,9 +99,14 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None)
             label = label[1:]
 
         if isinstance(time, list):
-            ax.plot(time[i], data[i], label=label)
+            t = time[i]
         else:
-            ax.plot(time, data[i], label=label)
+            t = time
+
+        if use_scatter:
+            ax.scatter(t, data[i], label=label)
+        else:
+            ax.plot(t, data[i], label=label)
 
     ax.legend()
     ax.set_title(title)
@@ -109,6 +114,78 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None)
 
     if ylabel is not None:
         ax.set_ylabel(ylabel)
+
+
+def bubble_plot(pc: PlotContext, xy_data, labels, y_resolution=0.1, x_resolution=0.1, title=None, ylabel=None,
+                xlabel=None):
+    ax = pc.get_axis()
+
+    data = []
+    times = []
+    sizes = []
+    s_min = np.iinfo(np.int32).max
+    s_max = 0
+
+    for i, xy in enumerate(xy_data):
+        x, y, size = create_bubbles_from_2d_point_cloud(xy, x_resolution, y_resolution)
+        s_min = min(np.min(size), s_min)
+        s_max = max(np.max(size), s_max)
+        data.append(y)
+        times.append(x)
+        sizes.append(size)
+
+    px_size_min = 5
+    px_size_max = 15
+
+    for i, d in enumerate(data):
+        size = px_size_min + (sizes[i] - s_min) / (s_max - s_min) * (px_size_max - px_size_min)
+        size = np.power(size, 2)
+        ax.scatter(times[i], d, s=size, label=labels[i], alpha=0.5)
+
+    ax.legend()
+    if title:
+        ax.set_title(title)
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    if xlabel:
+        ax.set_xlabel(xlabel)
+
+
+def create_bubbles_from_2d_point_cloud(xy, x_resolution=0.1, y_resolution=0.1):
+    x = xy[:, 0]
+    y = xy[:, 1]
+    x_buckets = np.arange(np.min(x), np.max(x), x_resolution)
+    y_buckets = np.arange(np.min(y), np.max(y), y_resolution)
+    x_bucket_idx = np.digitize(x, x_buckets)
+    x_bucket_idx_uniq = np.unique(x_bucket_idx)
+
+    # filter empty buckets:  (-1 to convert upper bound --> lower bound, as we always take the first errors per bucket)
+    # x_buckets = x_buckets[np.clip(x_bucket_idx_uniq - 1, 0, len(x_buckets))]
+
+    xys = np.empty((len(x), 3))
+
+    i = 0
+
+    for idx in x_bucket_idx_uniq:
+        # tracking_errors = euclidean_error[bucket_index == idx]
+        current_bucket_y = xy[x_bucket_idx == idx, 1]
+        y_bucket_idx = np.digitize(current_bucket_y, y_buckets)
+        y_bucket_idx_uniq = np.unique(y_bucket_idx)
+        used_y_buckets = y_buckets[np.clip(y_bucket_idx_uniq - 1, 0, len(y_buckets))]
+        xxs = np.ones_like(used_y_buckets) * x_buckets[idx-1]
+        sizes = np.bincount(y_bucket_idx)[1:]
+
+        sizes = sizes[sizes != 0]
+
+        n = len(used_y_buckets)
+        xys[i:(i+n), 0] = xxs
+        xys[i:(i+n), 1] = used_y_buckets
+        xys[i:(i+n), 2] = sizes
+        i += n
+
+    xys = xys[:i, :]
+
+    return xys[:, 0], xys[:, 1], xys[:, 2]
 
 
 def color_box(bp, color):

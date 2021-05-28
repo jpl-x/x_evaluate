@@ -7,8 +7,9 @@ from matplotlib import pyplot as plt
 
 from x_evaluate.evaluation_data import FeatureTrackingData, PerformanceData, EvaluationData, EvaluationDataSummary, \
     FrontEnd
-from x_evaluate.utils import timestamp_to_rosbag_time_zero, convert_eklt_to_rpg_tracks
-from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_compare
+from x_evaluate.utils import timestamp_to_rosbag_time_zero, convert_eklt_to_rpg_tracks, convert_xvio_to_rpg_tracks
+from x_evaluate.plots import boxplot, time_series_plot, PlotContext, boxplot_compare, hist_from_bin_values, \
+    bubble_plot
 
 
 def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFrame,
@@ -18,7 +19,7 @@ def evaluate_feature_tracking(perf_data: PerformanceData, df_features: pd.DataFr
     feature_times = timestamp_to_rosbag_time_zero(df_features['ts'], perf_data.df_realtime)
     df_features['ts'] = feature_times
 
-    d.df_x_vio_features = df_features.rename(columns={'ts': 't'})
+    d.df_xvio_num_features = df_features.rename(columns={'ts': 't'})
 
     if df_eklt_tracks is not None:
         d.df_eklt_tracks = df_eklt_tracks.copy()
@@ -174,6 +175,31 @@ def plot_xvio_feature_tracking_comparison(pc: PlotContext, eval_data: List[Evalu
                                      lambda x: (x.xvio_tracks_error, x.xvio_tracking_evaluation_config))
 
 
+def plot_xvio_feature_update_interval_in_time(pc: PlotContext, eval_data: List[EvaluationData], names, dataset):
+    data = []
+
+    for e in eval_data:
+        tu = get_feature_update_times(convert_xvio_to_rpg_tracks(e.feature_data.df_xvio_tracks))
+        tu[:, 1] *= 1e3  # in ms
+        data.append(tu)
+
+    bubble_plot(pc, data, names, y_resolution=1, x_resolution=0.1, title=F"Update intervals of SLAM and MSCKF "
+                                                                         F"features on '{dataset}'",
+                ylabel="interval [ms]", xlabel="time [s]")
+
+    # Old scatter-plot (produces big files!):
+    # data = []
+    # times = []
+    #
+    # for e in eval_data:
+    #     tu = get_feature_update_times(convert_xvio_to_rpg_tracks(e.feature_data.df_xvio_tracks))
+    #     data.append(tu[:, 1] * 1e3)
+    #     times.append(tu[:, 0])
+    #
+    # time_series_plot(pc, times, data, names, F"Update intervals of SLAM and MSCKF features on '{dataset}'",
+    #                  "interval [ms]", use_scatter=True)
+
+
 def plot_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
                                              common_datasets, title, feature_data_to_error, feature_data_to_config):
     data = [[np.linalg.norm(feature_data_to_error(s.data[k].feature_data)[:, 2:3], axis=1)
@@ -187,6 +213,58 @@ def plot_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[Ev
                     title=title)
 
 
+def plot_feature_update_interval_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                common_datasets, feature_data_to_tracks, title):
+    # def tracks_to_update_rate(tracks):
+    #     time_changes = get_feature_update_times(tracks)
+    #     time_changes = time_changes[time_changes > 0]
+    #     updates_per_sec = 1 / time_changes
+    #     return updates_per_sec
+
+    data = [[get_feature_update_times(feature_data_to_tracks(s.data[k].feature_data))[:, 1] * 1e3  # in [ms]
+             for k in common_datasets] for s in summaries]
+
+    summary_labels = [s.name for s in summaries]
+    boxplot_compare(pc.get_axis(), common_datasets, data, summary_labels, ylabel="Interval [ms]", title=title)
+
+
+def plot_eklt_feature_update_interval_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                         common_datasets):
+    feature_data_to_tracks = lambda f: convert_eklt_to_rpg_tracks(f.df_eklt_tracks)
+    plot_feature_update_interval_comparison_boxplot(pc, summaries, common_datasets, feature_data_to_tracks, "EKLT feature update rates")
+
+
+def plot_xvio_feature_update_interval_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                         common_datasets):
+    feature_data_to_tracks = lambda f: convert_xvio_to_rpg_tracks(f.df_xvio_tracks)
+    plot_feature_update_interval_comparison_boxplot(pc, summaries, common_datasets, feature_data_to_tracks,
+                                                    "SLAM and MSCKF feature update rates")
+
+
+def plot_feature_position_change_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                    common_datasets, feature_data_to_tracks, title):
+    data = [[np.linalg.norm(get_feature_changes_xy(feature_data_to_tracks(s.data[k].feature_data)), axis=1)
+             for k in common_datasets] for s in summaries]
+
+    summary_labels = [s.name for s in summaries]
+    boxplot_compare(pc.get_axis(), common_datasets, data, summary_labels, ylabel="Euclidean change / update [px]",
+                    title=title)
+
+
+def plot_eklt_feature_position_change_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                     common_datasets):
+    feature_data_to_tracks = lambda f: convert_eklt_to_rpg_tracks(f.df_eklt_tracks)
+    plot_feature_position_change_comparison_boxplot(pc, summaries, common_datasets, feature_data_to_tracks,
+                                                    "EKLT feature pixel changes")
+
+
+def plot_xvio_feature_position_change_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
+                                                     common_datasets):
+    feature_data_to_tracks = lambda f: convert_xvio_to_rpg_tracks(f.df_xvio_tracks)
+    plot_feature_position_change_comparison_boxplot(pc, summaries, common_datasets, feature_data_to_tracks,
+                                                    "SLAM and MSCKF feature update rates")
+
+
 def plot_eklt_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary], common_datasets):
     plot_feature_tracking_comparison_boxplot(pc, summaries, common_datasets, "EKLT feature tracking error",
                                              lambda x: x.eklt_tracks_error, lambda x: x.eklt_tracking_evaluation_config)
@@ -198,9 +276,72 @@ def plot_xvio_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: Li
                                              lambda x: x.xvio_tracks_error, lambda x: x.xvio_tracking_evaluation_config)
 
 
+def plot_xvio_features_position_changes(pc: PlotContext, d: EvaluationData):
+    tracks = convert_xvio_to_rpg_tracks(d.feature_data.df_xvio_tracks)
+    xychanges = get_feature_changes_xy(tracks)
+    bins, hist = create_pixel_change_histogram(xychanges[:, 0])
+    ax = pc.get_axis()
+    ax.set_title("Feature position change in x")
+    hist_from_bin_values(ax, bins, hist, "Differential feature position [px]", True)
+    bins, hist = create_pixel_change_histogram(xychanges[:, 1])
+    ax = pc.get_axis()
+    ax.set_title("Feature position change in y")
+    hist_from_bin_values(ax, bins, hist, "Differential feature position [px]", True)
+
+
+def get_feature_changes_xy(tracks):
+    tracks = tracks[tracks[:, 1].argsort(kind='stable')]
+    tracks = tracks[tracks[:, 0].argsort(kind='stable')]
+    # pick id, x, y
+    tracks = tracks[:, [0, 2, 3]]
+    diff = tracks[1:, :] - tracks[:-1, :]
+    changes_xy = diff[diff[:, 0] == 0, 1:]
+    return changes_xy
+
+
+def get_feature_update_times(tracks):
+    tracks = tracks[tracks[:, 1].argsort(kind='stable')]
+    tracks = tracks[tracks[:, 0].argsort(kind='stable')]
+    # pick id, t
+    tracks = tracks[:, [0, 1]]
+    diff = tracks[1:, :] - tracks[:-1, :]
+
+    # re-add time
+    diff = np.hstack((tracks[:-1, 1:], diff))
+    stamped_update_times = diff[diff[:, 1] == 0, :]
+    stamped_update_times = stamped_update_times[:, [0, 2]]
+    stamped_update_times = stamped_update_times[stamped_update_times[:, 0].argsort(kind='stable')]
+    return stamped_update_times
+
+
+def create_pixel_change_histogram(data):
+    left = np.min([-1, np.floor(np.min(data))])
+    right = np.max([1, np.ceil(np.max(data))])
+    bins = np.hstack((np.arange(left, -1), np.arange(-1, 1, 0.25), np.arange(1, right + 1)))
+    hist, bins = np.histogram(data, bins)
+    return bins, hist
+
+
+def plot_xvio_features_update_interval(pc: PlotContext, d: EvaluationData):
+    tracks = convert_xvio_to_rpg_tracks(d.feature_data.df_xvio_tracks)
+    time_changes = get_feature_update_times(tracks)
+
+    # time_changes = time_changes[time_changes > 0]
+    # updates_per_sec = 1 / time_changes
+
+    boxplot(pc, [time_changes], ["Test"], "Update interval")
+
+
 def plot_feature_plots(d: EvaluationData, output_folder):
     with PlotContext(os.path.join(output_folder, "xvio_num_features.svg"), subplot_rows=2, subplot_cols=2) as pc:
         plot_xvio_num_features(pc, d)
+
+    with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes.svg"), subplot_rows=1, subplot_cols=2) as pc:
+        plot_xvio_features_position_changes(pc, d)
+
+    with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval.svg"), subplot_rows=1, subplot_cols=2)\
+            as pc:
+        plot_xvio_features_update_interval(pc, d)
 
     with PlotContext(os.path.join(output_folder, "tracking_error.svg")) as pc:
         plot_tracking_error(pc, d.feature_data.xvio_tracks_error, d.feature_data.xvio_tracking_evaluation_config,
@@ -245,17 +386,17 @@ def plot_xvio_num_features(pc: PlotContext, d: EvaluationData):
     ax1 = pc.get_axis()
     ax2 = pc.get_axis()
     ax3 = pc.get_axis()
-    t = d.feature_data.df_x_vio_features['t']
+    t = d.feature_data.df_xvio_num_features['t']
     pc.figure.suptitle("Number of tracked features")
     # plt.title("Number of tracked features")
     ax0.set_title("SLAM")
-    ax0.plot(t, d.feature_data.df_x_vio_features['num_slam_features'], color="blue")
+    ax0.plot(t, d.feature_data.df_xvio_num_features['num_slam_features'], color="blue")
     ax1.set_title("MSCKF")
-    ax1.plot(t, d.feature_data.df_x_vio_features['num_msckf_features'], color="red")
+    ax1.plot(t, d.feature_data.df_xvio_num_features['num_msckf_features'], color="red")
     ax2.set_title("Opportunistic")
-    ax2.plot(t, d.feature_data.df_x_vio_features['num_opportunistic_features'], color="green")
+    ax2.plot(t, d.feature_data.df_xvio_num_features['num_opportunistic_features'], color="green")
     ax3.set_title("Potential")
-    ax3.plot(t, d.feature_data.df_x_vio_features['num_potential_features'], color="orange")
+    ax3.plot(t, d.feature_data.df_xvio_num_features['num_potential_features'], color="orange")
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):

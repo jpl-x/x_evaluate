@@ -55,7 +55,7 @@ class TrackerInitializer:
         depth_maps_interp = depth_dataset.get_interpolated(depth_map_times)
         depths = grid_sample(features[:, 0, 0], features[:, 0, 1:], depth_map_times, depth_maps_interp)
 
-        # Depth map debugging:
+        # # Depth map debugging:
         # import cv2
         # def show_normalized_depth_as_image(depth, label):
         #     depth_plot_01 = depth - np.min(depth)

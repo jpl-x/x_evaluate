@@ -101,6 +101,10 @@ def main():
     with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_tracking.svg")) as pc:
         fe.plot_xvio_feature_tracking_comparison_boxplot(pc, list(summaries.values()), common_datasets)
 
+    #   - [x] Feature update interval
+    with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_update_intervals.svg")) as pc:
+        fe.plot_xvio_feature_update_interval_comparison_boxplot(pc, list(summaries.values()), common_datasets)
+
     if len(eklt_summaries) > 0:
         #   - [x] Optimization iterations
         with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_optimization_iterations.svg")) as pc:
@@ -110,9 +114,9 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_ages.svg")) as pc:
             fe.plot_eklt_feature_age_comparison(pc, eklt_summaries, common_datasets)
 
-        #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_tracking.svg")) as pc:
-            fe.plot_eklt_feature_tracking_comparison_boxplot(pc, eklt_summaries, common_datasets)
+        #   - [x] Feature update rate
+        with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_update_interval.svg")) as pc:
+            fe.plot_eklt_feature_update_interval_comparison_boxplot(pc, eklt_summaries, common_datasets)
 
     for dataset in common_datasets:
         d_id = name_to_identifier(dataset)
@@ -156,6 +160,10 @@ def main():
         #   - [x] Pixel tracking accuracy
         with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_feature_tracking.svg")) as pc:
             fe.plot_xvio_feature_tracking_comparison(pc, evaluations, names, dataset)
+
+        #   - [x] Feature update interval
+        with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_xvio_feature_update_interval.svg")) as pc:
+            fe.plot_xvio_feature_update_interval_in_time(pc, evaluations, names, dataset)
 
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:
             te.plot_error_comparison(pc, evaluations, str(metrics.APE(metrics.PoseRelation.translation_part)),

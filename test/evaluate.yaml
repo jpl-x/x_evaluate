@@ -46,7 +46,8 @@ datasets:
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
-    depth_map_topic: /cam0/depthmap
+#    depth_map_topic: /cam0/depthmap
+    depth_map_topic:
     camera_info_topic: /cam0/camera_info
     params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
     override_params:
@@ -61,7 +62,8 @@ datasets:
     image_topic: /cam0/image_raw
     pose_topic: /cam0/pose
     imu_topic: /imu
-    depth_map_topic: /cam0/depthmap
+#    depth_map_topic: /cam0/depthmap
+    depth_map_topic:
     camera_info_topic: /cam0/camera_info
     params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
     override_params:

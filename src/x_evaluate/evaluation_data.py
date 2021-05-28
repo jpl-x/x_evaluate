@@ -73,7 +73,7 @@ class TrajectoryData:
 
 
 class FeatureTrackingData:
-    df_x_vio_features: pd.DataFrame
+    df_xvio_num_features: pd.DataFrame
     df_xvio_tracks: pd.DataFrame
     xvio_tracks_gt: np.ndarray
     xvio_tracks_error: np.ndarray
