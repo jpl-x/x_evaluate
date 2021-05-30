@@ -263,7 +263,8 @@ def plot_processing_times(pc: PlotContext, summaries: Dict[str, EvaluationDataSu
     barplot_compare(ax, dataset_labels, data, summary_labels, ylabel="Total processing time [s]",
                     title="Total processing times")
 
-    data = [[list(summaries.values())[0].data[k].trajectory_data.traj_ref.timestamps.max()] for k in common_datasets]
+    data = [[list(summaries.values())[0].data[k].performance_data.df_realtime.iloc[-1]['t_sim'] - list(
+        summaries.values())[0].data[k].performance_data.df_realtime.iloc[0]['t_sim']] for k in common_datasets]
     draw_lines_on_top_of_comparison_plots(ax, data, len(summary_labels))
 
 

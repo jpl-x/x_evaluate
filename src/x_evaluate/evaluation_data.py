@@ -54,22 +54,32 @@ class DistributionSummary:
             self.hist_log, self.bins_log = np.histogram(data, bins_log)
 
 
-class ErrorType(Enum):
-    APE = 1
-    RPE = 2
+class TrajectoryError:
+    description: str
+    error_array: np.ndarray
 
 
 class TrajectoryData:
-    traj_ref: PoseTrajectory3D
-    traj_est: PoseTrajectory3D
-    raw_estimate_t_xyz_wxyz: np.ndarray
+    raw_est_t_xyz_wxyz: np.ndarray
+    traj_gt: PoseTrajectory3D
 
-    errors: Dict[str, np.ndarray]
-    sub_traj_errors: Dict[float, Dict[str, np.ndarray]]
+    traj_gt_synced: PoseTrajectory3D
+    traj_est_synced: PoseTrajectory3D
+
+    alignment_type: AlignmentType
+    alignment_frames: int
+
+    traj_est_aligned: PoseTrajectory3D
+
+    ate_errors: Dict[str, np.ndarray]
+
+    rpe_error_t: Dict[float, np.ndarray]
+    rpe_error_r: Dict[float, np.ndarray]
 
     def __init__(self):
-        self.errors = dict()
-        self.sub_traj_errors = dict()
+        self.ate_errors = dict()
+        self.rpe_error_t = dict()
+        self.rpe_error_r = dict()
 
 
 class FeatureTrackingData:

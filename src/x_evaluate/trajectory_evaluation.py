@@ -1,10 +1,12 @@
+import copy
 import os
 from typing import Collection
 
+from evo.core.filters import FilterException
 from evo.core.metrics import APE, RPE, PoseRelation, PE
 
-from x_evaluate.rpg_trajectory_evaluation import split_trajectory_into_equal_parts, \
-    split_trajectory_on_traveled_distance_grid
+from x_evaluate.rpg_trajectory_evaluation import get_split_distances_on_equal_parts, \
+    get_split_distances_equispaced
 from x_evaluate.utils import convert_to_evo_trajectory, rms, name_to_identifier
 from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext, boxplot_compare
 from evo.core import sync
@@ -15,46 +17,54 @@ import numpy as np
 import matplotlib.pyplot as plt
 import x_evaluate.rpg_trajectory_evaluation as rpg
 
-from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, AlignmentType
+from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, AlignmentType, \
+    DistributionSummary
 
 POSE_RELATIONS = [metrics.PoseRelation.translation_part, metrics.PoseRelation.rotation_angle_deg]
 
 # POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
 
 APE_METRICS = [APE(p) for p in POSE_RELATIONS]
-RPE_METRICS = [RPE(p) for p in POSE_RELATIONS]
 
-METRICS = APE_METRICS + RPE_METRICS
+METRICS = APE_METRICS
 
 
 def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) -> TrajectoryData:
     d = TrajectoryData()
-    d.traj_est, d.raw_estimate_t_xyz_wxyz = convert_to_evo_trajectory(df_poses, prefix="estimated_")
-    d.traj_ref, _ = convert_to_evo_trajectory(df_groundtruth)
+    traj_est, d.raw_est_t_xyz_wxyz = convert_to_evo_trajectory(df_poses, prefix="estimated_")
+    d.traj_gt, _ = convert_to_evo_trajectory(df_groundtruth)
 
     max_diff = 0.01
-    d.traj_ref, d.traj_est = sync.associate_trajectories(d.traj_ref, d.traj_est, max_diff)
+    d.traj_gt_synced, d.traj_est_synced = sync.associate_trajectories(d.traj_gt, traj_est, max_diff)
 
-    split_distances = split_trajectory_into_equal_parts(d.traj_ref, num_parts=5)
-    # fancy_split_distances = split_trajectory_on_traveled_distance_grid(d.traj_ref, step_size=5)
+    d.traj_est_aligned = copy.deepcopy(d.traj_est_synced)
 
-    sub_trajectories = rpg.rpg_sub_trajectories(d.traj_ref, d.traj_est, split_distances)
+    d.alignment_type = AlignmentType.PosYaw
+    d.alignment_frames = -1
+    rpg.rpg_align(d.traj_gt_synced, d.traj_est_aligned, d.alignment_type)
 
-    for (gt, est, split_distance) in sub_trajectories:
+    split_distances = get_split_distances_on_equal_parts(d.traj_gt, num_parts=5)
+    split_distances = np.hstack((split_distances, get_split_distances_equispaced(d.traj_gt, step_size=10)))
 
-        # aligns est to gt
-        rpg.rpg_align(gt, est, AlignmentType.PosYaw)
+    for s in split_distances:
+        try:
+            m_t = RPE(PoseRelation.translation_part, s, metrics.Unit.meters, all_pairs=True)
+            m_r = RPE(PoseRelation.rotation_angle_deg, s, metrics.Unit.meters, all_pairs=True)
+            m_t.process_data((d.traj_gt_synced, d.traj_est_aligned))
+            m_r.process_data((d.traj_gt_synced, d.traj_est_aligned))
 
-        d.sub_traj_errors[split_distance] = dict()
+            d.rpe_error_t[s] = m_t.get_result().np_arrays['error_array']
+            d.rpe_error_r[s] = m_r.get_result().np_arrays['error_array']
 
-        for m in APE_METRICS:
-            m.process_data((gt, est))
-            d.sub_traj_errors[split_distance][str(m)] = m.get_result().np_arrays['error_array']
+        except FilterException:
+            d.rpe_error_t[s] = np.ndarray([])
+            d.rpe_error_r[s] = np.ndarray([])
 
     for m in METRICS:
-        m.process_data((d.traj_ref, d.traj_est))
+        m.process_data((d.traj_gt_synced, d.traj_est_aligned))
         result = m.get_result()
-        d.errors[str(m)] = result.np_arrays['error_array']
+        d.ate_errors[str(m)] = result.np_arrays['error_array']
+
     return d
 
 
@@ -68,10 +78,8 @@ def create_trajectory_result_table_wrt_traveled_dist(s: EvaluationDataSummary) -
         position_metric = metrics.APE(metrics.PoseRelation.translation_part)
         orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
 
-        mask = d.trajectory_data.traj_ref.distances > 0
-
-        pos_error = d.trajectory_data.errors[str(position_metric)][mask] / d.trajectory_data.traj_ref.distances[mask]
-        deg_error = d.trajectory_data.errors[str(orientation_metric)][mask] / d.trajectory_data.traj_ref.distances[mask]
+        pos_error = np.mean(d.trajectory_data.ate_errors[str(position_metric)]) / d.trajectory_data.traj_gt.distances[-1]
+        deg_error = np.mean(d.trajectory_data.ate_errors[str(orientation_metric)]) / d.trajectory_data.traj_gt.distances[-1]
 
         pos_error = np.round(np.mean(pos_error*100), 2)  # in percent
         deg_error = np.round(np.mean(deg_error), 2)
@@ -101,7 +109,7 @@ def create_absolute_trajectory_result_table(s: EvaluationDataSummary) -> pd.Data
     for d in s.data.values():
         if d.trajectory_data is None:
             continue
-        add_result_row(d.name, d.trajectory_data.errors)
+        add_result_row(d.name, d.trajectory_data.ate_errors)
 
     overall_errors = dict()
 
@@ -123,41 +131,49 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     arrays = []
     for d in evaluations:
         if d.trajectory_data is not None:
-            arrays.append(d.trajectory_data.errors[error_key])
+            arrays.append(d.trajectory_data.ate_errors[error_key])
     return np.hstack(tuple(arrays))
 
 
 def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData], labels=None, use_log=False):
     auto_labels = []
-    errors = []
+    errors_rot_deg = []
+    errors_trans_m = []
+    gt_trajectory = None
     for t in trajectories:
         if t.trajectory_data is not None:
-            errors.append(t.trajectory_data.sub_traj_errors)
+            errors_rot_deg.append(t.trajectory_data.rpe_error_r)
+            errors_trans_m.append(t.trajectory_data.rpe_error_t)
             auto_labels.append(t.name)
+            if gt_trajectory is None:
+                gt_trajectory = t.trajectory_data.traj_gt
 
-    if len(errors) <= 0:
+    if len(errors_rot_deg) <= 0:
         return
 
     if labels is None:
         labels = auto_labels
 
-    labels = [l[1:] if l.startswith('_') else l for l in labels]
+    distances = get_split_distances_on_equal_parts(gt_trajectory, 5)
 
-    distances = list(errors[0].keys())
+    if use_log:
+        data_trans_m = [[np.log1p(e[k]) / np.log(10) for k in distances] for e in errors_trans_m]
+    else:
+        data_trans_m = [[e[k] for k in distances] for e in errors_trans_m]
 
-    for m in APE_METRICS:
-        if use_log:
-            data = [[np.log1p(e[k][str(m)]) / np.log(10) for k in distances] for e in errors]
-        else:
-            data = [[e[k][str(m)] for k in distances] for e in errors]
+    ax = pc.get_axis()
+    ax.set_xlabel("Distance traveled [m]")
+    if use_log:
+        ax.set_ylabel(F"Translation error [log m]")
+    else:
+        ax.set_ylabel(F"Translation error [m]")
+    boxplot_compare(ax, distances, data_trans_m, labels)
 
-        ax = pc.get_axis()
-        ax.set_xlabel("Distance traveled [m]")
-        if use_log:
-            ax.set_ylabel(F"APE (log {m.unit.name})")
-        else:
-            ax.set_ylabel(F"APE ({m.unit.name})")
-        boxplot_compare(ax, distances, data, labels)
+    ax = pc.get_axis()
+    ax.set_xlabel("Distance traveled [m]")
+    ax.set_ylabel(F"Rotation error [deg]")
+    data_rot_deg = [[e[k] for k in distances] for e in errors_rot_deg]
+    boxplot_compare(ax, distances, data_rot_deg, labels)
 
 
 def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
@@ -185,8 +201,8 @@ def plot_trajectory(pc: PlotContext, trajectories: Collection[EvaluationData]):
         if t.trajectory_data is not None:
             if first:
                 first = False
-                traj_by_label[F"{t.name} reference"] = t.trajectory_data.traj_ref
-            traj_by_label[F"{t.name} estimate"] = t.trajectory_data.traj_est
+                traj_by_label[F"{t.name} reference"] = t.trajectory_data.traj_gt_synced
+            traj_by_label[F"{t.name} estimate"] = t.trajectory_data.traj_est_synced
 
     plot.trajectories(pc.figure, traj_by_label, plot.PlotMode.xy)
 
@@ -206,13 +222,13 @@ def plot_error_comparison(pc: PlotContext, evaluations: Collection[EvaluationDat
     time_arrays = []
     for e in evaluations:
         if e.trajectory_data is not None:
-            t = e.trajectory_data.traj_est.timestamps.flatten()
+            t = e.trajectory_data.traj_est_synced.timestamps.flatten()
 
             # data.append(np.log1p(e.trajectory_data.errors[error_key]))
-            data.append(e.trajectory_data.errors[error_key])
+            data.append(e.trajectory_data.ate_errors[error_key])
 
-            if len(t)-1 == len(e.trajectory_data.errors[error_key]):
-                # this happens for RPE errors, since they are calculated between two poses (aka Zaunproblem |-|-|-|-|)
+            if len(t)-1 == len(e.trajectory_data.ate_errors[error_key]):
+                # this can happen for RPE errors, when they are calculated between two poses (aka Zaunproblem: |-|-|-|)
                 t = t[:-1]
 
             time_arrays.append(t - t[0])

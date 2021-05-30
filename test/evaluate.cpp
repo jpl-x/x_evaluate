@@ -5,6 +5,7 @@
 #include <gflags/gflags.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
+#include <tf2_msgs/TFMessage.h>
 #include <iostream>
 #if __has_include(<filesystem>)
   #include <filesystem>
@@ -254,10 +255,22 @@ int evaluate() {
         }
       } else if (!FLAGS_pose_topic.empty() && m.getTopic() == FLAGS_pose_topic) {
         EASY_BLOCK("GT Message");
-        auto p = m.instantiate<geometry_msgs::PoseStamped>();
-        ++counter_pose;
-        gt_csv->addRow(p->header.stamp.toSec(), p->pose.position.x, p->pose.position.y, p->pose.position.z,
-                       p->pose.orientation.x, p->pose.orientation.y, p->pose.orientation.z, p->pose.orientation.w);
+        if (m.isType<geometry_msgs::PoseStamped>()) {
+          auto p = m.instantiate<geometry_msgs::PoseStamped>();
+          ++counter_pose;
+          gt_csv->addRow(p->header.stamp.toSec(), p->pose.position.x, p->pose.position.y, p->pose.position.z,
+                         p->pose.orientation.x, p->pose.orientation.y, p->pose.orientation.z, p->pose.orientation.w);
+        } else if (m.isType<tf2_msgs::TFMessage>()) {
+          auto tf = m.instantiate<tf2_msgs::TFMessage>();
+          for (const auto & p : tf->transforms) {
+            ++counter_pose;
+            gt_csv->addRow(p.header.stamp.toSec(), p.transform.translation.x, p.transform.translation.y, p.transform.translation.z,
+                           p.transform.rotation.x, p.transform.rotation.y, p.transform.rotation.z, p.transform.rotation.w);
+          }
+
+        } else {
+          std::cerr << "WARNING: unable to type of GT message: " << m.getTopic() << std::endl;
+        }
         EASY_END_BLOCK;
       }
 

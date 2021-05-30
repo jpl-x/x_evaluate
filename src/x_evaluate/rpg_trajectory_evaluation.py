@@ -107,15 +107,18 @@ def rpg_align(ground_truth, trajectory_estimate, alignment_type: AlignmentType =
     trajectory_estimate.transform(lie.se3(r, t))
 
 
-def split_trajectory_into_equal_parts(ground_truth: PoseTrajectory3D, num_parts=5):
-    distance = ground_truth.distances[-1]
-
-    interval = distance / num_parts
-    split_distances = [interval * i for i in range(1, num_parts)]
+def get_split_distances_at_percentages(ground_truth: PoseTrajectory3D, percentages):
+    split_distances = [ground_truth.distances[-1] * p for p in percentages]
+    split_distances = np.round(split_distances, 2)
     return split_distances
 
 
-def split_trajectory_on_traveled_distance_grid(ground_truth: PoseTrajectory3D, step_size=5):
+def get_split_distances_on_equal_parts(ground_truth: PoseTrajectory3D, num_parts=5):
+    percentages = [i / num_parts for i in range(1, num_parts)]
+    return get_split_distances_at_percentages(ground_truth, percentages)
+
+
+def get_split_distances_equispaced(ground_truth: PoseTrajectory3D, step_size=5):
     distance = ground_truth.distances[-1]
     return np.arange(0, distance, step_size)
 
