@@ -12,9 +12,9 @@ common_params:
   n_tiles_w: 1
   max_feat_per_tile: 10000
   n_poses_max: 10
-  n_slam_features_max: 25
+  n_slam_features_max: 15
   iekf_iter: 1
-  msckf_baseline: 5.0
+  msckf_baseline: 30.0
   min_track_length: 10
 
   eklt_batch_size: 500

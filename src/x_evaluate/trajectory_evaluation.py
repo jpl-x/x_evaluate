@@ -78,10 +78,8 @@ def create_trajectory_result_table_wrt_traveled_dist(s: EvaluationDataSummary) -
         position_metric = metrics.APE(metrics.PoseRelation.translation_part)
         orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
 
-        mask = d.trajectory_data.traj_gt_synced.distances > 0
-
-        pos_error = d.trajectory_data.ate_errors[str(position_metric)][mask] / d.trajectory_data.traj_gt_synced.distances[mask]
-        deg_error = d.trajectory_data.ate_errors[str(orientation_metric)][mask] / d.trajectory_data.traj_gt_synced.distances[mask]
+        pos_error = np.mean(d.trajectory_data.ate_errors[str(position_metric)]) / d.trajectory_data.traj_gt.distances[-1]
+        deg_error = np.mean(d.trajectory_data.ate_errors[str(orientation_metric)]) / d.trajectory_data.traj_gt.distances[-1]
 
         pos_error = np.round(np.mean(pos_error*100), 2)  # in percent
         deg_error = np.round(np.mean(deg_error), 2)
