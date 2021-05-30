@@ -60,6 +60,8 @@ TEST(TestSuite, positionAccuracy)
   ros::Subscriber sub = nh.subscribe("/x_vio/pose_with_cov_image_rate",1, &est_poseCallback);
 
   tf::TransformListener true_poseListener;
+
+  ros::Duration(1.0).sleep();
   true_poseListener.waitForTransform(groundtruth_parent_frame, groundtruth_child_frame, ros::Time(0), ros::Duration(5.0));
 
   while(ros::ok()){
