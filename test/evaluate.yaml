@@ -39,107 +39,277 @@ common_params:
   eklt_k: 0.04
 
 datasets:
-  -
-    name: 45 Deg Carpet
-    rosbag: ${XVIO_DATASET_DIR}/esim_45deg_2021-03-17.bag
-    events_topic: /cam0/events
-    image_topic: /cam0/image_raw
-    pose_topic: /cam0/pose
-    imu_topic: /imu
-    params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
-    override_params:
-      eklt_k: 0
-      eklt_quality_level: 0.3
-      eklt_tracking_quality: 0.7
-
-  -
-    name: ESA Mars
-    rosbag: ${XVIO_DATASET_DIR}/mars_xplorer.bag
-    events_topic: /cam0/events
-    image_topic: /cam0/image_raw
-    pose_topic: /cam0/pose
-    imu_topic: /imu
-    params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
-    override_params:
-      eklt_k: 0
-      eklt_quality_level: 0.3
-      eklt_tracking_quality: 0.7
-
-#  - name: Boxes 6DOF
-#    rosbag: ${XVIO_DATASET_DIR}/boxes_6dof.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-
-  - name: Poster 6DOF
-    rosbag: ${XVIO_DATASET_DIR}/poster_6dof.bag
+#  -
+#    name: 45 Deg Carpet
+#    rosbag: ${XVIO_DATASET_DIR}/esim_45deg_2021-03-17.bag
+#    events_topic: /cam0/events
+#    image_topic: /cam0/image_raw
+#    pose_topic: /cam0/pose
+#    imu_topic: /imu
+#    params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
+#    override_params:
+#      eklt_k: 0
+#      eklt_quality_level: 0.3
+#      eklt_tracking_quality: 0.7
+#
+#  -
+#    name: ESA Mars
+#    rosbag: ${XVIO_DATASET_DIR}/mars_xplorer.bag
+#    events_topic: /cam0/events
+#    image_topic: /cam0/image_raw
+#    pose_topic: /cam0/pose
+#    imu_topic: /imu
+#    params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
+#    override_params:
+#      eklt_k: 0
+#      eklt_quality_level: 0.3
+#      eklt_tracking_quality: 0.7
+#
+#
+  - name: Boxes 6DOF
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_6dof.bag
     events_topic: /dvs/events
     image_topic: /dvs/image_raw
     pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     override_params:
-      p: [ 4.435079, -0.451290, 1.436505 ]
-      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-      q: [ -0.486852, 0.506501, -0.501093, 0.505309]
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [0.3973783621825099, 1.4634966189993928, 1.277009988555527]
+      v: [0.005244464576511771, 0.004622359700309431, -0.007213097233903303]
+      q: [0.007389779455468962, -0.06762916364373475, 0.8856791184114311, -0.4592866061561111]  # [w,x,y,z]
 
-#  - name: HDR Poster
-#    rosbag: ${XVIO_DATASET_DIR}/hdr_poster.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    override_params:
-#      p: [ 4.418570, -0.446416, 1.362028 ]
-#      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-#      q: [ 0.475324, -0.513829, 0.531269, -0.477284 ]
+
+  - name: Boxes Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [0.30291768098742905, 1.430519451034191, 1.3521637770392119]
+      v: [-0.003301541735693611, 0.005962067389282077, -0.010828869392393976]
+      q: [0.013829174831521022, -0.03468748297254869, 0.8955545300641503, -0.4433820205309269]  # [w,x,y,z]
+
+
+  - name: Boxes Translation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_translation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [0.4377675702385785, 1.4355954622129725, 1.347800331994997]
+      v: [0.015910041665789038, 0.005926105830082616, -0.029936815159507153]
+      q: [0.026440091246882468, -0.05649366759000794, 0.8917572058992841, -0.44819468183345057]  # [w,x,y,z]
+
+
+  - name: Calibration
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/calibration.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [0.8716231755899706, 0.44474793350063335, 0.9989513431677441]
+      v: [0.0003660374731875027, -0.002073119980646332, -0.0009921584218035599]
+      q: [0.08362385228657855, -0.2423960544746504, 0.901976334175935, -0.3474045144934315]  # [w,x,y,z]
+
+
+  - name: Dynamic 6DOF
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/dynamic_6dof.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [1.7204384315639738, -1.4040365404676252, 1.3217831481394802]
+      v: [-0.009727834595862189, 0.008845837016071344, -0.012506630236479388]
+      q: [0.29073347374973735, -0.5072196270651738, 0.7068911650353176, -0.39812959944757703]  # [w,x,y,z]
+
+
+  - name: Dynamic Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/dynamic_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [1.6859278477713469, -1.4658295591389563, 1.298812520634158]
+      v: [0.0026893406797981628, 0.010057065949884923, -0.007002804190208332]
+      q: [0.346405045682845, -0.5720589852495133, 0.6355752910378475, -0.3857409897106071]  # [w,x,y,z]
+
+
+  - name: Dynamic Translation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/dynamic_translation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [1.7559837657864839, -1.4029898123647613, 1.295176006034351]
+      v: [0.016576333999310994, -0.007736664642658961, 0.0037337110274447095]
+      q: [0.2874783006417774, -0.532444095257276, 0.6950344232294409, -0.3883125836383562]  # [w,x,y,z]
+
 
   - name: HDR Boxes
-    rosbag: ${XVIO_DATASET_DIR}/hdr_boxes.bag
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/hdr_boxes.bag
     events_topic: /dvs/events
     image_topic: /dvs/image_raw
     pose_topic: /optitrack/davis
     imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
     params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
     override_params:
-      p: [  0.546509, 1.317912, 1.065833 ]
-      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-      q: [  0.019303, -0.056709,  0.845480, -0.530636 ]
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [0.5465085018503225, 1.317912016657276, 1.0658333845008365]
+      v: [-0.01128538194925651, -0.00492507752182706, 0.007814353549907758]
+      q: [0.019303038806419905, -0.05670881358468858, 0.8454804105961405, -0.5306358246979153]  # [w,x,y,z]
+
+
+  - name: HDR Poster
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/hdr_poster.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.418570010385964, -0.44641587064501287, 1.362028001448223]
+      v: [-0.007580121414817649, 0.003172785492168712, -0.005160593680862085]
+      q: [0.47532362144123835, -0.5138289112629202, 0.5312693097706214, -0.4772842186226101]  # [w,x,y,z]
+
+
+  - name: Poster 6DOF
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/poster_6dof.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.435079038565721, -0.4512899051834541, 1.436505416579184]
+      v: [0.00013363752649147009, 0.013441110640813717, -0.011822809412348785]
+      q: [-0.4868524839877926, 0.5065013064576117, -0.5010928587534683, 0.505308848426312]  # [w,x,y,z]
+
+
+  - name: Poster Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/poster_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.526394089455742, -0.5973192737165077, 1.4715116414139455]
+      v: [0.003121604446743642, 0.005615239263361253, -0.010553776392296934]
+      q: [-0.4840108206676073, 0.4998577950717239, -0.5032014415263013, 0.5125075798742454]  # [w,x,y,z]
+
+
+  - name: Poster Translation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/poster_translation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.552652911436765, -0.5422805681515743, 1.5452093200444588]
+      v: [0.006943094317995174, 0.021779636593300712, -0.020591157389696933]
+      q: [-0.4988563403799047, 0.5205585275842937, -0.49051580140968853, 0.4894439902475582]  # [w,x,y,z]
+
+
+  - name: Shapes 6DOF
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/shapes_6dof.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.346317210366623, 1.7357815456832344, 1.358592863606204]
+      v: [0.004762307341565391, 0.01271341553971565, -0.013871390353688104]
+      q: [-0.4831137434015021, 0.5017276809406012, -0.5046097649986157, 0.5101366779428779]  # [w,x,y,z]
+
+
+  - name: Shapes Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/shapes_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.461422921154449, 1.5512600588125605, 1.4175439815328836]
+      v: [0.007208901640846718, 0.009767413656861793, 0.008575371720832243]
+      q: [-0.4775463051309417, 0.5201921377433283, -0.4965123080459334, 0.5048021337561005]  # [w,x,y,z]
+
+
+  - name: Shapes Translation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/shapes_translation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [4.449337495808546, 1.6355674798866782, 1.4283528409457567]
+      v: [-0.006540214923432048, 0.011206995969221352, -0.0028955488827940184]
+      q: [-0.4946479556120538, 0.5096776166433423, -0.48814562570621595, 0.507213934356564]  # [w,x,y,z]
+
 
   - name: Circle High Velocity
     rosbag: ${XVIO_DATASET_DIR}/circle_high_vel_restamped.bag
     events_topic:
     image_topic: /camera/image_raw
-    pose_topic:
+    pose_topic: /tf
     imu_topic: /fcu/imu
     params: ${XVIO_SRC_ROOT}/params.yaml
-
-
-
-  ######## Diverging, even with vision-based xVIO ################
-#  - name: Shapes 6DOF
-#    rosbag: ${XVIO_DATASET_DIR}/shapes_6dof.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    override_params:
-#      p: [ 4.346317, 1.735782, 1.358593 ]
-#      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-#      q: [ -0.483114, 0.501728, -0.504610, 0.510137 ]
-
-#  - name: Checkerboard
-#    rosbag: ${XVIO_DATASET_DIR}/calibration.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
-#    override_params:
-#      p: [ 0.871623, 0.444748, 0.998951 ]
-#      v: [ 0.0, 0.0, 0.0 ] # [x,y,z]
-#      q: [ 0.083624, -0.242396, 0.901976, -0.347405]
