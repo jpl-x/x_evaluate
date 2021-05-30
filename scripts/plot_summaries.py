@@ -5,7 +5,7 @@ import os
 from typing import List, Dict
 
 from evo.core import metrics
-from x_evaluate.evaluation_data import ErrorType, EvaluationDataSummary
+from x_evaluate.evaluation_data import EvaluationDataSummary
 from x_evaluate.plots import PlotType
 from x_evaluate.utils import name_to_identifier
 from x_evaluate.scriptlets import read_evaluation_pickle

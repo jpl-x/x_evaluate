@@ -329,7 +329,7 @@ def plot_xvio_features_update_interval(pc: PlotContext, d: EvaluationData):
     # time_changes = time_changes[time_changes > 0]
     # updates_per_sec = 1 / time_changes
 
-    boxplot(pc, [time_changes], ["Test"], "Update interval")
+    boxplot(pc, [time_changes[:, 1]], ["Test"], "Update interval")
 
 
 def plot_feature_plots(d: EvaluationData, output_folder):
