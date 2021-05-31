@@ -124,8 +124,8 @@ def call_rpg_feature_tracking_evaluation(dataset, track_file):
             "type": "bag",
             "name": rosbag_name,
             "image_topic": dataset['image_topic'],
-            "depth_map_topic": "/cam0/depthmap",
-            "camera_info_topic": "/cam0/camera_info",
+            "depth_map_topic": dataset['depth_map_topic'],
+            "camera_info_topic": dataset['camera_info_topic'],
             "pose_topic": dataset['pose_topic']
         }
     else:
