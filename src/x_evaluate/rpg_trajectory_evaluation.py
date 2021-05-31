@@ -92,10 +92,12 @@ def rpg_align(ground_truth, trajectory_estimate, alignment_type: AlignmentType =
               use_subtrajectory=False, t_left=3, t_right=8):
 
     if use_subtrajectory:
+        t_left += ground_truth.timestamps[0]
+        t_right += ground_truth.timestamps[0]
         gt = copy.deepcopy(ground_truth)
         gt.reduce_to_time_range(t_left, t_right)
-        est = copy.deepcopy(ground_truth)
-        est.reduce_to_time_range(t_left, t_right)
+
+        gt, est = sync.associate_trajectories(gt, trajectory_estimate)
     else:
         gt = ground_truth
         est = trajectory_estimate
