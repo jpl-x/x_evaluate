@@ -40,11 +40,11 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) ->
     d.traj_est_aligned = copy.deepcopy(d.traj_est_synced)
 
     d.alignment_type = AlignmentType.PosYaw
-    d.alignment_frames = -1
-    rpg.rpg_align(d.traj_gt_synced, d.traj_est_aligned, d.alignment_type)
+    d.alignment_frames = 5  # only temporary value meaning [3, 8] seconds
+    rpg.rpg_align(d.traj_gt_synced, d.traj_est_aligned, d.alignment_type, use_subtrajectory=True)
 
     split_distances = get_split_distances_on_equal_parts(d.traj_gt, num_parts=5)
-    split_distances = np.hstack((split_distances, get_split_distances_equispaced(d.traj_gt, step_size=10)))
+    # split_distances = np.hstack((split_distances, get_split_distances_equispaced(d.traj_gt, step_size=10)))
 
     for s in split_distances:
         try:

@@ -88,14 +88,23 @@ def rpg_get_alignment_umeyama(ground_truth: PoseTrajectory3D, trajectory_estimat
     return s, R, t
 
 
-def rpg_align(ground_truth, trajectory_estimate, alignment_type: AlignmentType = AlignmentType.Disabled):
+def rpg_align(ground_truth, trajectory_estimate, alignment_type: AlignmentType = AlignmentType.Disabled,
+              use_subtrajectory=False, t_left=3, t_right=8):
 
+    if use_subtrajectory:
+        gt = copy.deepcopy(ground_truth)
+        gt.reduce_to_time_range(t_left, t_right)
+        est = copy.deepcopy(ground_truth)
+        est.reduce_to_time_range(t_left, t_right)
+    else:
+        gt = ground_truth
+        est = trajectory_estimate
     if alignment_type == AlignmentType.PosYaw:
-        s, r, t = rpg_get_alignment_umeyama(ground_truth, trajectory_estimate, known_scale=True, yaw_only=True)
+        s, r, t = rpg_get_alignment_umeyama(gt, est, known_scale=True, yaw_only=True)
     elif alignment_type == AlignmentType.SE3:
-        s, r, t = rpg_get_alignment_umeyama(ground_truth, trajectory_estimate, known_scale=True, yaw_only=False)
+        s, r, t = rpg_get_alignment_umeyama(gt, est, known_scale=True, yaw_only=False)
     elif alignment_type == AlignmentType.SIM3:
-        s, r, t = rpg_get_alignment_umeyama(ground_truth, trajectory_estimate, known_scale=False, yaw_only=False)
+        s, r, t = rpg_get_alignment_umeyama(gt, est, known_scale=False, yaw_only=False)
     elif alignment_type == AlignmentType.Disabled:
         s = 1
         r = np.identity(3)
