@@ -201,6 +201,7 @@ def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=Non
                     title=None):
     if colors is None:
         colors = list(mcolors.TABLEAU_COLORS.values())
+        colors = colors + list(mcolors.BASE_COLORS.values())
 
     n_data = len(data)
     n_xlabel = len(x_tick_labels)
@@ -244,6 +245,7 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
                     title=None):
     if colors is None:
         colors = list(mcolors.TABLEAU_COLORS.values())
+        colors = colors + list(mcolors.BASE_COLORS.values())
 
     n_data = len(data)
     n_xlabel = len(x_tick_labels)
