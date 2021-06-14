@@ -2,7 +2,7 @@ import numpy as np
 import tqdm
 
 
-def back_project_features(K, features, depths, poses):
+def back_project_features(K, features, depths, poses, is_distance_from_z_0_plane=False):
     assert len(features.shape) == 3
     assert features.shape[1] == 1
     assert features.shape[2] == 2
@@ -15,11 +15,18 @@ def back_project_features(K, features, depths, poses):
     assert poses.shape[1] == 4
     assert poses.shape[2] == 4
 
-    features_x_camera = depths * (features[:, 0, 0] - K[0, 2]) / K[0, 0]
-    features_y_camera = depths * (features[:, 0, 1] - K[1, 2]) / K[1, 1]
+    if is_distance_from_z_0_plane:
+        features_x_camera = depths * (features[:, 0, 0] - K[0, 2]) / K[0, 0]
+        features_y_camera = depths * (features[:, 0, 1] - K[1, 2]) / K[1, 1]
+        landmarks_local = np.stack([features_x_camera, features_y_camera, depths])
+    else:
+        K_inv = np.linalg.inv(K)
+        xy1 = np.hstack((features[:, 0, :2], np.ones((len(depths), 1))))
+        xyz_local = np.matmul(K_inv, xy1.T)
+        bearing = xyz_local / np.linalg.norm(xyz_local, axis=0)
+        landmarks_local = bearing * depths
 
-    landmarks_local_hom = np.stack([features_x_camera, features_y_camera, depths, np.ones(len(depths))]).T.reshape(-1,
-                                                                                                                   4, 1)
+    landmarks_local_hom = np.vstack((landmarks_local, np.ones((1, len(depths))))).T.reshape(-1, 4, 1)
     landmarks_global_hom = np.matmul(poses, landmarks_local_hom)
 
     landmarks_global = landmarks_global_hom[:, :3, 0] / landmarks_global_hom[:, 3:4, 0]
@@ -32,12 +39,14 @@ def back_project_features(K, features, depths, poses):
     # np.min(features[:, 0, 1]), np.median(features[:, 0, 1]), np.max(features[:, 0, 1])
     #
     # import matplotlib.pyplot as plt
-    # plt.figure()
-    # ax = plt.axes(projection='3d')
-    # xs, ys, zs = landmarks_global[:, 0], landmarks_global[:, 1], landmarks_global[:, 2]
-    # ax.set_box_aspect((np.ptp(xs), np.ptp(ys), np.ptp(zs)))
-    # ax.scatter(xs, ys, zs)
-    # plt.show()
+    # def plot_landmarks(landmarks):
+    #     plt.figure()
+    #     ax = plt.axes(projection='3d')
+    #     xs, ys, zs = landmarks[:, 0], landmarks[:, 1], landmarks[:, 2]
+    #     ax.set_box_aspect((np.ptp(xs), np.ptp(ys), np.ptp(zs)))
+    #     ax.scatter(xs, ys, zs)
+    #     plt.show()
+    # plot_landmarks(landmarks_global)
 
     return landmarks_global
 
@@ -195,8 +204,10 @@ def grid_sample(feature_times, positions, depth_map_times, depth_maps):
     d_up_right = depth_maps[d_index, y_up, x_right]
     d_down_right = depth_maps[d_index, y_down, x_right]
 
-    d_interp = r_x * r_y * d_down_right + (1 - r_x) * r_y * d_down_left + r_x * (1 - r_y) * d_up_right + (1 - r_x) * (
-            1 - r_y) * d_up_left
+    # d_interp = r_x * r_y * d_down_right + (1 - r_x) * r_y * d_down_left + r_x * (1 - r_y) * d_up_right + (1 - r_x) * (
+    #         1 - r_y) * d_up_left
+
+    d_interp = (1-r_x)*(1-r_y) * d_down_left + r_x*(1-r_y)*d_down_right + (1-r_x)*r_y*d_up_left + r_x*r_y*d_up_right
 
     return d_interp
 
