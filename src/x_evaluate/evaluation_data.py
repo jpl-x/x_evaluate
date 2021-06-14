@@ -60,6 +60,7 @@ class TrajectoryError:
 
 
 class TrajectoryData:
+    imu_bias: Optional[pd.DataFrame]
     raw_est_t_xyz_wxyz: np.ndarray
     traj_gt: PoseTrajectory3D
 
@@ -77,19 +78,20 @@ class TrajectoryData:
     rpe_error_r: Dict[float, np.ndarray]
 
     def __init__(self):
+        self.imu_bias = None
         self.ate_errors = dict()
         self.rpe_error_t = dict()
         self.rpe_error_r = dict()
 
 
 class FeatureTrackingData:
-    df_x_vio_features: pd.DataFrame
+    df_xvio_num_features: pd.DataFrame
 
-    df_eklt_features: Optional[pd.DataFrame]
+    df_eklt_num_features: Optional[pd.DataFrame]
     df_eklt_feature_age: Optional[pd.DataFrame]
 
     def __init__(self):
-        self.df_eklt_features = None
+        self.df_eklt_num_features = None
         self.df_eklt_feature_age = None
 
 

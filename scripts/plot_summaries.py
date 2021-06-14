@@ -1,12 +1,6 @@
 import argparse
-import glob
 import os
 
-from typing import List, Dict
-
-from evo.core import metrics
-from x_evaluate.evaluation_data import ErrorType, EvaluationDataSummary
-from x_evaluate.plots import PlotType
 from x_evaluate.utils import name_to_identifier
 from x_evaluate.scriptlets import read_evaluation_pickle
 
@@ -22,8 +16,9 @@ def main():
     args = parser.parse_args()
 
     output_root = os.path.dirname(args.input)
+    filename = os.path.basename(args.input)
 
-    s = read_evaluation_pickle(args.input)
+    s = read_evaluation_pickle(output_root, filename)
 
     i = 1
 

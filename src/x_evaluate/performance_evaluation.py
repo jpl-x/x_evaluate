@@ -74,7 +74,7 @@ def plot_cpu_usage_in_time_comparison(pc: PlotContext, eval_data: List[Evaluatio
         data.append(e.performance_data.df_resources['cpu_usage'])
         times.append(timestamp_to_real_time(e.performance_data.df_resources['ts'], e.performance_data.df_realtime))
 
-    time_series_plot(pc, times, data, labels, F"CPU usage on '{dataset_name}')", "cpu time : real time [%]")
+    time_series_plot(pc, times, data, labels, F"CPU usage on '{dataset_name}'", "cpu time : real time [%]")
 
 
 def plot_cpu_usage_boxplot_comparison(pc: PlotContext, summaries: Dict[str, EvaluationDataSummary], common_datasets):
@@ -124,19 +124,19 @@ def plot_memory_usage_boxplot_comparison(pc: PlotContext, summaries: Dict[str, E
 
 
 def plot_performance_plots(eval_data: EvaluationData, output_folder):
-    with PlotContext(os.path.join(os.path.join(output_folder, "realtime_factor.svg"))) as pc:
+    with PlotContext(os.path.join(os.path.join(output_folder, "realtime_factor"))) as pc:
         plot_realtime_factor(pc, [eval_data])
-    with PlotContext(os.path.join(output_folder, "cpu_usage.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "cpu_usage")) as pc:
         plot_cpu_usage(pc, eval_data)
-    with PlotContext(os.path.join(output_folder, "memory_usage.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "memory_usage")) as pc:
         plot_memory_usage(pc, eval_data)
     if eval_data.eklt_performance_data is not None:
-        with PlotContext(os.path.join(output_folder, "events_per_second.svg")) as pc:
+        with PlotContext(os.path.join(output_folder, "events_per_second")) as pc:
             plot_events_per_second(pc, eval_data)
-        with PlotContext(os.path.join(output_folder, "optimizations_per_second.svg")) as pc:
+        with PlotContext(os.path.join(output_folder, "optimizations_per_second")) as pc:
             plot_optimizations_per_second(pc, eval_data)
-        with PlotContext(os.path.join(output_folder, "optimization_iterations.svg")) as pc:
-            plot_optimization_iterations(pc, [eval_data], os.path.join(output_folder, "optimization_iterations.svg"))
+        with PlotContext(os.path.join(output_folder, "optimization_iterations")) as pc:
+            plot_optimization_iterations(pc, [eval_data], os.path.join(output_folder, "optimization_iterations"))
 
 
 def plot_optimization_iterations(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):
@@ -168,7 +168,8 @@ def plot_optimization_iterations_comparison(pc: PlotContext, summaries: List[Eva
     # boxplot_from_summary(pc, data, labels, "Optimization iterations")
 
 
-def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):
+def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None, use_log=False,
+                         title=None):
     ax = pc.get_axis()
     max_length = 0
 
@@ -190,11 +191,16 @@ def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData
     t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
     ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
     ax.legend()
-    ax.set_title(F"Realtime factor")
+    if title:
+        ax.set_title(title)
+    else:
+        ax.set_title(F"Realtime factor")
+    if use_log:
+        ax.set_yscale('log')
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
-    with PlotContext(os.path.join(output_folder, "optimization_iterations.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "optimization_iterations")) as pc:
         plot_optimization_iterations(pc, summary.data.values())
 
 
