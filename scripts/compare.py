@@ -94,7 +94,6 @@ def main():
 
     ########################################### CREATE ALL COMPARISON PLOTS ############################################
 
-
     scaled_width_datasets = max(10 * len(common_datasets) / 6, 10)
     scaled_with_runs = max(10 * len(summaries) / 6, 10)
 
@@ -292,7 +291,6 @@ def main():
                              subplot_cols=cols) as pc:
                 for k, s in summaries.items():
                     te.plot_imu_bias_in_one(pc, s.data[dataset], s.name)
-
 
 
 if __name__ == '__main__':
