@@ -369,7 +369,7 @@ int evaluate() {
     if (eklt_logger) {
       eklt_logger->events_csv.flush();
       eklt_logger->optimizations_csv.flush();
-      eklt_logger->tracks_csv.flush();
+      eklt_logger->eklt_tracks_csv.flush();
     }
 
     // destructor calls (--> CSV flushing) happening here
