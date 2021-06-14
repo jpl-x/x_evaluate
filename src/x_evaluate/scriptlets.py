@@ -10,8 +10,6 @@ from x_evaluate.evaluation_data import EvaluationDataSummary, GitInfo, FrontEnd,
 from x_evaluate.rpg_tracking_analysis.evaluate_tracks import rpg_evaluate_tracks
 from x_evaluate.utils import read_output_files, read_eklt_output_files, DynamicAttributes, \
     convert_eklt_to_rpg_tracks, convert_xvio_to_rpg_tracks
-from x_evaluate.utils import read_output_files, read_eklt_output_files, DynamicAttributes, \
-    convert_eklt_to_rpg_tracks, convert_xvio_to_rpg_tracks
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
