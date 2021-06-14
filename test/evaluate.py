@@ -1,5 +1,4 @@
 import os
-import pickle
 import sys
 
 import argparse
@@ -12,7 +11,7 @@ import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
 from x_evaluate.utils import envyaml_to_archive_dict, name_to_identifier, \
     ArgparseKeyValueAction
-from x_evaluate.scriptlets import get_git_info, process_dataset
+from x_evaluate.scriptlets import get_git_info, process_dataset, write_evaluation_pickle
 
 
 def main():
@@ -117,11 +116,7 @@ def main():
 
     finally:
         if summary is not None:
-            filename = os.path.join(args.output_folder, 'evaluation.pickle')
-            print(F"Dumping evaluation results to '{filename}'")
-
-            with open(filename, 'wb') as f:
-                pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
+            write_evaluation_pickle(summary, args.output_folder)
 
         if os.path.exists(tmp_yaml_filename):
             os.remove(tmp_yaml_filename)

@@ -40,7 +40,7 @@ def convert_to_evo_trajectory(df_poses, prefix="", filter_invalid_entries=True) 
                            prefix + 'q_w', prefix + 'q_x', prefix + 'q_y', prefix + 'q_z']].to_numpy()
 
     traj_has_nans = np.any(np.isnan(t_xyz_wxyz), axis=1)
-    t_is_minus_one = t_xyz_wxyz[:, 0] == 1
+    t_is_minus_one = t_xyz_wxyz[:, 0] == -1
 
     invalid_data_mask = traj_has_nans | t_is_minus_one
 
@@ -115,8 +115,13 @@ def read_output_files(output_folder, gt_available):
 
     df_xvio_tracks = pd.read_csv(os.path.join(output_folder, "xvio_tracks.csv"), delimiter=";")
 
+    df_imu_bias = None
+    imu_bias_filename = os.path.join(output_folder, "imu_bias.csv")
+    if os.path.exists(imu_bias_filename):
+        df_imu_bias = pd.read_csv(imu_bias_filename, delimiter=";")
+
     # profiling_json = read_json_file(output_folder)
-    return df_groundtruth, df_poses, df_realtime, df_features, df_resources, df_xvio_tracks
+    return df_groundtruth, df_poses, df_realtime, df_features, df_resources, df_xvio_tracks, df_imu_bias
 
 
 def read_eklt_output_files(output_folder):
@@ -156,6 +161,18 @@ class DynamicAttributes:
     def __setattr__(self, key, value):
         self.__dict__[key] = value
 
+
+def merge_tables(tables, column=None):
+    result_table = None
+    for t in tables:
+        if result_table is None:
+            result_table = t
+        else:
+            if column:
+                result_table = pd.merge(result_table, t, on=column)
+            else:
+                result_table = pd.merge(result_table, t, left_index=True, right_index=True)
+    return result_table
 
 
 def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.1):

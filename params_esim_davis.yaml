@@ -75,8 +75,8 @@ w_s: [0.0, 0.0, 1.0] # [x,y,z]
 
 fast_detection_delta: 20
 non_max_supp: True
-block_half_length: 20
-margin: 20
+block_half_length: 6
+margin: 6
 n_feat_min: 400
 # RANSAC: 8 / LMEDS: 4 (see OpenCV doc)
 outlier_method: 8

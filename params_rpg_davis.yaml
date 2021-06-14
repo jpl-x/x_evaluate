@@ -25,7 +25,7 @@ cam1_img_width: 240
 cam1_img_height: 180
 cam1_q_ic: [0.999965419952174, 0.004660206319180, -0.003190841088148, -0.006104089619662]
 cam1_p_ic: [0.00674696422488, 0.0007279224709, 0.0342573613538] # [x,y,z]
-cam1_time_offset: 0.0
+cam1_time_offset: 0.0027626144716691903  # from Kalibr run on checkerboard sequence
 
 cam2_fx: 0.8307143111366176
 cam2_fy: 1.1094881524187095
@@ -46,12 +46,12 @@ sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
 # IMU #
 #######
 
-# MXR9500G/M accels (Astec)
-n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
-n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
+# Optimized for RPG Davis Data
+n_a:  0.004316  # Accel noise spectral density [m/s^2/sqrt(Hz)]
+n_ba: 0.0004316 # Accel bias random walk [m/s^3/sqrt(Hz)]
 # ADXRS610 gyros (Astec)
-n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
-n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+n_w:  0.0002  # Gyro noise spectral density [rad/s/sqrt(Hz)]
+n_bw: 0.00002 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
 #######
 # LRF #
@@ -74,8 +74,8 @@ w_s: [0.0, 0.0, 1.0] # [x,y,z]
 
 fast_detection_delta: 20
 non_max_supp: True
-block_half_length: 20
-margin: 20
+block_half_length: 6
+margin: 6
 n_feat_min: 400
 # RANSAC: 8 / LMEDS: 4 (see OpenCV doc)
 outlier_method: 8
@@ -83,10 +83,10 @@ outlier_method: 8
 # beyond which the point is considered an outlier and is not used for computing the final fundamental
 # matrix. It can be set to something like 1-3, depending on the accuracy of the point localization,
 # image resolution, and the image noise.
-outlier_param1: 0.3
+outlier_param1: 0.6
 # Parameter used for the RANSAC or LMedS methods only. It specifies a desirable level of confidence
 # (probability) that the estimated matrix is correct.
-outlier_param2: 0.99
+outlier_param2: 0.978
 # 1 <=> no tiling
 n_tiles_h: 1
 n_tiles_w: 1
@@ -135,11 +135,11 @@ n_slam_features_max: 25
 
 # Initial inverse depth of SLAM features [1/m]
 # (default: 1 / (2 * d_min) [Montiel, 2006])
-rho_0: 2.5
+rho_0: 1.3
 
 # Initial standard deviation of SLAM inverse depth [1/m]
 # (default: 1 / (4 * d_min) [Montiel, 2006])
-sigma_rho_0: 1.25
+sigma_rho_0: 0.65
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1

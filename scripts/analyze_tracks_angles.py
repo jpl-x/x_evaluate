@@ -51,7 +51,7 @@ def main():
             print(F"    flow_angle in [{np.min(angle)}, {np.max(angle)}]"
                   F" estimate in [{np.min(angle_estimates)},{np.max(angle_estimates)}]")
 
-            filename = F"track_{cur_id}.svg"
+            filename = F"track_{cur_id}"
             file = os.path.join(args.output_folder, filename)
             with PlotContext(file) as f:
                 ax = f.get_axis()

@@ -60,6 +60,7 @@ class TrajectoryError:
 
 
 class TrajectoryData:
+    imu_bias: Optional[pd.DataFrame]
     raw_est_t_xyz_wxyz: np.ndarray
     traj_gt: PoseTrajectory3D
 
@@ -77,6 +78,7 @@ class TrajectoryData:
     rpe_error_r: Dict[float, np.ndarray]
 
     def __init__(self):
+        self.imu_bias = None
         self.ate_errors = dict()
         self.rpe_error_t = dict()
         self.rpe_error_r = dict()

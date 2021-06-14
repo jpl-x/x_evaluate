@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 
 from typing import List, Dict
@@ -22,8 +21,9 @@ def main():
     args = parser.parse_args()
 
     output_root = os.path.dirname(args.input)
+    filename = os.path.basename(args.input)
 
-    s = read_evaluation_pickle(args.input)
+    s = read_evaluation_pickle(output_root, filename)
 
     i = 1
 

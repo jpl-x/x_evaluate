@@ -83,6 +83,9 @@ using PoseCsv = x::CsvWriter<std::string,
                              double,
                              double, double, double,
                              double, double, double, double>;
+using ImuBiasCsv = x::CsvWriter<double,
+                             double, double, double,
+                             double, double, double>;
 
 using GTCsv = x::CsvWriter<double,
                            double, double, double,
@@ -92,6 +95,12 @@ void addPose(PoseCsv& csv, const std::string& update_modality, const x::State& s
   csv.addRow(update_modality, s.getTime(),
              s.getPosition().x(), s.getPosition().y(), s.getPosition().z(),
              s.getOrientation().x(), s.getOrientation().y(), s.getOrientation().z(), s.getOrientation().w());
+}
+
+void addImuBias(ImuBiasCsv& csv, const std::string& update_modality, const x::State& s) {
+  csv.addRow(s.getTime(),
+             s.getAccelerometerBias().x(), s.getAccelerometerBias().y(), s.getAccelerometerBias().z(),
+             s.getGyroscopeBias().x(), s.getGyroscopeBias().y(), s.getGyroscopeBias().z());
 }
 
 char* get_time_string_in_utc() {
@@ -132,6 +141,7 @@ int evaluate() {
     PoseCsv pose_csv(output_path / "pose.csv", {"update_modality", "t",
                                                 "estimated_p_x", "estimated_p_y", "estimated_p_z",
                                                 "estimated_q_x", "estimated_q_y", "estimated_q_z", "estimated_q_w"});
+    ImuBiasCsv imu_bias_csv(output_path / "imu_bias.csv", {"t", "b_a_x", "b_a_y", "b_a_z", "b_w_x", "b_w_y", "b_w_z"});
 
 
     std::unique_ptr<GTCsv> gt_csv(nullptr);
@@ -328,6 +338,7 @@ int evaluate() {
         calculation_time += duration_in_us;
 
         addPose(pose_csv, process_type, state);
+        addImuBias(imu_bias_csv, process_type, state);
         rt_csv.addRow(m.getTime().toSec(), calculation_time * 1e-6, profiler::now(), process_type, duration_in_us);
       }
 
@@ -350,6 +361,7 @@ int evaluate() {
     // manually flush as workaround for memory corruption in EKLT node
     rt_csv.flush();
     pose_csv.flush();
+    imu_bias_csv.flush();
     xvio_logger->features_csv.flush();
     xvio_logger->tracks_csv.flush();
     resource_csv.flush();

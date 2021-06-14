@@ -420,31 +420,33 @@ def plot_xvio_features_update_interval(pc: PlotContext, d: EvaluationData):
 
 
 def plot_feature_plots(d: EvaluationData, output_folder):
-    with PlotContext(os.path.join(output_folder, "xvio_num_features.svg"), subplot_rows=2, subplot_cols=2) as pc:
-        plot_xvio_num_features(pc, d)
+    with PlotContext(os.path.join(output_folder, "backend_num_features"), subplot_rows=2, subplot_cols=2) as pc:
+        plot_xvio_num_features(pc, [d])
 
-    with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes.svg"), subplot_rows=1, subplot_cols=2) as pc:
+    if d.feature_data.df_eklt_num_features is not None:
+        df = d.feature_data.df_eklt_num_features
+    with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes "), subplot_rows=1, subplot_cols=2) as pc:
         plot_xvio_features_position_changes(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval.svg"), subplot_rows=1, subplot_cols=2)\
+    with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval "), subplot_rows=1, subplot_cols=2)\
             as pc:
         plot_xvio_features_update_interval(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "backend_feature_pos_changes.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "backend_feature_pos_changes ")) as pc:
         plot_xvio_feature_pos_changes(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "backend_feature_tracking_error.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "backend_feature_tracking_error ")) as pc:
         plot_tracking_error(pc, d.feature_data.xvio_tracks_error, d.feature_data.xvio_tracking_evaluation_config,
                             "SLAM and MSCKF feature tracking errors")
 
     if d.feature_data.df_eklt_num_features is not None:
         df = d.feature_data.df_eklt_num_features
 
-        with PlotContext(os.path.join(output_folder, "eklt_features.svg")) as pc:
+        with PlotContext(os.path.join(output_folder, "eklt_features")) as pc:
             time_series_plot(pc, df['t'], [df['num_features']], ["EKLT features"], "Number of tracked features")
 
     if d.feature_data.eklt_tracks_error is not None:
-        with PlotContext(os.path.join(output_folder, "eklt_feature_tracking_error.svg")) as pc:
+        with PlotContext(os.path.join(output_folder, "eklt_feature_tracking_error ")) as pc:
             plot_tracking_error(pc, d.feature_data.eklt_tracks_error, d.feature_data.eklt_tracking_evaluation_config,
                                 "EKLT feature tracking errors")
 
@@ -614,11 +616,19 @@ def plot_feature_pos_changes(pc: PlotContext, d: EvaluationData, feature_data_to
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
-    # EKLT plots only for now
-    if summary.frontend != FrontEnd.EKLT:
+
+    data = []
+    auto_labels = []
+
+    for e in summary.data.values():
+        if e.feature_data.df_eklt_feature_age is not None:
+            data.append(e.feature_data.df_eklt_feature_age['age'])
+            auto_labels.append(e.name)
+
+    if len(data) <= 0:
         return
 
-    with PlotContext(os.path.join(output_folder, "eklt_feature_ages.svg")) as pc:
+    with PlotContext(os.path.join(output_folder, "eklt_feature_ages ")) as pc:
         plot_eklt_feature_age(pc, summary)
 
 

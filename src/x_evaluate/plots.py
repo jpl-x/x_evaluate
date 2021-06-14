@@ -20,8 +20,9 @@ class PlotType(Enum):
 class PlotContext:
     figure: plt.Figure
     axis: List[plt.Axes]
+    FORMATS = [".png"]
 
-    def __init__(self, filename=None, subplot_rows=1, subplot_cols=1, base_width_inch=8, base_height_inch=6):
+    def __init__(self, filename=None, subplot_rows=1, subplot_cols=1, base_width_inch=10, base_height_inch=7):
         self.filename = filename
         self.subplot_rows = subplot_rows
         self.subplot_cols = subplot_cols
@@ -46,7 +47,8 @@ class PlotContext:
         if self.filename is None:
             self.figure.show()
         else:
-            self.figure.savefig(self.filename)
+            for f in self.FORMATS:
+                self.figure.savefig(self.filename + f)
 
         for a in self.axis:
             a.set_xscale('linear')  # workaround for https://github.com/matplotlib/matplotlib/issues/9970
