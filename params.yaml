@@ -126,6 +126,12 @@ eklt_block_size: 3
 eklt_k: 0.04
 eklt_enable_outlier_removal: false
 
+eklt_ekf_feature_interpolation: linear-no-limit
+eklt_ekf_feature_extrapolation_limit: -1.0
+eklt_ekf_update_every_n: -1
+eklt_ekf_update_strategy: every-ros-event-message
+eklt_ekf_update_timestamp: patches-average
+
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
 

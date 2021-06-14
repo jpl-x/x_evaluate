@@ -121,7 +121,7 @@ max_feat_per_tile: 10000
 eklt_batch_size: 500
 eklt_update_every_n_events: 20
 eklt_displacement_px: 0.6
-eklt_patch_size: 35
+eklt_patch_size: 21
 eklt_max_num_iterations: 25
 eklt_tracking_quality: 0.7
 eklt_bootstrap: "klt"
@@ -144,6 +144,12 @@ eklt_enable_outlier_removal: false
 
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
+
+eklt_ekf_feature_interpolation: linear-no-limit
+eklt_ekf_feature_extrapolation_limit: 5.0
+eklt_ekf_update_every_n: -1
+eklt_ekf_update_strategy: every-ros-event-message
+eklt_ekf_update_timestamp: patches-average
 
 ##############
 # SLAM-MSCKF #
