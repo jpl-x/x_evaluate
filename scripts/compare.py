@@ -3,11 +3,11 @@ import glob
 import os
 
 import numpy as np
-import numpy as np
 import pandas as pd
 from typing import Dict
 
-from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, create_parameter_changes_table
+from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, \
+    create_parameter_changes_table
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
 from x_evaluate.plots import PlotContext, PlotType
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
@@ -180,12 +180,12 @@ def main():
                 fe.plot_eklt_num_features_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
             #   - [x] Pixel change histograms
-            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_pos_changes_{d_id}.svg"),
+            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_pos_changes_{d_id}"),
                              subplot_rows=eklt_rows, subplot_cols=eklt_cols) as pc:
                 fe.plot_eklt_all_feature_pos_changes(pc, eklt_evaluations, eklt_names)
             #
             # #   - [x] Pixel tracking accuracy
-            # with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_tracking_{d_id}.svg")) as pc:
+            # with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_tracking_{d_id}")) as pc:
             #     fe.plot_eklt_feature_tracking_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
         #   - [x] CPU usage
@@ -197,35 +197,32 @@ def main():
             pe.plot_memory_usage_in_time_comparison(pc, evaluations, names, dataset)
 
         #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_feature_tracking.svg")) as pc:
+        with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_feature_tracking")) as pc:
             fe.plot_xvio_feature_tracking_comparison(pc, evaluations, names, dataset)
 
         #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_age_{d_id}.svg")) as pc:
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
             fe.plot_backend_feature_age_comparison(pc, evaluations, names, dataset)
 
         #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}.svg")) as\
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}")) as\
                 pc:
             fe.plot_xvio_feature_tracking_zero_aligned_comparison(pc, evaluations, names, dataset)
 
         #   - [x] Pixel change histograms
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_pos_changes_{d_id}.svg"),
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_pos_changes_{d_id}"),
                          subplot_rows=rows, subplot_cols=cols) as pc:
             fe.plot_xvio_all_feature_pos_changes(pc, evaluations, names)
 
         #   - [x] Pixel change histograms
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_optical_flows_{d_id}.svg"),
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_optical_flows_{d_id}"),
                          subplot_rows=rows, subplot_cols=cols) as pc:
             fe.plot_xvio_all_feature_optical_flows(pc, evaluations, names)
 
         #   - [x] Feature update interval
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_update_interval_{d_id}.svg")) as pc:
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_update_interval_{d_id}")) as pc:
             fe.plot_xvio_feature_update_interval_in_time(pc, evaluations, names, dataset)
 
-        with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:
-            te.plot_error_comparison(pc, evaluations, str(metrics.APE(metrics.PoseRelation.translation_part)),
-                                     PlotType.TIME_SERIES, names)
         #   - [x] Error in time
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_in_time_{d_id}"), subplot_cols=2,
                          base_width_inch=scaled_with_runs) as pc:
