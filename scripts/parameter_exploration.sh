@@ -20,7 +20,8 @@ EXPLORE_XVIO_N_POSES_MAX=0
 EXPLORE_XVIO_N_SLAM_FEATURES_MAX=0
 EXPLORE_XVIO_SIGMA_IMG=0
 EXPLORE_XVIO_IMU_NOISE=0
-EXPLORE_EKLT_PATCH_SIZE=1
+EXPLORE_EKLT_PATCH_SIZE=0
+EXPLORE_EKLT_PATCH_SIZE=0
 EXPLORE_EKLT_IMU_OFFSET=0
 EXPLORE_EKLT_OUTLIER_REMOVAL=0
 EXPLORE_EKLT_TRACKING_QUALITY=0
@@ -28,6 +29,14 @@ EXPLORE_EKLT_PRE_MEETING_TRIALS_1=0
 EXPLORE_EKLT_PRE_MEETING_TRIALS_2=0
 EXPLORE_EKLT_PRE_MEETING_TRIALS_3=0
 EXPLORE_EKLT_PRE_MEETING_TRIALS_4=0
+EXPLORE_EKLT_UPDATE_STRATEGY_N_MSEC=1
+EXPLORE_EKLT_UPDATE_STRATEGY_N_EVENTS=0
+EXPLORE_EKLT_INTERPOLATION_TIMESTAMP=0
+EXPLORE_EKLT_FEATURE_INTERPOLATION=0
+EXPLORE_EKLT_FEATURE_INTERPOLATION_RELATIVE_LIMIT=0
+EXPLORE_EKLT_FEATURE_INTERPOLATION_ABSOLUTE_LIMIT=0
+
+
 
 
 DATE=$2
@@ -995,5 +1004,215 @@ then
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-tracking-quality/ --output_folder $1/$DATE-eklt-tracking-quality/results
 
 fi
+
+
+
+if [ $EXPLORE_EKLT_UPDATE_STRATEGY_N_MSEC -gt 0 ]
+then
+  echo
+  echo "Performing EKLT UPDATE_STRATEGY_N_MSEC exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/001-eklt-update-10-msec \
+      --frontend EKLT --name "EKLT update every 10msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/002-eklt-update-20-msec \
+      --frontend EKLT --name "EKLT update every 20msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=20
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/003-eklt-update-30-msec \
+      --frontend EKLT --name "EKLT update every 30msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=30
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/004-eklt-update-40-msec \
+      --frontend EKLT --name "EKLT update every 40msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=40
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-update-strategy-msec/ --output_folder $1/$DATE-eklt-update-strategy-msec/results
+
+fi
+
+
+
+
+
+if [ $EXPLORE_EKLT_UPDATE_STRATEGY_N_EVENTS -gt 0 ]
+then
+  echo
+  echo "Performing EKLT UPDATE_STRATEGY_N_EVENTS exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-12000-events \
+      --frontend EKLT --name "EKLT update every 12000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=12000
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-25000-events \
+      --frontend EKLT --name "EKLT update every 25000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=25000
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-50000-events \
+      --frontend EKLT --name "EKLT update every 50000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=50000
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-75000-events \
+      --frontend EKLT --name "EKLT update every 75000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=75000
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-120000-events \
+      --frontend EKLT --name "EKLT update every 120000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=120000
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-update-strategy-n-events/ --output_folder $1/$DATE-eklt-update-strategy-n-events/results
+
+fi
+
+
+
+
+
+
+
+if [ $EXPLORE_EKLT_INTERPOLATION_TIMESTAMP -gt 0 ]
+then
+  echo
+  echo "Performing EKLT INTERPOLATION_TIMESTAMP exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/001-eklt-baseline \
+      --frontend EKLT --name "EKLT baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/002-eklt-interpolation-t-avg \
+      --frontend EKLT --name "EKLT ekf update ts AVG" --overrides eklt_ekf_update_timestamp=patches-average
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/003-eklt-interpolation-t-max \
+      --frontend EKLT --name "EKLT ekf update ts MAX" --overrides eklt_ekf_update_timestamp=patches-maximum
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpolation-ts/ --output_folder $1/$DATE-eklt-interpolation-ts/results
+
+fi
+
+
+
+
+
+
+
+if [ $EXPLORE_EKLT_FEATURE_INTERPOLATION -gt 0 ]
+then
+  echo
+  echo "Performing EKLT FEATURE_INTERPOLATION exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/001-eklt-nearest-neighbor \
+      --frontend EKLT --name "EKLT feat interpol NN" --overrides eklt_ekf_feature_interpolation=nearest-neighbor
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/002-eklt-relative-limit \
+      --frontend EKLT --name "EKLT linear-relative-limit 1.0" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=1.0
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/003-eklt-absolute-limit \
+      --frontend EKLT --name "EKLT linear-absolute-limit 5ms" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=5
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-feature-interpolation/ --output_folder $1/$DATE-eklt-feature-interpolation/results
+
+fi
+
+
+
+
+if [ $EXPLORE_EKLT_FEATURE_INTERPOLATION_RELATIVE_LIMIT -gt 0 ]
+then
+  echo
+  echo "Performing EKLT FEATURE_INTERPOLATION_RELATIVE_LIMIT exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/001-eklt-rl-0.5 \
+      --frontend EKLT --name "EKLT linear-relative-limit 0.5" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=0.5
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/002-eklt-rl-1.5 \
+      --frontend EKLT --name "EKLT linear-relative-limit 1.5" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=1.5
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/003-eklt-rl-5.0 \
+      --frontend EKLT --name "EKLT linear-relative-limit 5.0" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=5.0
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/004-eklt-rl-10.0 \
+      --frontend EKLT --name "EKLT linear-relative-limit 10.0" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=10.0
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpol-rel-limit/ --output_folder $1/$DATE-eklt-interpol-rel-limit/results
+
+fi
+
+
+
+if [ $EXPLORE_EKLT_FEATURE_INTERPOLATION_ABSOLUTE_LIMIT -gt 0 ]
+then
+  echo
+  echo "Performing EKLT FEATURE_INTERPOLATION_ABSOLUTE_LIMIT exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/001-eklt-al-1 \
+      --frontend EKLT --name "EKLT linear-absolute-limit 1ms" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.001
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/002-eklt-al-1.5 \
+      --frontend EKLT --name "EKLT linear-absolute-limit 5ms" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.005
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/003-eklt-al-5.0 \
+      --frontend EKLT --name "EKLT linear-absolute-limit 1ms0" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.010
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/004-eklt-al-10.0 \
+      --frontend EKLT --name "EKLT linear-absolute-limit 3ms0" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.030
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpol-abs-limit/ --output_folder $1/$DATE-eklt-interpol-abs-limit/results
+
+fi
+
+
+
 
 
