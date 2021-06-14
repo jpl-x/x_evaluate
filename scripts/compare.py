@@ -105,6 +105,14 @@ def main():
     with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_update_intervals.svg")) as pc:
         fe.plot_xvio_feature_update_interval_comparison_boxplot(pc, list(summaries.values()), common_datasets)
 
+    #   - [x] Backend feature age boxplot
+    with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age.svg")) as pc:
+        fe.plot_backend_feature_age_comparison_boxplot(pc, list(summaries.values()), common_datasets)
+
+    #   - [x] Backend feature age boxplot
+    with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age_log.svg")) as pc:
+        fe.plot_backend_feature_age_comparison_boxplot(pc, list(summaries.values()), common_datasets, use_log=True)
+
     if len(eklt_summaries) > 0:
         #   - [x] Optimization iterations
         with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_optimization_iterations.svg")) as pc:
@@ -124,6 +132,7 @@ def main():
         evaluations = [s.data[dataset] for s in summaries.values()]
         rows, cols = n_to_grid_size(len(evaluations))
         eklt_evaluations = [s.data[dataset] for s in summaries.values() if s.frontend == FrontEnd.EKLT]
+        eklt_rows, eklt_cols = n_to_grid_size(len(eklt_evaluations))
 
         if len(eklt_evaluations) > 0:
 
@@ -145,9 +154,14 @@ def main():
             with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_eklt_num_features.svg")) as pc:
                 fe.plot_eklt_num_features_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
-            #   - [x] Pixel tracking accuracy
-            with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_eklt_feature_tracking.svg")) as pc:
-                fe.plot_eklt_feature_tracking_comparison(pc, eklt_evaluations, eklt_names, dataset)
+            #   - [x] Pixel change histograms
+            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_pos_changes_{d_id}.svg"),
+                             subplot_rows=eklt_rows, subplot_cols=eklt_cols) as pc:
+                fe.plot_eklt_all_feature_pos_changes(pc, eklt_evaluations, eklt_names)
+            #
+            # #   - [x] Pixel tracking accuracy
+            # with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_tracking_{d_id}.svg")) as pc:
+            #     fe.plot_eklt_feature_tracking_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
         #   - [x] CPU usage
         with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_cpu_usage_in_time.svg")) as pc:
@@ -161,8 +175,27 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_feature_tracking.svg")) as pc:
             fe.plot_xvio_feature_tracking_comparison(pc, evaluations, names, dataset)
 
+        #   - [x] Pixel tracking accuracy
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_age_{d_id}.svg")) as pc:
+            fe.plot_backend_feature_age_comparison(pc, evaluations, names, dataset)
+
+        #   - [x] Pixel tracking accuracy
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}.svg")) as\
+                pc:
+            fe.plot_xvio_feature_tracking_zero_aligned_comparison(pc, evaluations, names, dataset)
+
+        #   - [x] Pixel change histograms
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_pos_changes_{d_id}.svg"),
+                         subplot_rows=rows, subplot_cols=cols) as pc:
+            fe.plot_xvio_all_feature_pos_changes(pc, evaluations, names)
+
+        #   - [x] Pixel change histograms
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_optical_flows_{d_id}.svg"),
+                         subplot_rows=rows, subplot_cols=cols) as pc:
+            fe.plot_xvio_all_feature_optical_flows(pc, evaluations, names)
+
         #   - [x] Feature update interval
-        with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_xvio_feature_update_interval.svg")) as pc:
+        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_update_interval_{d_id}.svg")) as pc:
             fe.plot_xvio_feature_update_interval_in_time(pc, evaluations, names, dataset)
 
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_{d_id}.svg")) as pc:

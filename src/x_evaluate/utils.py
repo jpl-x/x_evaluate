@@ -155,3 +155,38 @@ class DynamicAttributes:
 
     def __setattr__(self, key, value):
         self.__dict__[key] = value
+
+
+
+def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.1):
+    buckets = np.arange(np.min(x), np.max(x), resolution)
+    bucket_index = np.digitize(x, buckets)
+    indices = np.unique(bucket_index)
+
+    # filter empty buckets:  (-1 to convert upper bound --> lower bound, as we always take the first errors per bucket)
+    buckets = buckets[np.clip(indices - 1, 0, len(buckets))]
+
+    stats_func = {
+        'mean': lambda d: np.mean(d),
+        'median': lambda d: np.median(d),
+        'min': lambda d: np.min(d),
+        'max': lambda d: np.max(d),
+        'q25': lambda d: np.quantile(d, 0.25),
+        'q75': lambda d: np.quantile(d, 0.75),
+        'q05': lambda d: np.quantile(d, 0.05),
+        'q95': lambda d: np.quantile(d, 0.95),
+        'num': lambda d: len(d)
+    }
+
+    stats = {x: np.empty((len(indices))) for x in stats_func.keys()}
+
+    for i, idx in enumerate(indices):
+        data_slice = data[bucket_index == idx]
+
+        if data_filter:
+            data_slice = data_filter(data_slice)
+
+        for k, v in stats.items():
+            stats[k][i] = stats_func[k](data_slice)
+
+    return buckets, stats

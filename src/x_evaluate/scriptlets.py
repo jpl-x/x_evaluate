@@ -83,12 +83,12 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
 
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_eklt_tracks)
 
-        track_file = os.path.join(output_folder, "eklt_tracks.txt")
-        convert_eklt_to_rpg_tracks(df_eklt_tracks, track_file)
-        gt_tracks, error_data, tracker_config = call_rpg_feature_tracking_evaluation(dataset, track_file)
-        d.feature_data.eklt_tracks_gt = gt_tracks
-        d.feature_data.eklt_tracks_error = error_data
-        d.feature_data.eklt_tracking_evaluation_config = tracker_config
+        # track_file = os.path.join(output_folder, "eklt_tracks.txt")
+        # convert_eklt_to_rpg_tracks(df_eklt_tracks, track_file)
+        # gt_tracks, error_data, tracker_config = call_rpg_feature_tracking_evaluation(dataset, track_file)
+        # d.feature_data.eklt_tracks_gt = gt_tracks
+        # d.feature_data.eklt_tracks_error = error_data
+        # d.feature_data.eklt_tracking_evaluation_config = tracker_config
     else:
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, None)
 

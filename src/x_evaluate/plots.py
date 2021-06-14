@@ -6,6 +6,11 @@ from x_evaluate.evaluation_data import DistributionSummary
 
 import matplotlib.colors as mcolors
 
+from x_evaluate.utils import get_quantized_statistics_along_axis
+
+DEFAULT_COLORS = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.BASE_COLORS.values()) + \
+                 list(mcolors.CSS4_COLORS.values())
+
 
 class PlotType(Enum):
     BOXPLOT = 1
@@ -51,10 +56,12 @@ class PlotContext:
         plt.close(self.figure)
 
 
-def boxplot(pc: PlotContext, data, labels, title="", outlier_params=1.5):
+def boxplot(pc: PlotContext, data, labels, title="", outlier_params=1.5, use_log=False):
     ax = pc.get_axis()
     ax.boxplot(data, vert=True, labels=labels, whis=outlier_params)
     ax.set_title(title)
+    if use_log:
+        ax.set_yscale('log')
 
 
 def summary_to_dict(distribution_summary: DistributionSummary, label=None, use_95_quantiles_as_min_max=False,
@@ -89,7 +96,7 @@ def boxplot_from_summary(pc: PlotContext, distribution_summaries: List[Distribut
     ax.set_title(title)
 
 
-def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None, use_scatter=False):
+def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None, use_scatter=False, use_log=False):
     ax = pc.get_axis()
     for i in range(len(data)):
 
@@ -115,9 +122,12 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
     if ylabel is not None:
         ax.set_ylabel(ylabel)
 
+    if use_log:
+        ax.set_yscale('log')
+
 
 def bubble_plot(pc: PlotContext, xy_data, labels, y_resolution=0.1, x_resolution=0.1, title=None, ylabel=None,
-                xlabel=None):
+                xlabel=None, use_log=False):
     ax = pc.get_axis()
 
     data = []
@@ -149,6 +159,8 @@ def bubble_plot(pc: PlotContext, xy_data, labels, y_resolution=0.1, x_resolution
         ax.set_ylabel(ylabel)
     if xlabel:
         ax.set_xlabel(xlabel)
+    if use_log:
+        ax.set_ylabel('log')
 
 
 def create_bubbles_from_2d_point_cloud(xy, x_resolution=0.1, y_resolution=0.1):
@@ -200,8 +212,7 @@ def color_box(bp, color):
 def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=None, colors=None, legend=True,
                     title=None):
     if colors is None:
-        colors = list(mcolors.TABLEAU_COLORS.values())
-        colors = colors + list(mcolors.BASE_COLORS.values())
+        colors = DEFAULT_COLORS
 
     n_data = len(data)
     n_xlabel = len(x_tick_labels)
@@ -244,8 +255,7 @@ def hist_from_bin_values(ax: plt.Axes, bins, hist, xlabel=None, use_percentages=
 def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True, ylabel=None,
                     title=None):
     if colors is None:
-        colors = list(mcolors.TABLEAU_COLORS.values())
-        colors = colors + list(mcolors.BASE_COLORS.values())
+        colors = DEFAULT_COLORS
 
     n_data = len(data)
     n_xlabel = len(x_tick_labels)
@@ -316,3 +326,52 @@ def evenly_distribute_plot_positions(idx, num_slots, num_entries):
                  for pos in np.arange(num_slots)]
 
     return positions, widths
+
+
+# https://stackoverflow.com/a/41259922
+def align_yaxis(ax1, ax2):
+    """Align zeros of the two axes, zooming them out by same ratio"""
+    axes = np.array([ax1, ax2])
+    extrema = np.array([ax.get_ylim() for ax in axes])
+    tops = extrema[:, 1] / (extrema[:, 1] - extrema[:, 0])
+    # Ensure that plots (intervals) are ordered bottom to top:
+    if tops[0] > tops[1]:
+        axes, extrema, tops = [a[::-1] for a in (axes, extrema, tops)]
+
+    # How much would the plot overflow if we kept current zoom levels?
+    tot_span = tops[1] + 1 - tops[0]
+
+    extrema[0, 1] = extrema[0, 0] + tot_span * (extrema[0, 1] - extrema[0, 0])
+    extrema[1, 0] = extrema[1, 1] + tot_span * (extrema[1, 0] - extrema[1, 1])
+    [axes[i].set_ylim(*extrema[i]) for i in range(2)]
+
+
+def plot_moving_boxplot_in_time(pc: PlotContext, t, data, title=None, ylabel=None, color=None, t_resolution=0.1,
+                                data_filter=None):
+    t_quantized, stats = get_quantized_statistics_along_axis(t, data, data_filter, t_resolution)
+    plot_moving_boxplot_in_time_from_stats(pc, t_quantized, stats, title, ylabel, color)
+
+
+def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None, ylabel=None, color=None):
+    if not color:
+        color = DEFAULT_COLORS[0]
+    ax = pc.get_axis()
+
+    ax.plot(t, stats['median'], color=color)
+
+    if ylabel:
+        ax.set_ylabel(ylabel)
+    ax.set_xlabel("time [s]")
+    if title:
+        ax.set_title(title)
+
+    # 50% range
+    ax.fill_between(t, stats['q25'], stats['q75'], alpha=0.5, lw=0, facecolor=color)
+
+    # 90% range
+    ax.fill_between(t, stats['q05'], stats['q25'], alpha=0.25, lw=0, facecolor=color)
+    ax.fill_between(t, stats['q75'], stats['q95'], alpha=0.25, lw=0, facecolor=color)
+
+    # MIN-MAX
+    ax.fill_between(t, stats['min'], stats['q25'], alpha=0.1, lw=0, facecolor=color)
+    ax.fill_between(t, stats['q75'], stats['max'], alpha=0.1, lw=0, facecolor=color)
