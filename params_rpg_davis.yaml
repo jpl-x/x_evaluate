@@ -99,9 +99,9 @@ max_feat_per_tile: 10000
 eklt_batch_size: 300
 eklt_update_every_n_events: 20
 eklt_displacement_px: 0.6
-eklt_patch_size: 25
+eklt_patch_size: 21
 eklt_max_num_iterations: 10
-eklt_tracking_quality: 0.6
+eklt_tracking_quality: 0.4
 eklt_bootstrap: "klt"
 eklt_lk_window_size: 20
 eklt_num_pyramidal_layers: 3
