@@ -122,6 +122,7 @@ eklt_min_corners: 0
 eklt_min_distance: 10
 eklt_quality_level: 0.01
 eklt_log_eps: 0.01
+eklt_use_linlog_scale: false
 eklt_block_size: 3
 eklt_k: 0.04
 eklt_enable_outlier_removal: false
