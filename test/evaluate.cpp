@@ -194,6 +194,7 @@ int evaluate() {
     bool filer_initialized = false;
     x::State state;
     auto t_0 = std::numeric_limits<double>::infinity();
+    auto t_last_flush = std::numeric_limits<double>::infinity();
     boost::progress_display show_progress(view.size(), std::cerr);
 
     profiler::timestamp_t calculation_time = 0, last_rusage_check = 0;
@@ -284,10 +285,19 @@ int evaluate() {
         EASY_END_BLOCK;
       }
 
+      // stop here --> all the rest is not considered
       auto stop = profiler::now();
 
       if (m.getTime().toSec() < t_0)
         t_0 = m.getTime().toSec();
+
+      if (m.getTime().toSec() < t_last_flush)  // initialization
+        t_last_flush = m.getTime().toSec();
+
+      if (m.getTime().toSec() - t_last_flush > 5.0) {
+        t_last_flush = m.getTime().toSec();
+        x::DebugMemoryMonitor::instance().flush_all();
+      }
 
       // profile 1s only to avoid huge files that are not handleable anymore
       if (m.getTime().toSec() - t_0 > 1.0)
@@ -356,22 +366,10 @@ int evaluate() {
 
     std::cerr << "Writing outputs to folder " << output_path << std::endl;
 
-    bag.close();
-
     // manually flush as workaround for memory corruption in EKLT node
-    rt_csv.flush();
-    pose_csv.flush();
-    imu_bias_csv.flush();
-    xvio_logger->features_csv.flush();
-    xvio_logger->tracks_csv.flush();
-    resource_csv.flush();
-    if (gt_csv)
-      gt_csv->flush();
-    if (eklt_logger) {
-      eklt_logger->events_csv.flush();
-      eklt_logger->optimizations_csv.flush();
-      eklt_logger->eklt_tracks_csv.flush();
-    }
+    x::DebugMemoryMonitor::instance().flush_all();
+
+    bag.close();
 
     // destructor calls (--> CSV flushing) happening here
   }
