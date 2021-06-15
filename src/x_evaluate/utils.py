@@ -39,20 +39,25 @@ def convert_to_evo_trajectory(df_poses, prefix="", filter_invalid_entries=True) 
     t_xyz_wxyz = df_poses[['t', prefix + 'p_x', prefix + 'p_y', prefix + 'p_z',
                            prefix + 'q_w', prefix + 'q_x', prefix + 'q_y', prefix + 'q_z']].to_numpy()
 
-    traj_has_nans = np.any(np.isnan(t_xyz_wxyz), axis=1)
-    t_is_minus_one = t_xyz_wxyz[:, 0] == -1
-
-    invalid_data_mask = traj_has_nans | t_is_minus_one
-
-    nan_percentage = np.count_nonzero(traj_has_nans) / len(traj_has_nans) * 100
+    nan_percentage, traj_has_nans = get_nans_in_trajectory(t_xyz_wxyz)
 
     if nan_percentage > 0:
         print(F"WARNING: {nan_percentage:.1f}% NaNs found in trajectory estimate")
+
+    t_is_minus_one = t_xyz_wxyz[:, 0] == -1
+
+    invalid_data_mask = traj_has_nans | t_is_minus_one
 
     if filter_invalid_entries:
         t_xyz_wxyz = t_xyz_wxyz[~invalid_data_mask, :]
 
     return PoseTrajectory3D(t_xyz_wxyz[:, 1:4], t_xyz_wxyz[:, 4:8], t_xyz_wxyz[:, 0]), t_xyz_wxyz
+
+
+def get_nans_in_trajectory(t_xyz_wxyz):
+    traj_has_nans = np.any(np.isnan(t_xyz_wxyz), axis=1)
+    nan_percentage = np.count_nonzero(traj_has_nans) / len(traj_has_nans) * 100
+    return nan_percentage, traj_has_nans
 
 
 def timestamp_to_rosbag_time(timestamps, df_rt):
