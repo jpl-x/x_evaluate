@@ -6,7 +6,7 @@ from evo.core.filters import FilterException
 from evo.core.metrics import APE, RPE, PoseRelation
 
 from x_evaluate.rpg_trajectory_evaluation import get_split_distances_on_equal_parts
-from x_evaluate.utils import convert_to_evo_trajectory, rms, merge_tables, n_to_grid_size
+from x_evaluate.utils import convert_to_evo_trajectory, rms, merge_tables, n_to_grid_size, get_nans_in_trajectory
 from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext, boxplot_compare, barplot_compare, \
     DEFAULT_COLORS, align_yaxis
 from evo.core import sync
@@ -105,6 +105,32 @@ def create_trajectory_result_table_wrt_traveled_dist(s: EvaluationDataSummary):
 
 def compare_trajectory_performance_wrt_traveled_dist(summaries: List[EvaluationDataSummary]) -> pd.DataFrame:
     tables = [create_trajectory_result_table_wrt_traveled_dist(s) for s in summaries]
+    return merge_tables(tables)
+
+
+def create_trajectory_completion_table(s: EvaluationDataSummary):
+    index_columns = [(s.name, "Completion rate [%]"), (s.name, "NaNs in estimate [%]"), (s.name, "GT trajectory "
+                                                                                                 "length [m]")]
+    index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
+
+    data = np.empty((len(s.data.items()), 3), dtype=np.float)
+    i = 0
+    for k, v in s.data.items():
+        gt_length = v.trajectory_data.traj_gt.timestamps[-1] - v.trajectory_data.traj_gt.timestamps[0]
+        traveled_distance = v.trajectory_data.traj_gt.distances[-1]
+        estimation_length = v.trajectory_data.traj_est_synced.timestamps[-1] - \
+                            v.trajectory_data.traj_est_synced.timestamps[0]
+        completion_percentage = estimation_length / gt_length * 100
+        nans_percentage, _ = get_nans_in_trajectory(v.trajectory_data.raw_est_t_xyz_wxyz)
+        data[i, :] = np.round([completion_percentage, nans_percentage, traveled_distance], 1)
+        i += 1
+
+    df = pd.DataFrame(data, index=s.data.keys(), columns=index)
+    return df
+
+
+def compare_trajectory_completion_rates(summaries: List[EvaluationDataSummary]) -> pd.DataFrame:
+    tables = [create_trajectory_completion_table(s) for s in summaries]
     return merge_tables(tables)
 
 

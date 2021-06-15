@@ -73,14 +73,22 @@ def main():
     ############################################# FIRST DUMP RESULT TABLES #############################################
 
     table_mixed_errors = te.compare_trajectory_performance_wrt_traveled_dist(list(summaries.values()))
+    table_completion_rate = te.compare_trajectory_completion_rates(list(summaries.values()))
     table_pos_errors = table_mixed_errors.xs('Mean Position Error [%]', axis=1, level=1, drop_level=True)
+    completion_rate = table_completion_rate.xs('Completion rate [%]', axis=1, level=1, drop_level=True)
     table_rot_errors = table_mixed_errors.xs('Mean Rotation error [deg/m]', axis=1, level=1, drop_level=True)
     parameter_changes_table = create_parameter_changes_table(list(summaries.values()), common_datasets)
 
     # print(table_mixed_errors.to_latex())
 
-    table_pos_errors = pd.concat((parameter_changes_table, table_pos_errors))
-    table_rot_errors = pd.concat((parameter_changes_table, table_rot_errors))
+    completion_rate = pd.DataFrame(completion_rate.min(axis=0), columns=["Worst completion rate [%]"]).T
+
+    additional_top_rows = pd.concat((completion_rate, parameter_changes_table))
+
+    table_pos_errors = pd.concat((additional_top_rows, table_pos_errors))
+    table_rot_errors = pd.concat((additional_top_rows, table_rot_errors))
+
+    table_pos_errors = pd.concat((completion_rate, table_pos_errors))
 
     with pd.ExcelWriter(os.path.join(args.output_folder, "result_tables.xlsx")) as writer:
         pos_sheet = 'Pos errors w.r.t. traveled dist'
@@ -91,6 +99,7 @@ def main():
         writer.sheets[rot_sheet].cell(row=1, column=1).value = 'Rotation error w.r.t. traveled distance [deg/m]'
         table_mixed_errors.to_excel(writer, sheet_name='Errors w.r.t. traveled dist')
         parameter_changes_table.to_excel(writer, sheet_name='Parameter changes')
+        table_completion_rate.to_excel(writer, sheet_name='Completion rate')
 
     ########################################### CREATE ALL COMPARISON PLOTS ############################################
 
