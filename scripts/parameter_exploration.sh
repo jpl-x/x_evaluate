@@ -35,6 +35,7 @@ EXPLORE_EKLT_INTERPOLATION_TIMESTAMP=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION_RELATIVE_LIMIT=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION_ABSOLUTE_LIMIT=0
+EXPLORE_EKLT_LINLOG_SCALE=0
 
 
 
@@ -1216,3 +1217,29 @@ fi
 
 
 
+
+
+if [ $EXPLORE_EKLT_LINLOG_SCALE -gt 0 ]
+then
+  echo
+  echo "Performing lin-log scale exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-linlog-scale/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-linlog-scale/001-eklt-default-log-scale \
+      --frontend EKLT --name "EKLT default log scale" --overrides eklt_use_linlog_scale=false
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-linlog-scale/002-eklt-novel-linlog-scale \
+      --frontend EKLT --name "EKLT linlog scale" --overrides eklt_use_linlog_scale=true
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-linlog-scale/ --output_folder $1/$DATE-eklt-linlog-scale/results
+
+fi
