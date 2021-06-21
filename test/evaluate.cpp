@@ -77,6 +77,8 @@ static bool validateFrontend(const char* flagname, const std::string& value) {
 
 DEFINE_string(frontend, "XVIO", "which frontend to use");
 DEFINE_validator(frontend, &validateFrontend);
+DEFINE_double(from, std::numeric_limits<double>::min(), "skip messages with timestamp lower than --form");
+DEFINE_double(to, std::numeric_limits<double>::max(), "skip messages with timestamp bigger than --to");
 
 
 using PoseCsv = x::CsvWriter<std::string,
@@ -182,7 +184,16 @@ int evaluate() {
       vio.setUp(params, xvio_logger);
     }
 
-    rosbag::View view(bag);
+    auto from = ros::TIME_MIN;
+    auto to = ros::TIME_MAX;
+
+    // if initialized differently from default values
+    if (FLAGS_from > std::numeric_limits<double>::min())
+      from = ros::Time(FLAGS_from);
+    if (FLAGS_to < std::numeric_limits<double>::max())
+      to = ros::Time(FLAGS_to);
+
+    rosbag::View view(bag, from, to);
 
     std::cerr << "Initializing at time " << view.getBeginTime().toSec() << std::endl;
     vio.initAtTime(view.getBeginTime().toSec());
@@ -210,6 +221,7 @@ int evaluate() {
     EASY_MAIN_THREAD;
 
     for (rosbag::MessageInstance const &m : view) {
+
       std::string process_type;
 
       auto start = profiler::now();
