@@ -171,15 +171,8 @@ int evaluate() {
 
     VioClass vio;
     if constexpr (std::is_same<VioClass, x::EKLTVIO>::value) {
-      x::EkltParams eklt_params;
-      success = l.loadEkltParamsWithYamlFile(config, eklt_params);
-      std::cerr << "Reading EKLT config '" << FLAGS_params_file << "' was " << (success ? "successful" : "failing")
-                << std::endl;
 
-      if (!success)
-        return 1;
-
-      vio.setUp(params, eklt_params, xvio_logger, eklt_logger);
+      vio.setUp(params, xvio_logger, eklt_logger);
     } else {
       vio.setUp(params, xvio_logger);
     }
