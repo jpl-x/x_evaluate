@@ -115,22 +115,7 @@ char* get_time_string_in_utc() {
 }
 
 
-int evaluate(x::AbstractVio &vio, const fs::path &output_path) {
-  // directly reads yaml file, without the need for a ROS master / ROS parameter server
-  YAML::Node config = YAML::LoadFile(FLAGS_params_file);
-  x::ParameterLoader l;
-  x::Params params;
-  auto success = l.loadXParamsWithYamlFile(config, params);
-  std::cerr << "Reading config '" << FLAGS_params_file << "' was " << (success ? "successful" : "failing")
-            << std::endl;
-
-  if (!success)
-    return 1;
-
-  fs::create_directories(output_path);
-  fs::copy(FLAGS_params_file, output_path / "params.yaml", fs::copy_options::overwrite_existing);
-
-
+int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& params) {
   PoseCsv pose_csv(output_path / "pose.csv", {"update_modality", "t",
                                               "estimated_p_x", "estimated_p_y", "estimated_p_z",
                                               "estimated_q_x", "estimated_q_y", "estimated_q_z", "estimated_q_w"});
@@ -175,6 +160,7 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path) {
 
   uint64_t counter_imu = 0, counter_image = 0, counter_events = 0, counter_pose = 0;
   bool filer_initialized = false;
+
   x::State state;
   auto t_0 = std::numeric_limits<double>::infinity();
   auto t_last_flush = std::numeric_limits<double>::infinity();
@@ -358,23 +344,39 @@ int main(int argc, char **argv) {
     std::cerr << "ERROR: No output folder specified, provide --output_folder" << std::endl;
     return 1;
   }
+
+  // directly reads yaml file, without the need for a ROS master / ROS parameter server
+  YAML::Node config = YAML::LoadFile(FLAGS_params_file);
+  x::ParameterLoader l;
+  x::Params params;
+  auto success = l.loadXParamsWithYamlFile(config, params);
+  std::cerr << "Reading config '" << FLAGS_params_file << "' was " << (success ? "successful" : "failing")
+            << std::endl;
+
+  if (!success)
+    return 1;
+
   fs::path output_path(FLAGS_output_folder);
+  fs::create_directories(output_path);
+  fs::copy(FLAGS_params_file, output_path / "params.yaml", fs::copy_options::overwrite_existing);
+
+
   x::XVioPerformanceLoggerPtr xvio_logger = std::make_shared<x::XVioPerformanceLogger>(output_path);
 
 
   switch(frontends[FLAGS_frontend]) {
     case Frontend::XVIO: {
       x::VIO vio(xvio_logger);
-      return evaluate(vio, output_path);
+      return evaluate(vio, output_path, params);
     }
     case Frontend::EKLT: {
       x::EkltPerformanceLoggerPtr eklt_logger = std::make_shared<x::EkltPerformanceLogger>(output_path);
       x::EKLTVIO vio(xvio_logger, eklt_logger);
-      return evaluate(vio, output_path);
+      return evaluate(vio, output_path, params);
     }
     case Frontend::EVIO: {
       x::VIO vio(xvio_logger);
-      return evaluate(vio, output_path);
+      return evaluate(vio, output_path, params);
     }
 
     default:
