@@ -130,6 +130,7 @@ eklt_ekf_feature_extrapolation_limit: -1.0
 eklt_ekf_update_every_n: -1
 eklt_ekf_update_strategy: every-ros-event-message
 eklt_ekf_update_timestamp: patches-average
+eklt_patch_timestamp_assignment: latest-event
 
 ##############
 # SLAM-MSCKF #
