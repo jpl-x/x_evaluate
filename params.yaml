@@ -60,6 +60,7 @@ sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
 # MXR9500G/M accels (Astec)
 n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
 n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
+
 # ADXRS610 gyros (Astec)
 n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
@@ -133,6 +134,9 @@ min_track_length: 10
 ########
 # Misc #
 ########
+
+# Gravity vector in world frame [m/s^2]
+g: [0.0, 0.0, -9.81] # [x,y,z]
 
 # Timeout before 3D trajectory disappears in GUI (s)
 traj_timeout_gui: 3
