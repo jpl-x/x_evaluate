@@ -379,7 +379,7 @@ int main(int argc, char **argv) {
       return evaluate(vio, output_path, params);
     }
     case Frontend::EVIO: {
-      x::VIO vio(xvio_logger);
+      x::EVIO vio(xvio_logger);
       return evaluate(vio, output_path, params);
     }
 

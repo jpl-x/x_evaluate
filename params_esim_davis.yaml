@@ -10,6 +10,13 @@ q:    [0.0, 1.0, 0.0, 0.0] # [w,x,y,z]
 b_w: [0.0, 0.0, 0.0] # [x,y,z]
 b_a: [0.0, 0.0, 0.0] # [x,y,z]
 
+# Initial standard deviation estimates [x,y,z]
+sigma_dp: [0.0, 0.0, 0.0] # [m]
+sigma_dv: [0.05, 0.05, 0.05] # [m/s]
+sigma_dtheta: [3.0, 3.0, 3.0] # [deg]
+sigma_dbw: [6.0, 6.0, 6.0] # [deg/s]
+sigma_dba: [0.3, 0.3, 0.3] # [m/s^2]
+
 ###############
 # Calibration #
 ###############
