@@ -16,6 +16,13 @@ q:    [-0.329112656567, -0.0699724433216, 0.0214667765852, 0.941449889249] # [w,
 b_w: [0.0, 0.0, 0.0] # [x,y,z]
 b_a: [0.0, 0.0, 0.0] # [x,y,z]
 
+# Initial standard deviation estimates [x,y,z]
+sigma_dp: [0.0, 0.0, 0.0] # [m]
+sigma_dv: [0.05, 0.05, 0.05] # [m/s]
+sigma_dtheta: [3.0, 3.0, 3.0] # [deg]
+sigma_dbw: [6.0, 6.0, 6.0] # [deg/s]
+sigma_dba: [0.3, 0.3, 0.3] # [m/s^2]
+
 ###############
 # Calibration #
 ###############
@@ -55,6 +62,7 @@ sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
 # MXR9500G/M accels (Astec)
 n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
 n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
+
 # ADXRS610 gyros (Astec)
 n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
@@ -167,6 +175,9 @@ min_track_length: 10
 ########
 # Misc #
 ########
+
+# Gravity vector in world frame [m/s^2]
+g: [0.0, 0.0, -9.81] # [x,y,z]
 
 # Timeout before 3D trajectory disappears in GUI (s)
 traj_timeout_gui: 3

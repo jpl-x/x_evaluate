@@ -97,9 +97,17 @@ generate_dynamic_reconfigure_options(
   cfg/xvio.cfg
 )
 
+add_message_files(FILES
+  InertialStateWithCovarianceStamped.msg
+)
+
+generate_messages(DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS dynamic_reconfigure
+  CATKIN_DEPENDS dynamic_reconfigure message_runtime
 )
 
 include_directories (
