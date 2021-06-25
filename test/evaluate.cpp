@@ -34,7 +34,11 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 #include <x_vio_ros/ros_utils.h>
+
+// @see https://stackoverflow.com/a/58328388 and https://github.com/boostorg/timer/issues/12
+#define BOOST_ALLOW_DEPRECATED_HEADERS
 #include <boost/progress.hpp>
+#undef BOOST_ALLOW_DEPRECATED_HEADERS
 
 #include <sys/resource.h>
 #include <ctime>
