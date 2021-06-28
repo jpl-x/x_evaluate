@@ -48,10 +48,12 @@ def convert_to_evo_trajectory(df_poses, prefix="", filter_invalid_entries=True) 
 
     invalid_data_mask = traj_has_nans | t_is_minus_one
 
+    raw_t_xyz_wxyz = t_xyz_wxyz
+
     if filter_invalid_entries:
         t_xyz_wxyz = t_xyz_wxyz[~invalid_data_mask, :]
 
-    return PoseTrajectory3D(t_xyz_wxyz[:, 1:4], t_xyz_wxyz[:, 4:8], t_xyz_wxyz[:, 0]), t_xyz_wxyz
+    return PoseTrajectory3D(t_xyz_wxyz[:, 1:4], t_xyz_wxyz[:, 4:8], t_xyz_wxyz[:, 0]), raw_t_xyz_wxyz
 
 
 def get_nans_in_trajectory(t_xyz_wxyz):
