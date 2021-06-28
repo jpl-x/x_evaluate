@@ -20,18 +20,19 @@ EXPLORE_XVIO_N_POSES_MAX=0
 EXPLORE_XVIO_N_SLAM_FEATURES_MAX=0
 EXPLORE_XVIO_SIGMA_IMG=0
 EXPLORE_XVIO_IMU_NOISE=0
-EXPLORE_EKLT_PATCH_SIZE=0
+EXPLORE_EKLT_PATCH_SIZE=1
 EXPLORE_EKLT_IMU_OFFSET=0
 EXPLORE_EKLT_OUTLIER_REMOVAL=0
 EXPLORE_EKLT_TRACKING_QUALITY=0
 EXPLORE_EKLT_UPDATE_STRATEGY_N_MSEC=0
 EXPLORE_EKLT_UPDATE_STRATEGY_N_EVENTS=0
-EXPLORE_EKLT_INTERPOLATION_TIMESTAMP=-1
+EXPLORE_EKLT_INTERPOLATION_TIMESTAMP=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION_RELATIVE_LIMIT=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION_ABSOLUTE_LIMIT=0
-EXPLORE_EKLT_LINLOG_SCALE=-1
-EXPLORE_EKLT_PATCH_TIMESTAMP_ASSIGNMENT=1
+EXPLORE_EKLT_LINLOG_SCALE=0
+EXPLORE_EKLT_PATCH_TIMESTAMP_ASSIGNMENT=0
+EXPLORE_EKLT_SIGMA_IMG=0
 
 
 cleanup () {
@@ -888,23 +889,47 @@ then
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/000-xvio-baseline \
       --frontend XVIO --name "XVIO baseline"
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/002-p-9 \
+    cleanup $1/$DATE-eklt-patch-size/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/001-p-9 \
       --frontend EKLT --name "EKLT p=9" --overrides eklt_patch_size=9
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/003-p-11 \
+    cleanup $1/$DATE-eklt-patch-size/001-p-9
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/002-p-11 \
       --frontend EKLT --name "EKLT p=11" --overrides eklt_patch_size=11
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/004-p-15 \
+    cleanup $1/$DATE-eklt-patch-size/002-p-11
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/003-p-15 \
       --frontend EKLT --name "EKLT p=15" --overrides eklt_patch_size=15
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/005-p-19 \
+    cleanup $1/$DATE-eklt-patch-size/003-p-15
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/004-p-19 \
       --frontend EKLT --name "EKLT p=19" --overrides eklt_patch_size=19
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/006-p-27 \
+    cleanup $1/$DATE-eklt-patch-size/004-p-19
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/005-p-21 \
+      --frontend EKLT --name "EKLT p=21" --overrides eklt_patch_size=21
+
+    cleanup $1/$DATE-eklt-patch-size/005-p-21
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/006-p-25 \
+      --frontend EKLT --name "EKLT p=25" --overrides eklt_patch_size=25
+
+    cleanup $1/$DATE-eklt-patch-size/006-p-25
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/007-p-27 \
       --frontend EKLT --name "EKLT p=27" --overrides eklt_patch_size=27
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/007-p-31 \
+    cleanup $1/$DATE-eklt-patch-size/007-p-27
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/008-p-31 \
       --frontend EKLT --name "EKLT p=31" --overrides eklt_patch_size=31
+
+    cleanup $1/$DATE-eklt-patch-size/008-p-31
 
     
   fi
@@ -931,45 +956,68 @@ then
 
     # 0.0027626
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/002-t-0.0015 \
-      --frontend EKLT --name "EKLT IMU offset 0.0015" --overrides cam1_time_offset=0.0015
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/001-t-0.005 \
+      --frontend EKLT --name "EKLT IMU offset -0.005" --overrides cam1_time_offset=-0.005
 
-    cleanup $1/$DATE-eklt-imu-offset/002-t-0.0015
+    cleanup $1/$DATE-eklt-imu-offset/001-t-0.005
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/003-t-0.0020 \
-      --frontend EKLT --name "EKLT IMU offset 0.0020" --overrides cam1_time_offset=0.0020
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/002-t-0.003 \
+      --frontend EKLT --name "EKLT IMU offset -0.003" --overrides cam1_time_offset=-0.003
 
-    cleanup $1/$DATE-eklt-imu-offset/003-t-0.0020
+    cleanup $1/$DATE-eklt-imu-offset/002-t-0.003
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/004-t-0.0025 \
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/003-t-0.001 \
+      --frontend EKLT --name "EKLT IMU offset -0.001" --overrides cam1_time_offset=-0.001
+
+    cleanup $1/$DATE-eklt-imu-offset/003-t-0.001
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/004-t-0.0005 \
+      --frontend EKLT --name "EKLT IMU offset -0.0005" --overrides cam1_time_offset=-0.0005
+
+    cleanup $1/$DATE-eklt-imu-offset/004-t-0.0005
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/005-t0.0005 \
+      --frontend EKLT --name "EKLT IMU offset 0.0005" --overrides cam1_time_offset=0.0005
+
+    cleanup $1/$DATE-eklt-imu-offset/005-t0.0005
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/006-t0.001 \
+      --frontend EKLT --name "EKLT IMU offset 0.001" --overrides cam1_time_offset=0.001
+
+    cleanup $1/$DATE-eklt-imu-offset/006-t0.001
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/007-t0.0025 \
       --frontend EKLT --name "EKLT IMU offset 0.0025" --overrides cam1_time_offset=0.0025
 
-    cleanup $1/$DATE-eklt-imu-offset/004-t-0.0025
+    cleanup $1/$DATE-eklt-imu-offset/007-t0.0025
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/005-t-0.003 \
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/008-t0.00275 \
+      --frontend EKLT --name "EKLT IMU offset 0.00275" --overrides cam1_time_offset=0.00275
+
+    cleanup $1/$DATE-eklt-imu-offset/008-t0.00275
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/009-t0.0028 \
+      --frontend EKLT --name "EKLT IMU offset 0.0028" --overrides cam1_time_offset=0.0028
+
+    cleanup $1/$DATE-eklt-imu-offset/009-t0.0028
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/010-t0.0029 \
+      --frontend EKLT --name "EKLT IMU offset 0.0029" --overrides cam1_time_offset=0.0029
+
+    cleanup $1/$DATE-eklt-imu-offset/010-t0.0029
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/011-t0.003 \
       --frontend EKLT --name "EKLT IMU offset 0.003" --overrides cam1_time_offset=0.003
 
-    cleanup $1/$DATE-eklt-imu-offset/005-t-0.003
+    cleanup $1/$DATE-eklt-imu-offset/011-t0.003
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/006-t-0.002-pmax \
-      --frontend EKLT --name "EKLT IMU offset 0.002 pmax" --overrides cam1_time_offset=0.002 eklt_ekf_update_timestamp=patches-maximum
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/012-t0.005 \
+      --frontend EKLT --name "EKLT IMU offset 0.005" --overrides cam1_time_offset=0.005
 
-    cleanup $1/$DATE-eklt-imu-offset/006-t-0.002-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/007-t-0.003-pmax \
-      --frontend EKLT --name "EKLT IMU offset 0.003 pmax" --overrides cam1_time_offset=0.003 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-imu-offset/007-t-0.003-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/008-t-0.004-pmax \
-      --frontend EKLT --name "EKLT IMU offset 0.004 pmax" --overrides cam1_time_offset=0.004 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-imu-offset/008-t-0.004-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-imu-offset/009-t-0.005-pmax \
-      --frontend EKLT --name "EKLT IMU offset 0.005 pmax" --overrides cam1_time_offset=0.005 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-imu-offset/009-t-0.005-pmax
+    cleanup $1/$DATE-eklt-imu-offset/012-t0.005
 
     
   fi
@@ -977,7 +1025,6 @@ then
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-imu-offset/ --output_folder $1/$DATE-eklt-imu-offset/results
 
 fi
-
 
 
 if [ $EXPLORE_EKLT_OUTLIER_REMOVAL -gt 0 ]
@@ -1005,32 +1052,60 @@ then
 
     cleanup $1/$DATE-eklt-outlier-removal/002-eklt-remove-outliers-off
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/003-eklt-remove-outliers-on-pmax \
-      --frontend EKLT --name "EKLT outlier removal ON pmax" --overrides eklt_enable_outlier_removal=true eklt_ekf_update_timestamp=patches-maximum
 
-    cleanup $1/$DATE-eklt-outlier-removal/003-eklt-remove-outliers-on-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/003-eklt-outliers-px0.3-p0.8 \
+      --frontend EKLT --name "EKLT outlier px=0.3 p=0.8" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.8
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/004-eklt-remove-outliers-on-pmax-0.95 \
-      --frontend EKLT --name "EKLT outlier removal ON 0.95 pmax" --overrides eklt_enable_outlier_removal=true eklt_ekf_update_timestamp=patches-maximum outlier_param2=0.95
+    cleanup $1/$DATE-eklt-outlier-removal/003-eklt-outliers-px0.3-p0.8
 
-    cleanup $1/$DATE-eklt-outlier-removal/004-eklt-remove-outliers-on-pmax-0.95
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/005-eklt-remove-outliers-on-pmax-0.99 \
-      --frontend EKLT --name "EKLT outlier removal ON 0.99 pmax" --overrides eklt_enable_outlier_removal=true eklt_ekf_update_timestamp=patches-maximum outlier_param2=0.99
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/004-eklt-outliers-px0.3-p0.9 \
+      --frontend EKLT --name "EKLT outlier px=0.3 p=0.9" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.9
 
-    cleanup $1/$DATE-eklt-outlier-removal/005-eklt-remove-outliers-on-pmax-0.99
+    cleanup $1/$DATE-eklt-outlier-removal/004-eklt-outliers-px0.3-p0.9
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/006-eklt-remove-outliers-off-pmax \
-      --frontend EKLT --name "EKLT outlier removal OFF pmax" --overrides eklt_enable_outlier_removal=false eklt_ekf_update_timestamp=patches-maximum
 
-    cleanup $1/$DATE-eklt-outlier-removal/006-eklt-remove-outliers-off-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/005-eklt-outliers-px0.3-p0.95 \
+      --frontend EKLT --name "EKLT outlier px=0.3 p=0.95" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.95
+
+    cleanup $1/$DATE-eklt-outlier-removal/005-eklt-outliers-px0.3-p0.95
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/006-eklt-outliers-px0.3-p0.99 \
+      --frontend EKLT --name "EKLT outlier px=0.3 p=0.99" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.99
+
+    cleanup $1/$DATE-eklt-outlier-removal/006-eklt-outliers-px0.3-p0.99
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/007-eklt-outliers-px0.6-p0.8 \
+      --frontend EKLT --name "EKLT outlier px=0.6 p=0.8" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.8
+
+    cleanup $1/$DATE-eklt-outlier-removal/007-eklt-outliers-px0.6-p0.8
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/008-eklt-outliers-px0.6-p0.9 \
+      --frontend EKLT --name "EKLT outlier px=0.6 p=0.9" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.9
+
+    cleanup $1/$DATE-eklt-outlier-removal/008-eklt-outliers-px0.6-p0.9
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/009-eklt-outliers-px0.6-p0.95 \
+      --frontend EKLT --name "EKLT outlier px=0.6 p=0.95" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.95
+
+    cleanup $1/$DATE-eklt-outlier-removal/009-eklt-outliers-px0.6-p0.95
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-outlier-removal/010-eklt-outliers-px0.6-p0.99 \
+      --frontend EKLT --name "EKLT outlier px=0.6 p=0.99" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.99
+
+    cleanup $1/$DATE-eklt-outlier-removal/010-eklt-outliers-px0.6-p0.99
+
 
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-outlier-removal/ --output_folder $1/$DATE-eklt-outlier-removal/results
 
 fi
-
 
 if [ $EXPLORE_EKLT_TRACKING_QUALITY -gt 0 ]
 then
@@ -1047,93 +1122,67 @@ then
 
     cleanup $1/$DATE-eklt-tracking-quality/000-xvio-baseline
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.2 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.2" --overrides eklt_quality_level=0.2
 
-    # cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.2
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001 \
+      --frontend EKLT --name "EKLT tracking-q=0.0001" --overrides eklt_quality_level=0.0001
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.3 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.3" --overrides eklt_quality_level=0.3
+    cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001
 
-    # cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.3
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001 \
+      --frontend EKLT --name "EKLT tracking-q=0.001" --overrides eklt_quality_level=0.001
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.4 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_quality_level=0.4
+    cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001
 
-    # cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.4
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005 \
+      --frontend EKLT --name "EKLT tracking-q=0.005" --overrides eklt_quality_level=0.005
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.5 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_quality_level=0.5
+    cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005
 
-    # cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.5
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01 \
+      --frontend EKLT --name "EKLT tracking-q=0.01" --overrides eklt_quality_level=0.01
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.2-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.2 pmax" --overrides eklt_quality_level=0.2 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01
 
-    # cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.2-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1 \
+      --frontend EKLT --name "EKLT tracking-q=0.1" --overrides eklt_quality_level=0.1
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.3-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.3 pmax" --overrides eklt_quality_level=0.3 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1
 
-    # cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.3-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15 \
+      --frontend EKLT --name "EKLT tracking-q=0.15" --overrides eklt_quality_level=0.15
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.4-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.4 pmax" --overrides eklt_quality_level=0.4 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15
 
-    # cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.4-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2 \
+      --frontend EKLT --name "EKLT tracking-q=0.2" --overrides eklt_quality_level=0.2
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.5-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.5 pmax" --overrides eklt_quality_level=0.5 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2
 
-    # cleanup $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.5-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25 \
+      --frontend EKLT --name "EKLT tracking-q=0.25" --overrides eklt_quality_level=0.25
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.01-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.01 pmax" --overrides eklt_quality_level=0.01 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25
 
-    # cleanup $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.01-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3 \
+      --frontend EKLT --name "EKLT tracking-q=0.3" --overrides eklt_quality_level=0.3
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.1-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.1 pmax" --overrides eklt_quality_level=0.1 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3
 
-    # cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.1-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
+      --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_quality_level=0.4
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.15-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.15 pmax" --overrides eklt_quality_level=0.15 eklt_ekf_update_timestamp=patches-maximum
+    cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
 
-    # cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.15-pmax
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5 \
+      --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_quality_level=0.5
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.25-pmax \
-    #   --frontend EKLT --name "EKLT tracking-q=0.25 pmax" --overrides eklt_quality_level=0.25 eklt_ekf_update_timestamp=patches-maximum
-
-    # cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.25-pmax
-
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.0001-pmax \
-      --frontend EKLT --name "EKLT tracking-q=0.0001 pmax" --overrides eklt_quality_level=0.0001 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.0001-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.001pmax \
-      --frontend EKLT --name "EKLT tracking-q=0.001 pmax" --overrides eklt_quality_level=0.001 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.001-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.005-pmax \
-      --frontend EKLT --name "EKLT tracking-q=0.005 pmax" --overrides eklt_quality_level=0.005 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.005-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/016-eklt-tracking-q-0.01-pmax \
-      --frontend EKLT --name "EKLT tracking-q=0.01 pmax" --overrides eklt_quality_level=0.01 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-tracking-quality/016-eklt-tracking-q-0.01-pmax
+    cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5
 
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-tracking-quality/ --output_folder $1/$DATE-eklt-tracking-quality/results
 
 fi
-
 
 
 if [ $EXPLORE_EKLT_UPDATE_STRATEGY_N_MSEC -gt 0 ]
@@ -1151,73 +1200,51 @@ then
 
     cleanup $1/$DATE-eklt-update-strategy-msec/000-xvio-baseline
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/001-eklt-update-10-msec \
-    #   --frontend EKLT --name "EKLT update every 10msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/001-eklt-update-1-msec \
+      --frontend EKLT --name "EKLT update every 1msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=1
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/001-eklt-update-10-msec
+    cleanup $1/$DATE-eklt-update-strategy-msec/001-eklt-update-1-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/002-eklt-update-20-msec \
-    #   --frontend EKLT --name "EKLT update every 20msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=20
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/002-eklt-update-5-msec \
+      --frontend EKLT --name "EKLT update every 5msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=5
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/002-eklt-update-20-msec
+    cleanup $1/$DATE-eklt-update-strategy-msec/002-eklt-update-5-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/003-eklt-update-30-msec \
-    #   --frontend EKLT --name "EKLT update every 30msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=30
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/003-eklt-update-8-msec \
+      --frontend EKLT --name "EKLT update every 8msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=8
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/003-eklt-update-30-msec
+    cleanup $1/$DATE-eklt-update-strategy-msec/003-eklt-update-8-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/004-eklt-update-40-msec \
-    #   --frontend EKLT --name "EKLT update every 40msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=40
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/004-eklt-update-15-msec \
+      --frontend EKLT --name "EKLT update every 15msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=15
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/004-eklt-update-40-msec
+    cleanup $1/$DATE-eklt-update-strategy-msec/004-eklt-update-15-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/005-eklt-update-10-msec-pmax \
-    #   --frontend EKLT --name "EKLT update every 10msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10 eklt_ekf_update_timestamp=patches-maximum
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/005-eklt-update-10-msec \
+      --frontend EKLT --name "EKLT update every 10msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/005-eklt-update-10-msec-pmax
+    cleanup $1/$DATE-eklt-update-strategy-msec/005-eklt-update-10-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/006-eklt-update-20-msec-pmax \
-    #   --frontend EKLT --name "EKLT update every 20msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=20 eklt_ekf_update_timestamp=patches-maximum
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/006-eklt-update-20-msec \
+      --frontend EKLT --name "EKLT update every 20msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=20
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/006-eklt-update-20-msec-pmax
+    cleanup $1/$DATE-eklt-update-strategy-msec/006-eklt-update-20-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/007-eklt-update-30-msec-pmax \
-    #   --frontend EKLT --name "EKLT update every 30msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=30 eklt_ekf_update_timestamp=patches-maximum
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/007-eklt-update-30-msec \
+      --frontend EKLT --name "EKLT update every 30msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=30
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/007-eklt-update-30-msec-pmax
+    cleanup $1/$DATE-eklt-update-strategy-msec/007-eklt-update-30-msec
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/008-eklt-update-40-msec-pmax \
-    #   --frontend EKLT --name "EKLT update every 40msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=40 eklt_ekf_update_timestamp=patches-maximum
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/008-eklt-update-40-msec \
+      --frontend EKLT --name "EKLT update every 40msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=40
 
-    # cleanup $1/$DATE-eklt-update-strategy-msec/008-eklt-update-40-msec-pmax
-
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/005-eklt-update-1-msec-pmax \
-      --frontend EKLT --name "EKLT update every 1msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=1 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-msec/005-eklt-update-1-msec-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/006-eklt-update-5-msec-pmax \
-      --frontend EKLT --name "EKLT update every 5msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=5 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-msec/006-eklt-update-5-msec-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/007-eklt-update-8-msec-pmax \
-      --frontend EKLT --name "EKLT update every 8msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=8 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-msec/007-eklt-update-8-msec-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-msec/008-eklt-update-15-msec-pmax \
-      --frontend EKLT --name "EKLT update every 15msec pmax" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=15 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-msec/008-eklt-update-15-msec-pmax
+    cleanup $1/$DATE-eklt-update-strategy-msec/008-eklt-update-40-msec
 
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-update-strategy-msec/ --output_folder $1/$DATE-eklt-update-strategy-msec/results
 
 fi
-
 
 
 if [ $EXPLORE_EKLT_UPDATE_STRATEGY_N_EVENTS -gt 0 ]
@@ -1235,55 +1262,41 @@ then
 
     cleanup $1/$DATE-eklt-update-strategy-n-events/000-xvio-baseline
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-12000-events \
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-1000-events \
+      --frontend EKLT --name "EKLT update every 1000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=1000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-1000-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-6000-events \
+      --frontend EKLT --name "EKLT update every 6000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=6000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-6000-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-12000-events \
       --frontend EKLT --name "EKLT update every 12000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=12000
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-12000-events
+    cleanup $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-12000-events
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-25000-events \
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-25000-events \
       --frontend EKLT --name "EKLT update every 25000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=25000
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-25000-events
+    cleanup $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-25000-events
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-50000-events \
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-50000-events \
       --frontend EKLT --name "EKLT update every 50000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=50000
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-50000-events
+    cleanup $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-50000-events
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-75000-events \
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-75000-events \
       --frontend EKLT --name "EKLT update every 75000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=75000
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-75000-events
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-12000-events-pmax \
-      --frontend EKLT --name "EKLT update every 12000 events pmax" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=12000 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-12000-events-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-25000-events-pmax \
-      --frontend EKLT --name "EKLT update every 25000 events pmax" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=25000 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-25000-events-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/007-eklt-update-50000-events-pmax \
-      --frontend EKLT --name "EKLT update every 50000 events pmax" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=50000 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-n-events/007-eklt-update-50000-events-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-update-strategy-n-events/008-eklt-update-75000-events-pmax \
-      --frontend EKLT --name "EKLT update every 75000 events pmax" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=75000 eklt_ekf_update_timestamp=patches-maximum
-
-    cleanup $1/$DATE-eklt-update-strategy-n-events/008-eklt-update-75000-events-pmax
+    cleanup $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-75000-events
 
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-update-strategy-n-events/ --output_folder $1/$DATE-eklt-update-strategy-n-events/results
 
 fi
-
-
-
-
 
 
 
@@ -1314,8 +1327,6 @@ then
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpolation-ts/ --output_folder $1/$DATE-eklt-interpolation-ts/results
 
 fi
-
-
 
 
 
@@ -1352,22 +1363,6 @@ then
 
     cleanup $1/$DATE-eklt-feature-interpolation/003-eklt-absolute-limit
 
-
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/004-eklt-nearest-neighbor-pmax \
-    #   --frontend EKLT --name "EKLT 10ms feat interpol NN pmax" --overrides eklt_ekf_feature_interpolation=nearest-neighbor eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    # cleanup $1/$DATE-eklt-feature-interpolation/004-eklt-nearest-neighbor-pmax
-
-
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/005-eklt-relative-limit-pmax \
-    #   --frontend EKLT --name "EKLT 10ms linear-relative-limit 1.0 pmax" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=1.0 eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    # cleanup $1/$DATE-eklt-feature-interpolation/005-eklt-relative-limit-pmax
-
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-feature-interpolation/006-eklt-absolute-limit-pmax \
-    #   --frontend EKLT --name "EKLT 10ms linear-absolute-limit 5ms pmax" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=5 eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    # cleanup $1/$DATE-eklt-feature-interpolation/006-eklt-absolute-limit-pmax
 
   fi
 
@@ -1407,21 +1402,6 @@ then
       --frontend EKLT --name "EKLT 10ms linear-relative-limit 5.0" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=5.0 eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
 
     cleanup $1/$DATE-eklt-interpol-rel-limit/003-eklt-rl-5.0
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/004-eklt-rl-0.5-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-relative-limit 0.5 pmax" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=0.5  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-rel-limit/004-eklt-rl-0.5-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/005-eklt-rl-1.5-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-relative-limit 1.5 pmax" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=1.5  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-rel-limit/005-eklt-rl-1.5-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-rel-limit/006-eklt-rl-5.0-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-relative-limit 5.0 pmax" --overrides eklt_ekf_feature_interpolation=linear-relative-limit eklt_ekf_feature_extrapolation_limit=5.0  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-rel-limit/006-eklt-rl-5.0-pmax
 
   fi
 
@@ -1465,26 +1445,6 @@ then
       --frontend EKLT --name "EKLT 10ms linear-absolute-limit 30ms" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.030 eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
 
     cleanup $1/$DATE-eklt-interpol-abs-limit/004-eklt-al-10.0
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/005-eklt-al-1-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-absolute-limit 1ms pmax" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.001  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-abs-limit/005-eklt-al-1-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/006-eklt-al-1.5-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-absolute-limit 5ms pmax" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.005  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-abs-limit/006-eklt-al-1.5-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/007-eklt-al-5.0-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-absolute-limit 10ms pmax" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.010  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-abs-limit/007-eklt-al-5.0-pmax
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpol-abs-limit/008-eklt-al-10.0-pmax \
-      --frontend EKLT --name "EKLT 10ms linear-absolute-limit 30ms pmax" --overrides eklt_ekf_feature_interpolation=linear-absolute-limit eklt_ekf_feature_extrapolation_limit=0.030  eklt_ekf_update_timestamp=patches-maximum eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
-
-    cleanup $1/$DATE-eklt-interpol-abs-limit/008-eklt-al-10.0-pmax
 
   fi
 
@@ -1556,5 +1516,68 @@ then
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-patch-ts-assignment/ --output_folder $1/$DATE-eklt-patch-ts-assignment/results
+
+fi
+
+
+
+if [ $EXPLORE_EKLT_SIGMA_IMG -gt 0 ]
+then
+  echo
+  echo "Performing frame based XVIO sigma_img exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/000-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-eklt-sigma-img/000-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/001-sigma-img-1-f --frontend \
+     XVIO --name "XVIO sigma_img=1/f" --overrides sigma_img=0.005022794282273277
+
+    cleanup $1/$DATE-eklt-sigma-img/001-sigma-img-1-f
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/002-sigma-img-2.5-f --frontend \
+     XVIO --name "XVIO sigma_img=2.5/f" --overrides sigma_img=0.012556985705683194
+
+    cleanup $1/$DATE-eklt-sigma-img/002-sigma-img-2.5-f
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/003-sigma-img-4-f --frontend \
+     XVIO --name "XVIO sigma_img=4/f" --overrides sigma_img=0.02009117712909311
+
+    cleanup $1/$DATE-eklt-sigma-img/003-sigma-img-4-f
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/004-sigma-img-5-f --frontend \
+     XVIO --name "XVIO sigma_img=5/f" --overrides sigma_img=0.025113971411366388
+
+    cleanup $1/$DATE-eklt-sigma-img/004-sigma-img-5-f
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/005-sigma-img-6-f --frontend \
+     XVIO --name "XVIO sigma_img=6/f" --overrides sigma_img=0.030136765693639666
+
+    cleanup $1/$DATE-eklt-sigma-img/005-sigma-img-6-f
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/006-sigma-img-7.5-f --frontend \
+     XVIO --name "XVIO sigma_img=7.5/f" --overrides sigma_img=0.03767095711704958
+
+    cleanup $1/$DATE-eklt-sigma-img/006-sigma-img-7.5-f
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/007-sigma-img-8.86-f --frontend \
+     XVIO --name "XVIO sigma_img=8.86/f" --overrides sigma_img=0.044501957340941235
+
+    cleanup $1/$DATE-eklt-sigma-img/007-sigma-img-8.86-f
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/008-sigma-img-10-f --frontend \
+     XVIO --name "XVIO sigma_img=10/f" --overrides sigma_img=0.050227942822732775
+
+    cleanup $1/$DATE-eklt-sigma-img/008-sigma-img-10-f
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-sigma-img/ --output_folder $1/$DATE-eklt-sigma-img/results
 
 fi
