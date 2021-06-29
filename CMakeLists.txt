@@ -14,8 +14,8 @@ set(USE_EKLT_NODE false) # replaces original xVIO node with new EKLT node
 ################################################################################
 
 cmake_minimum_required(VERSION 2.8.3)
+cmake_policy(SET CMP0048 NEW)  # avoids CMAKE_PROJECT_VERSION warning
 project(x_vio_ros)
-set(CMAKE_PROJECT_VERSION 1.9.0)  # event release could be 2.0
 
 set (CMAKE_BUILD_TYPE Release)
 

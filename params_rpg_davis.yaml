@@ -143,6 +143,9 @@ eklt_patch_timestamp_assignment: accumulated-events-center
 # SLAM-MSCKF #
 ##############
 
+# Gravity vector in world frame [m/s^2]
+g: [0.0, 0.0, -9.81] # [x,y,z]
+
 # Number of poses in the sliding window
 n_poses_max: 10
 
