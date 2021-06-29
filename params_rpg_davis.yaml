@@ -60,6 +60,9 @@ n_ba: 0.0004316 # Accel bias random walk [m/s^3/sqrt(Hz)]
 n_w:  0.0002  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00002 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
+# Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
+a_m_max: 50.0
+
 #######
 # LRF #
 #######
@@ -143,9 +146,6 @@ eklt_patch_timestamp_assignment: accumulated-events-center
 # SLAM-MSCKF #
 ##############
 
-# Gravity vector in world frame [m/s^2]
-g: [0.0, 0.0, -9.81] # [x,y,z]
-
 # Number of poses in the sliding window
 n_poses_max: 10
 
@@ -168,6 +168,22 @@ msckf_baseline: 15.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10
+
+#######
+# EKF #
+#######
+
+# State buffer size (default: 250 states)
+state_buffer_size: 250
+
+# Expected difference between successive IMU sequence IDs.
+delta_seq_imu: 1
+
+# Tolerance for how far in the future/past the closest state request can be without returning an invalid state. [s]
+state_buffer_time_margin: 0.02
+
+# Gravity vector in world frame [m/s^2]
+g: [0.0, 0.0, -9.81] # [x,y,z]
 
 ########
 # Misc #
