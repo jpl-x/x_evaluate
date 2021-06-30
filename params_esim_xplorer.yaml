@@ -10,6 +10,9 @@ q:    [0.0, 1.0, 0.0, 0.0] # [w,x,y,z]
 b_w: [0.0, 0.0, 0.0] # [x,y,z]
 b_a: [0.0, 0.0, 0.0] # [x,y,z]
 
+# Gravity vector (in world frame)
+g: [0.0, 0.0, -9.81] # [x,y,z]
+
 ###############
 # Calibration #
 ###############
@@ -165,6 +168,9 @@ sigma_rho_0: 0.025
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1
+
+# Number of states in the EKF buffer
+ekf_state_buffer_size: 250
 
 # Minimum baseline to trigger MSCKF measurement (pixels)
 msckf_baseline: 15.0
