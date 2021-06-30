@@ -16,6 +16,13 @@ q:    [-0.329112656567, -0.0699724433216, 0.0214667765852, 0.941449889249] # [w,
 b_w: [0.0, 0.0, 0.0] # [x,y,z]
 b_a: [0.0, 0.0, 0.0] # [x,y,z]
 
+# Initial standard deviation estimates [x,y,z]
+sigma_dp: [0.0, 0.0, 0.0] # [m]
+sigma_dv: [0.05, 0.05, 0.05] # [m/s]
+sigma_dtheta: [3.0, 3.0, 3.0] # [deg]
+sigma_dbw: [6.0, 6.0, 6.0] # [deg/s]
+sigma_dba: [0.3, 0.3, 0.3] # [m/s^2]
+
 ###############
 # Calibration #
 ###############
@@ -55,9 +62,13 @@ sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
 # MXR9500G/M accels (Astec)
 n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
 n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
+
 # ADXRS610 gyros (Astec)
 n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+
+# Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
+a_m_max: 50.0
 
 #######
 # LRF #
@@ -122,9 +133,17 @@ eklt_min_corners: 0
 eklt_min_distance: 10
 eklt_quality_level: 0.01
 eklt_log_eps: 0.01
+eklt_use_linlog_scale: false
 eklt_block_size: 3
 eklt_k: 0.04
 eklt_enable_outlier_removal: false
+
+eklt_ekf_feature_interpolation: linear-no-limit
+eklt_ekf_feature_extrapolation_limit: -1.0
+eklt_ekf_update_every_n: -1
+eklt_ekf_update_strategy: every-ros-event-message
+eklt_ekf_update_timestamp: patches-average
+eklt_patch_timestamp_assignment: latest-event
 
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
@@ -155,6 +174,22 @@ msckf_baseline: 30.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10
+
+#######
+# EKF #
+#######
+
+# State buffer size (default: 250 states)
+state_buffer_size: 250
+
+# Expected difference between successive IMU sequence IDs.
+delta_seq_imu: 1
+
+# Tolerance for how far in the future/past the closest state request can be without returning an invalid state. [s]
+state_buffer_time_margin: 0.02
+
+# Gravity vector in world frame [m/s^2]
+g: [0.0, 0.0, -9.81] # [x,y,z]
 
 ########
 # Misc #

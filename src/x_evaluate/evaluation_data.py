@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional
 
-from evo.core.metrics import PoseRelation
 from evo.core.trajectory import PoseTrajectory3D
 
 from x_evaluate.utils import nanrms
@@ -17,6 +16,13 @@ class FrontEnd(Enum):
 
     def __str__(self):
         return self.value
+
+
+class AlignmentType(Enum):
+    Disabled = 1
+    PosYaw = 2
+    SE3 = 3
+    SIM3 = 4
 
 
 class DistributionSummary:
@@ -43,33 +49,49 @@ class DistributionSummary:
             bins = np.linspace(lower, upper, upper - lower + 1)
         self.hist, self.bins = np.histogram(data, bins=bins)
 
+        if np.all(data > 0):
+            bins_log = np.logspace(np.log10(self.min), np.log10(self.max), self.N_BINS)
+            self.hist_log, self.bins_log = np.histogram(data, bins_log)
 
-class ErrorType(Enum):
-    APE = 1
-    RPE = 2
+
+class TrajectoryError:
+    description: str
+    error_array: np.ndarray
 
 
 class TrajectoryData:
-    traj_ref: PoseTrajectory3D
-    traj_est: PoseTrajectory3D
-    raw_estimate_t_xyz_wxyz: np.ndarray
+    imu_bias: Optional[pd.DataFrame]
+    raw_est_t_xyz_wxyz: np.ndarray
+    traj_gt: PoseTrajectory3D
 
-    ape_error_arrays: Dict[PoseRelation, np.ndarray]
-    rpe_error_arrays: Dict[PoseRelation, np.ndarray]
+    traj_gt_synced: PoseTrajectory3D
+    traj_est_synced: PoseTrajectory3D
+
+    alignment_type: AlignmentType
+    alignment_frames: int
+
+    traj_est_aligned: PoseTrajectory3D
+
+    ate_errors: Dict[str, np.ndarray]
+
+    rpe_error_t: Dict[float, np.ndarray]
+    rpe_error_r: Dict[float, np.ndarray]
 
     def __init__(self):
-        self.ape_error_arrays = dict()
-        self.rpe_error_arrays = dict()
+        self.imu_bias = None
+        self.ate_errors = dict()
+        self.rpe_error_t = dict()
+        self.rpe_error_r = dict()
 
 
 class FeatureTrackingData:
-    df_x_vio_features: pd.DataFrame
+    df_xvio_num_features: pd.DataFrame
 
-    df_eklt_features: Optional[pd.DataFrame]
+    df_eklt_num_features: Optional[pd.DataFrame]
     df_eklt_feature_age: Optional[pd.DataFrame]
 
     def __init__(self):
-        self.df_eklt_features = None
+        self.df_eklt_num_features = None
         self.df_eklt_feature_age = None
 
 
@@ -92,9 +114,9 @@ class EKLTPerformanceData:
 
 class EvaluationData:
     name: str
-    tags: List[str]
     params: Dict
     command: str
+    configuration: Dict
     trajectory_data: Optional[TrajectoryData]
     performance_data: PerformanceData
     feature_data: FeatureTrackingData
@@ -117,6 +139,7 @@ class GitInfo:
 
 
 class EvaluationDataSummary:
+    name: str
     data: Dict[str, EvaluationData]
 
     trajectory_summary_table: pd.DataFrame

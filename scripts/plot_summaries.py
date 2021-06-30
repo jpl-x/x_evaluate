@@ -1,12 +1,6 @@
 import argparse
-import glob
 import os
 
-from typing import List, Dict
-
-from evo.core import metrics
-from x_evaluate.evaluation_data import ErrorType, EvaluationDataSummary
-from x_evaluate.plots import PlotType
 from x_evaluate.utils import name_to_identifier
 from x_evaluate.scriptlets import read_evaluation_pickle
 
@@ -22,8 +16,9 @@ def main():
     args = parser.parse_args()
 
     output_root = os.path.dirname(args.input)
+    filename = os.path.basename(args.input)
 
-    s = read_evaluation_pickle(args.input)
+    s = read_evaluation_pickle(output_root, filename)
 
     i = 1
 
@@ -39,7 +34,7 @@ def main():
         i += 1
 
     te.plot_summary_plots(s, output_root)
-    te.print_trajectory_summary(s)
+    te.create_summary_info(s)
     pe.plot_summary_plots(s, output_root)
     pe.print_realtime_factor_summary(s)
     fe.plot_summary_plots(s, output_root)

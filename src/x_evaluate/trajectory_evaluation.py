@@ -1,125 +1,322 @@
+import copy
 import os
-from typing import Collection
+from typing import Collection, List
 
-from x_evaluate.utils import convert_to_evo_trajectory, rms
-from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext
+from evo.core.filters import FilterException
+from evo.core.metrics import APE, RPE, PoseRelation
+
+from x_evaluate.rpg_trajectory_evaluation import get_split_distances_on_equal_parts
+from x_evaluate.utils import convert_to_evo_trajectory, rms, merge_tables, n_to_grid_size, get_nans_in_trajectory
+from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext, boxplot_compare, barplot_compare, \
+    DEFAULT_COLORS, align_yaxis
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import x_evaluate.rpg_trajectory_evaluation.trajectory_evaluation as rpg
+import x_evaluate.rpg_trajectory_evaluation as rpg
 
-from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, ErrorType
+from x_evaluate.evaluation_data import TrajectoryData, EvaluationDataSummary, EvaluationData, AlignmentType
 
-POSE_RELATIONS = [metrics.PoseRelation.full_transformation, metrics.PoseRelation.rotation_angle_deg,
-                  metrics.PoseRelation.translation_part]
+POSE_RELATIONS = [metrics.PoseRelation.translation_part, metrics.PoseRelation.rotation_angle_deg]
 
-# POSE_RELATIONS = [metrics.PoseRelation.full_transformation]
+APE_METRICS = [APE(p) for p in POSE_RELATIONS]
+
+METRICS = APE_METRICS
 
 
-def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame) -> TrajectoryData:
+def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame, df_imu_bias=None) -> \
+        TrajectoryData:
     d = TrajectoryData()
-    d.traj_est, d.raw_estimate_t_xyz_wxyz = convert_to_evo_trajectory(df_poses, prefix="estimated_")
-    d.traj_ref, _ = convert_to_evo_trajectory(df_groundtruth)
+    # filter invalid states
+    d.imu_bias = df_imu_bias[df_imu_bias['t'] != -1]
+    traj_est, d.raw_est_t_xyz_wxyz = convert_to_evo_trajectory(df_poses, prefix="estimated_")
+    d.traj_gt, _ = convert_to_evo_trajectory(df_groundtruth)
 
     max_diff = 0.01
-    d.traj_ref, d.traj_est = sync.associate_trajectories(d.traj_ref, d.traj_est, max_diff)
+    d.traj_gt_synced, d.traj_est_synced = sync.associate_trajectories(d.traj_gt, traj_est, max_diff)
 
-    sub_ground, sub_traj = rpg.rpg_sub_trajectories(d.traj_ref, d.traj_est, 5)
+    d.traj_est_aligned = copy.deepcopy(d.traj_est_synced)
 
-    for i in range(5):
-        rpg.rpg_align(sub_ground[i], sub_traj[i], "se3")
-        rpg.rpg_align(sub_ground[i], sub_traj[i], "sim3")
-        rpg.rpg_align(sub_ground[i], sub_traj[i], "posyaw")
-        rpg.rpg_align(sub_ground[i], sub_traj[i], "none")
+    d.alignment_type = AlignmentType.PosYaw
+    d.alignment_frames = 5  # only temporary value meaning [3, 8] seconds
+    rpg.rpg_align(d.traj_gt_synced, d.traj_est_aligned, d.alignment_type, use_subtrajectory=True)
 
-    for r in POSE_RELATIONS:
-        ape_metric = metrics.APE(r)
-        ape_metric.process_data((d.traj_ref, d.traj_est))
-        ape_metric.pose_relation = metrics.PoseRelation.rotation_angle_deg
+    split_distances = get_split_distances_on_equal_parts(d.traj_gt, num_parts=5)
+    # split_distances = np.hstack((split_distances, get_split_distances_equispaced(d.traj_gt, step_size=10)))
 
-        rpe_metric = metrics.RPE(r)
-        rpe_metric.process_data((d.traj_ref, d.traj_est))
+    for s in split_distances:
+        try:
+            m_t = RPE(PoseRelation.translation_part, s, metrics.Unit.meters, all_pairs=True)
+            m_r = RPE(PoseRelation.rotation_angle_deg, s, metrics.Unit.meters, all_pairs=True)
+            m_t.process_data((d.traj_gt_synced, d.traj_est_aligned))
+            m_r.process_data((d.traj_gt_synced, d.traj_est_aligned))
 
-        rpe_error_array = rpe_metric.get_result().np_arrays['error_array']
-        ape_error_array = ape_metric.get_result().np_arrays['error_array']
+            d.rpe_error_t[s] = m_t.get_result().np_arrays['error_array']
+            d.rpe_error_r[s] = m_r.get_result().np_arrays['error_array']
 
-        d.ape_error_arrays[r] = ape_error_array
-        d.rpe_error_arrays[r] = rpe_error_array
+        except FilterException:
+            d.rpe_error_t[s] = np.ndarray([])
+            d.rpe_error_r[s] = np.ndarray([])
+
+    for m in METRICS:
+        m.process_data((d.traj_gt_synced, d.traj_est_aligned))
+        result = m.get_result()
+        d.ate_errors[str(m)] = result.np_arrays['error_array']
+
     return d
 
 
-def create_trajectory_result_table(s: EvaluationDataSummary) -> pd.DataFrame:
+def get_relative_errors_wrt_traveled_dist(s: EvaluationDataSummary):
+    pos_errors = dict()
+    rot_errors = dict()
+    for k, d in s.data.items():
+        if d.trajectory_data is None:
+            continue
+        position_metric = metrics.APE(metrics.PoseRelation.translation_part)
+        orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
+
+        pos_error = np.mean(d.trajectory_data.ate_errors[str(position_metric)]) / d.trajectory_data.traj_gt.distances[-1]
+        deg_error = np.mean(d.trajectory_data.ate_errors[str(orientation_metric)]) / d.trajectory_data.traj_gt.distances[-1]
+
+        pos_error = np.round(np.mean(pos_error*100), 2)  # in percent
+        deg_error = np.round(np.mean(deg_error), 2)
+        pos_errors[k] = pos_error
+        rot_errors[k] = deg_error
+
+    return pos_errors, rot_errors
+
+
+def create_trajectory_result_table_wrt_traveled_dist(s: EvaluationDataSummary):
+    pos_errors, rot_errors = get_relative_errors_wrt_traveled_dist(s)
+
+    data = np.empty((len(pos_errors), 2), dtype=np.float)
+    i = 0
+    for k, v in pos_errors.items():
+        data[i, :] = [v, rot_errors[k]]
+        i += 1
+
+    index_columns = [(s.name, "Mean Position Error [%]"), (s.name, "Mean Rotation error [deg/m]")]
+    index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
+    result_table = pd.DataFrame(data, index=pos_errors.keys(), columns=index)
+
+    return result_table
+
+
+def compare_trajectory_performance_wrt_traveled_dist(summaries: List[EvaluationDataSummary]) -> pd.DataFrame:
+    tables = [create_trajectory_result_table_wrt_traveled_dist(s) for s in summaries]
+    return merge_tables(tables)
+
+
+def create_trajectory_completion_table(s: EvaluationDataSummary):
+    index_columns = [(s.name, "Completion rate [%]"), (s.name, "NaNs in estimate [%]"), (s.name, "GT trajectory "
+                                                                                                 "length [m]")]
+    index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
+
+    data = np.empty((len(s.data.items()), 3), dtype=np.float)
+    i = 0
+    for k, v in s.data.items():
+        gt_length = v.trajectory_data.traj_gt.timestamps[-1] - v.trajectory_data.traj_gt.timestamps[0]
+        traveled_distance = v.trajectory_data.traj_gt.distances[-1]
+        estimation_length = v.trajectory_data.traj_est_synced.timestamps[-1] - \
+                            v.trajectory_data.traj_est_synced.timestamps[0]
+        completion_percentage = estimation_length / gt_length * 100
+        nans_percentage, _ = get_nans_in_trajectory(v.trajectory_data.raw_est_t_xyz_wxyz)
+        data[i, :] = np.round([completion_percentage, nans_percentage, traveled_distance], 1)
+        i += 1
+
+    df = pd.DataFrame(data, index=s.data.keys(), columns=index)
+    return df
+
+
+def compare_trajectory_completion_rates(summaries: List[EvaluationDataSummary]) -> pd.DataFrame:
+    tables = [create_trajectory_completion_table(s) for s in summaries]
+    return merge_tables(tables)
+
+
+def plot_trajectory_comparison_overview(pc: PlotContext, summary_table: pd.DataFrame, use_log=False):
+    pos_label = 'Mean Position Error [%]'
+    rot_label = 'Mean Rotation error [deg/m]'
+    pos_table = summary_table.xs(pos_label, axis=1, level=1, drop_level=True)
+    rot_table = summary_table.xs(rot_label, axis=1, level=1, drop_level=True)
+
+    ax = pc.get_axis()
+    ax.set_title("Average absolute pose errors normalized by traveled distance")
+    ax.set_xlabel(pos_table.columns.name)
+    ax.set_ylabel(F"Errors w.r.t traveled distance [%, deg/m]")
+    if use_log:
+        ax.set_yscale('log')
+    evaluation_run_names = pos_table.columns.values
+    labels = [pos_label, rot_label]
+    # do boxplots
+
+    data = []
+
+    if len(summary_table) < 5:
+        # do simple average barplots
+        for c in pos_table.columns:
+            data.append([np.mean(pos_table[c].to_numpy()), np.mean(rot_table[c].to_numpy())])
+        barplot_compare(ax, evaluation_run_names, data, labels)
+    else:
+        data.append([pos_table[c].to_numpy() for c in pos_table.columns])
+        data.append([rot_table[c].to_numpy() for c in rot_table.columns])
+        # for c in pos_table.columns:
+        #     data.append([pos_table[c].to_numpy(), rot_table[c].to_numpy()])
+
+        boxplot_compare(ax, evaluation_run_names, data, labels)
+
+
+def create_absolute_trajectory_result_table(s: EvaluationDataSummary) -> pd.DataFrame:
     stats = {'RMS': lambda x: rms(x)}
     stats = {'MAX': lambda x: np.max(x)}
-    columns = ["Name"] + [F"RPE {r.value} [{k}]" for r in POSE_RELATIONS for k in stats.keys()] + \
-              [F"APE {r.value} [{k}]" for r in POSE_RELATIONS for k in stats.keys()]
+    columns = ["Name"] + [F"{str(m)} [{k}]" for m in METRICS for k in stats.keys()]
 
     result_table = pd.DataFrame(columns=columns)
 
-    def add_result_row(name, ape_arrays, rpe_arrays):
-        ape_results = []
-        rpe_results = []
-        for r in POSE_RELATIONS:
+    def add_result_row(name, errors):
+        results = []
+        for m in METRICS:
             for l in stats.values():
-                ape_array = ape_arrays[r]
-                rpe_array = rpe_arrays[r]
-                ape_results += [l(ape_array)]
-                rpe_results += [l(rpe_array)]
+                array = errors[str(m)]
+                results += [l(array)]
 
-        result_row = [name] + ape_results + rpe_results
+        result_row = [name] + results
         result_table.loc[len(result_table)] = result_row
 
     for d in s.data.values():
         if d.trajectory_data is None:
             continue
-        add_result_row(d.name, d.trajectory_data.ape_error_arrays, d.trajectory_data.rpe_error_arrays)
+        add_result_row(d.name, d.trajectory_data.ate_errors)
 
-    overall_ape_arrays = dict()
-    overall_rpe_arrays = dict()
+    overall_errors = dict()
 
     is_empty = False
 
-    for r in POSE_RELATIONS:
-        overall_ape_arrays[r] = combine_ape_error(s.data.values(), r)
-        if len(overall_ape_arrays[r]) <= 0:
+    for m in METRICS:
+        overall_errors[str(m)] = combine_error(s.data.values(), str(m))
+        if len(overall_errors[str(m)]) <= 0:
             is_empty = True
             break
-        overall_rpe_arrays[r] = combine_rpe_error(s.data.values(), r)
 
     if not is_empty:
-        add_result_row("OVERALL", overall_ape_arrays, overall_rpe_arrays)
+        add_result_row("OVERALL", overall_errors)
 
     return result_table
 
 
-def combine_rpe_error(evaluations: Collection[EvaluationData], pose_relation: metrics.PoseRelation) -> np.ndarray:
+def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndarray:
     arrays = []
     for d in evaluations:
         if d.trajectory_data is not None:
-            arrays.append(d.trajectory_data.rpe_error_arrays[pose_relation])
+            arrays.append(d.trajectory_data.ate_errors[error_key])
     return np.hstack(tuple(arrays))
 
 
-def combine_ape_error(evaluations: Collection[EvaluationData], pose_relation: metrics.PoseRelation) -> np.ndarray:
-    arrays = []
-    for d in evaluations:
-        if d.trajectory_data is not None:
-            arrays.append(d.trajectory_data.ape_error_arrays[pose_relation])
-    return np.hstack(tuple(arrays))
+def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData], labels=None, use_log=False):
+    auto_labels = []
+    errors_rot_deg = []
+    errors_trans_m = []
+    gt_trajectory = None
+    for t in trajectories:
+        if t.trajectory_data is not None:
+            errors_rot_deg.append(t.trajectory_data.rpe_error_r)
+            errors_trans_m.append(t.trajectory_data.rpe_error_t)
+            auto_labels.append(t.name)
+            if gt_trajectory is None:
+                gt_trajectory = t.trajectory_data.traj_gt
+
+    if len(errors_rot_deg) <= 0:
+        return
+
+    if labels is None:
+        labels = auto_labels
+
+    distances = get_split_distances_on_equal_parts(gt_trajectory, 5)
+
+    data_trans_m = [[e[k] for k in distances] for e in errors_trans_m]
+
+    ax = pc.get_axis()
+    ax.set_xlabel("Distance traveled [m]")
+    ax.set_ylabel(F"Translation error [m]")
+    if use_log:
+        ax.set_yscale('log')
+    boxplot_compare(ax, distances, data_trans_m, labels)
+
+    ax = pc.get_axis()
+    ax.set_xlabel("Distance traveled [m]")
+    ax.set_ylabel(F"Rotation error [deg]")
+    if use_log:
+        ax.set_yscale('log')
+    data_rot_deg = [[e[k] for k in distances] for e in errors_rot_deg]
+    boxplot_compare(ax, distances, data_rot_deg, labels)
+
+
+def plot_imu_bias(pc: PlotContext, eval_data: EvaluationData):
+    df = eval_data.trajectory_data.imu_bias
+    # filter invalid states
+    df = df[df['t'] != -1]
+    t = df['t'].to_numpy()
+    t = t - t[0]
+    labels = ["b_a_x", "b_a_y", "b_a_z"]
+    b_a_xyz = list(df[labels].to_numpy().T)
+    time_series_plot(pc, t, b_a_xyz, labels, F"Accelerometer bias on '{eval_data.name}'", "m/s^2")
+    labels = ["b_w_x", "b_w_y", "b_w_z"]
+    b_w_xyz = list(df[labels].to_numpy().T)
+    time_series_plot(pc, t, b_w_xyz, labels, F"Gyroscope bias on '{eval_data.name}'", "rad/s")
+
+
+def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
+    df = eval_data.trajectory_data.imu_bias
+    df = df[df['t'] != -1]
+    t = df['t'].to_numpy()
+    t = t - t[0]
+
+    labels = ["b_a_x", "b_a_y", "b_a_z"] + ["b_w_x", "b_w_y", "b_w_z"]
+    data = list(df[labels].to_numpy().T)
+
+    ax = pc.get_axis()
+    ax_right = ax.twinx()
+
+    lines = None
+    for i in range(len(data)):
+        if i < 3:
+            line = ax.plot(t, data[i], label=labels[i], color=DEFAULT_COLORS[i])
+        else:
+            line = ax_right.plot(t, data[i], label=labels[i], color=DEFAULT_COLORS[i], linestyle='--')
+        if not lines:
+            lines = line
+        else:
+            lines = lines + line
+
+    align_yaxis(ax_right, ax)
+
+    # https://stackoverflow.com/a/5487005
+    ax_right.legend(lines, labels)
+    ax.set_title(F"Gyroscope and accelerometer bias on '{eval_data.name}' ({eval_name})")
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel("m/s^2")
+    ax_right.set_ylabel("rad/s")
 
 
 def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
-    plot_trajectory(os.path.join(output_folder, "xy_plot.svg"), [eval_data])
+
+    if hasattr(eval_data.trajectory_data, 'imu_bias') and eval_data.trajectory_data.imu_bias is not None:
+        with PlotContext(os.path.join(output_folder, "imu_bias"), subplot_cols=2) as pc:
+            plot_imu_bias(pc, eval_data)
+
+    with PlotContext(os.path.join(output_folder, "xy_plot")) as pc:
+        plot_trajectory(pc, [eval_data])
+
+    # with PlotContext(None) as pc:
+    with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors"), subplot_cols=2) as pc:
+        plot_rpg_error_arrays(pc, [eval_data])
 
 
 def create_summary_info(summary: EvaluationDataSummary):
-    summary.trajectory_summary_table = create_trajectory_result_table(summary)
+    summary.trajectory_summary_table = create_absolute_trajectory_result_table(summary)
 
 
-def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
+def plot_trajectory(pc: PlotContext, trajectories: Collection[EvaluationData]):
     traj_by_label = dict()
 
     if len(trajectories) <= 0:
@@ -131,49 +328,45 @@ def plot_trajectory(filename, trajectories: Collection[EvaluationData]):
         if t.trajectory_data is not None:
             if first:
                 first = False
-                traj_by_label[F"{t.name} reference"] = t.trajectory_data.traj_ref
-            traj_by_label[F"{t.name} estimate"] = t.trajectory_data.traj_est
+                traj_by_label[F"{t.name} reference"] = t.trajectory_data.traj_gt_synced
+            traj_by_label[F"{t.name} estimate"] = t.trajectory_data.traj_est_synced
 
-    fig = plt.figure()
-    plot.trajectories(fig, traj_by_label, plot.PlotMode.xy)
-
-    if filename is None:
-        plt.show()
-    else:
-        plt.savefig(filename)
-    plt.clf()
+    plot.trajectories(pc.figure, traj_by_label, plot.PlotMode.xy)
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
-    for r in POSE_RELATIONS:
-        with PlotContext(os.path.join(output_folder, "ape_boxplot_" + r.name + ".svg")) as pc:
-            plot_error_comparison(pc, summary.data.values(), r, ErrorType.APE, PlotType.BOXPLOT)
-        with PlotContext(os.path.join(output_folder, "rpe_boxplot_" + r.name + ".svg")) as pc:
-            plot_error_comparison(pc, summary.data.values(), r, ErrorType.RPE, PlotType.BOXPLOT)
-        with PlotContext(os.path.join(output_folder, "ape_" + r.name + ".svg")) as pc:
-            plot_error_comparison(pc, summary.data.values(), r, ErrorType.APE, PlotType.TIME_SERIES)
-        with PlotContext(os.path.join(output_folder, "rpe_" + r.name + ".svg")) as pc:
-            plot_error_comparison(pc, summary.data.values(), r, ErrorType.RPE, PlotType.TIME_SERIES)
+    with PlotContext(os.path.join(output_folder, "ate_boxplot"), subplot_cols=2) as pc:
+        plot_ape_error_comparison(pc, summary.data.values(), PlotType.BOXPLOT)
+    with PlotContext(os.path.join(output_folder, "ate_in_time"), subplot_cols=2) as pc:
+        plot_ape_error_comparison(pc, summary.data.values(), PlotType.TIME_SERIES)
+
+    has_imu_bias = [hasattr(e.trajectory_data, 'imu_bias') and e.trajectory_data.imu_bias is not None for e in
+                    summary.data.values()]
+    has_imu_bias = np.all(has_imu_bias)
+
+    rows, cols = n_to_grid_size(len(summary.data.values()))
+
+    if has_imu_bias:
+        with PlotContext(os.path.join(output_folder, F"imu_bias"), subplot_rows=rows, subplot_cols=cols) as pc:
+            for e in summary.data.values():
+                plot_imu_bias_in_one(pc, e, summary.name)
 
 
-def plot_error_comparison(pc: PlotContext, evaluations: Collection[EvaluationData], kind: metrics.PoseRelation,
-                          error_type: ErrorType = ErrorType.APE, plot_type: PlotType = PlotType.BOXPLOT, labels=None):
+def plot_ape_error_comparison(pc: PlotContext, evaluations: Collection[EvaluationData],
+                              plot_type: PlotType = PlotType.BOXPLOT, labels=None, use_log=False):
+    translation_metric = metrics.APE(PoseRelation.translation_part)
+    rotation_metric = metrics.APE(PoseRelation.rotation_angle_deg)
+
     auto_labels = []
-    data = []
+    rotation_data = []
+    translation_data = []
     time_arrays = []
     for e in evaluations:
         if e.trajectory_data is not None:
-            t = e.trajectory_data.traj_est.timestamps.flatten()
-            if error_type == ErrorType.APE:
-                # data.append(np.log1p(e.trajectory_data.ape_error_arrays[kind]))
-                data.append(e.trajectory_data.ape_error_arrays[kind])
-            elif error_type == ErrorType.RPE:
-                # relative error available only for n-1 values
-                t = t[:-1]
-                data.append(e.trajectory_data.rpe_error_arrays[kind])
-            else:
-                raise ValueError(F"Invalid error type '{error_type}'")
+            t = e.trajectory_data.traj_est_synced.timestamps.flatten()
 
+            translation_data.append(e.trajectory_data.ate_errors[str(translation_metric)])
+            rotation_data.append(e.trajectory_data.ate_errors[str(rotation_metric)])
             time_arrays.append(t - t[0])
             auto_labels.append(e.name)
 
@@ -184,9 +377,12 @@ def plot_error_comparison(pc: PlotContext, evaluations: Collection[EvaluationDat
         labels = auto_labels
 
     if plot_type == PlotType.BOXPLOT:
-        boxplot(pc, data, labels, F"APE w.r.t. {kind.value} comparison")
+        boxplot(pc, translation_data, labels, "ATE w.r.t. translation [m]", use_log=use_log)
+        boxplot(pc, rotation_data, labels, "ATE w.r.t. rotation [deg]", use_log=use_log)
     elif plot_type == PlotType.TIME_SERIES:
-        # time_series_plot(filename, time_arrays, data, labels, F"APE w.r.t. {kind.value}", ylabel="log error")
-        time_series_plot(pc, time_arrays, data, labels, F"APE w.r.t. {kind.value}")
+        time_series_plot(pc, time_arrays, translation_data, labels, title="ATE w.r.t. translation in time",
+                         ylabel="translation error [m]", use_log=use_log)
+        time_series_plot(pc, time_arrays, rotation_data, labels, title="ATE w.r.t. rotation in time",
+                         ylabel="rotation error [deg]", use_log=use_log)
     else:
         raise ValueError(F"Invalid plot type '{plot_type}'")
