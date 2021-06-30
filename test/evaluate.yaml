@@ -22,7 +22,7 @@ common_params:
   eklt_displacement_px: 0.6
 #  eklt_patch_size: 35
   eklt_max_num_iterations: 25
-  eklt_tracking_quality: 0.6
+#  eklt_tracking_quality: 0.6
   eklt_bootstrap: "klt"
   eklt_lk_window_size: 20
   eklt_num_pyramidal_layers: 3

@@ -20,7 +20,8 @@ EXPLORE_XVIO_N_POSES_MAX=0
 EXPLORE_XVIO_N_SLAM_FEATURES_MAX=0
 EXPLORE_XVIO_SIGMA_IMG=0
 EXPLORE_XVIO_IMU_NOISE=0
-EXPLORE_EKLT_PATCH_SIZE=1
+EXPLORE_XVIO_ACC_SPIKE=0
+EXPLORE_EKLT_PATCH_SIZE=0
 EXPLORE_EKLT_IMU_OFFSET=0
 EXPLORE_EKLT_OUTLIER_REMOVAL=0
 EXPLORE_EKLT_TRACKING_QUALITY=0
@@ -32,7 +33,7 @@ EXPLORE_EKLT_FEATURE_INTERPOLATION_RELATIVE_LIMIT=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION_ABSOLUTE_LIMIT=0
 EXPLORE_EKLT_LINLOG_SCALE=0
 EXPLORE_EKLT_PATCH_TIMESTAMP_ASSIGNMENT=0
-EXPLORE_EKLT_SIGMA_IMG=0
+EXPLORE_EKLT_SIGMA_IMG=1
 
 
 cleanup () {
@@ -876,6 +877,39 @@ then
 fi
 
 
+
+if [ $EXPLORE_XVIO_ACC_SPIKE -gt 0 ]
+then
+  echo
+  echo "Performing frame based XVIO IMU noise exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/000-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/001-imu-noise-a-opt-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/002-imu-noise-a-0.003-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.003, w opt" --overrides n_a=0.003 n_ba=0.0003 n_w=0.00013 n_bw=0.000013
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/003-imu-noise-a-0.004-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w opt" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00013 n_bw=0.000013
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/004-imu-noise-a-0.005-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.005, w opt" --overrides n_a=0.005 n_ba=0.0005 n_w=0.00013 n_bw=0.000013
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-xvio-acc-spike/ --output_folder $1/$DATE-xvio-acc-spike/results
+
+fi
+
+
 if [ $EXPLORE_EKLT_PATCH_SIZE -gt 0 ]
 then
   echo
@@ -1577,42 +1611,42 @@ then
     cleanup $1/$DATE-eklt-sigma-img/000-baseline
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/001-sigma-img-1-f --frontend \
-     XVIO --name "XVIO sigma_img=1/f" --overrides sigma_img=0.005022794282273277
+     EKLT --name "EKLT sigma_img=1/f" --overrides sigma_img=0.005022794282273277
 
     cleanup $1/$DATE-eklt-sigma-img/001-sigma-img-1-f
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/002-sigma-img-2.5-f --frontend \
-     XVIO --name "XVIO sigma_img=2.5/f" --overrides sigma_img=0.012556985705683194
+     EKLT --name "EKLT sigma_img=2.5/f" --overrides sigma_img=0.012556985705683194
 
     cleanup $1/$DATE-eklt-sigma-img/002-sigma-img-2.5-f
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/003-sigma-img-4-f --frontend \
-     XVIO --name "XVIO sigma_img=4/f" --overrides sigma_img=0.02009117712909311
+     EKLT --name "EKLT sigma_img=4/f" --overrides sigma_img=0.02009117712909311
 
     cleanup $1/$DATE-eklt-sigma-img/003-sigma-img-4-f
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/004-sigma-img-5-f --frontend \
-     XVIO --name "XVIO sigma_img=5/f" --overrides sigma_img=0.025113971411366388
+     EKLT --name "EKLT sigma_img=5/f" --overrides sigma_img=0.025113971411366388
 
     cleanup $1/$DATE-eklt-sigma-img/004-sigma-img-5-f
      
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/005-sigma-img-6-f --frontend \
-     XVIO --name "XVIO sigma_img=6/f" --overrides sigma_img=0.030136765693639666
+     EKLT --name "EKLT sigma_img=6/f" --overrides sigma_img=0.030136765693639666
 
     cleanup $1/$DATE-eklt-sigma-img/005-sigma-img-6-f
      
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/006-sigma-img-7.5-f --frontend \
-     XVIO --name "XVIO sigma_img=7.5/f" --overrides sigma_img=0.03767095711704958
+     EKLT --name "EKLT sigma_img=7.5/f" --overrides sigma_img=0.03767095711704958
 
     cleanup $1/$DATE-eklt-sigma-img/006-sigma-img-7.5-f
      
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/007-sigma-img-8.86-f --frontend \
-     XVIO --name "XVIO sigma_img=8.86/f" --overrides sigma_img=0.044501957340941235
+     EKLT --name "EKLT sigma_img=8.86/f" --overrides sigma_img=0.044501957340941235
 
     cleanup $1/$DATE-eklt-sigma-img/007-sigma-img-8.86-f
      
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-sigma-img/008-sigma-img-10-f --frontend \
-     XVIO --name "XVIO sigma_img=10/f" --overrides sigma_img=0.050227942822732775
+     EKLT --name "EKLT sigma_img=10/f" --overrides sigma_img=0.050227942822732775
 
     cleanup $1/$DATE-eklt-sigma-img/008-sigma-img-10-f
 
