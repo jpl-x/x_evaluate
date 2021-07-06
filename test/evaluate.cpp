@@ -26,7 +26,6 @@
 #include <x/vio/vio.h>
 #include <x/eklt/types.h>
 #include <x/eklt/eklt_vio.h>
-#include <x/haste/haste_vio.h>
 #include <x/events/e_vio.h>
 #include <x/common/csv_writer.h>
 
@@ -48,14 +47,12 @@ enum class Frontend : int8_t {
   XVIO = 0,
   EKLT = 1,
   EVIO = 2,
-  HASTE = 3,
 };
 
 std::map<std::string, Frontend> frontends {
   {"XVIO", Frontend::XVIO},
   {"EKLT", Frontend::EKLT},
   {"EVIO", Frontend::EVIO},
-  {"HASTE", Frontend::HASTE},
 };
 
 
@@ -380,11 +377,6 @@ int main(int argc, char **argv) {
       x::EkltPerformanceLoggerPtr eklt_logger = std::make_shared<x::EkltPerformanceLogger>(output_path);
       x::EventsPerformanceLoggerPtr events_logger = std::make_shared<x::EventsPerformanceLogger>(output_path);
       x::EKLTVIO vio(xvio_logger, events_logger, eklt_logger);
-      return evaluate(vio, output_path, params);
-    }
-    case Frontend::HASTE: {
-      x::EventsPerformanceLoggerPtr events_logger = std::make_shared<x::EventsPerformanceLogger>(output_path);
-      x::HASTEVIO vio(xvio_logger, events_logger);
       return evaluate(vio, output_path, params);
     }
     case Frontend::EVIO: {
