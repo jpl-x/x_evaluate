@@ -32,11 +32,11 @@ common_params:
   eklt_display_feature_patches: false
   eklt_max_corners: 60
   eklt_min_corners: 35
-#  eklt_min_distance: 25
-  eklt_quality_level: 0.3
   eklt_log_eps: 0.01
-  eklt_block_size: 3
-  eklt_k: 0.04
+  eklt_harris_block_size: 3
+  eklt_harris_k: 0.04
+#  eklt_detection_min_distance: 25
+  eklt_harris_quality_level: 0.3
 
 datasets:
 #   -
@@ -50,8 +50,8 @@ datasets:
 #     camera_info_topic: /cam0/camera_info
 #     params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
 #     override_params:
-#       eklt_k: 0
-#       eklt_quality_level: 0.3
+#       eklt_harris_k: 0
+#       eklt_harris_quality_level: 0.3
 #       eklt_tracking_quality: 0.7
 
  # -
@@ -63,8 +63,8 @@ datasets:
  #   imu_topic: /imu
  #   params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
  #   override_params:
- #     eklt_k: 0
- #     eklt_quality_level: 0.3
+ #     eklt_harris_k: 0
+ #     eklt_harris_quality_level: 0.3
  #     eklt_tracking_quality: 0.7
 
 

@@ -123,24 +123,52 @@ eklt_arrow_length: 5
 
 eklt_max_corners: 60
 eklt_min_corners: 45
-eklt_min_distance: 8  # 10
-eklt_quality_level: 0.3 # 0.01
 eklt_log_eps: 0.01
 eklt_use_linlog_scale: false
 
-eklt_block_size: 3
-eklt_k: 0  # 0.04
-eklt_enable_outlier_removal: false
-
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
+
+eklt_patch_timestamp_assignment: accumulated-events-center
+
+eklt_enable_outlier_removal: false
+eklt_outlier_method: 8
+eklt_outlier_param1: 0.6
+eklt_outlier_param2: 0.99
 
 eklt_ekf_feature_interpolation: linear-no-limit
 eklt_ekf_feature_extrapolation_limit: -1.0
 eklt_ekf_update_every_n: -1
 eklt_ekf_update_strategy: every-ros-event-message
 eklt_ekf_update_timestamp: patches-maximum
-eklt_patch_timestamp_assignment: accumulated-events-center
+eklt_harris_block_size: 3
+eklt_detection_min_distance: 8  # 10
+eklt_harris_k: 0  # 0.04
+eklt_harris_quality_level: 0.3 # 0.01
+
+#########
+# HASTE #
+#########
+
+haste_tracker_type: haste-difference-star
+haste_patch_size: 31
+haste_max_corners: 60
+haste_min_corners: 35
+
+haste_enable_outlier_removal: false
+haste_outlier_method: 8
+haste_outlier_param1: 0.6
+haste_outlier_param2: 0.99
+
+haste_ekf_feature_interpolation: nearest-neighbor
+haste_ekf_feature_extrapolation_limit: -1.0
+haste_ekf_update_every_n: -1
+haste_ekf_update_strategy: every-ros-event-message
+haste_ekf_update_timestamp: patches-maximum
+haste_harris_block_size: 3
+haste_detection_min_distance: 15
+haste_harris_k: 0.04
+haste_harris_quality_level: 0.01
 
 ##############
 # SLAM-MSCKF #
