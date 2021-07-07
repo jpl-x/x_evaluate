@@ -151,7 +151,7 @@ eklt_harris_quality_level: 0.3
 # HASTE #
 #########
 
-haste_tracker_type: haste-difference-star
+haste_tracker_type: haste-correlation-star
 haste_patch_size: 31
 haste_max_corners: 60
 haste_min_corners: 35
