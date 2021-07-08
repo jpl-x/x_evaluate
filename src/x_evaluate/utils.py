@@ -134,8 +134,8 @@ def read_output_files(output_folder, gt_available):
 def read_eklt_output_files(output_folder):
     df_events = pd.read_csv(os.path.join(output_folder, "events.csv"), delimiter=";")
     df_optimizations = pd.read_csv(os.path.join(output_folder, "optimizations.csv"), delimiter=";")
-    df_tracks = pd.read_csv(os.path.join(output_folder, "eklt_tracks.csv"), delimiter=";")
-    return df_events, df_optimizations, df_tracks
+    df_eklt_tracks = pd.read_csv(os.path.join(output_folder, "eklt_tracks.csv"), delimiter=";")
+    return df_events, df_optimizations, df_eklt_tracks
 
 
 def rms(data):
@@ -169,7 +169,6 @@ class DynamicAttributes:
         self.__dict__[key] = value
 
 
-
 def merge_tables(tables, column=None):
     result_table = None
     for t in tables:
@@ -181,7 +180,6 @@ def merge_tables(tables, column=None):
             else:
                 result_table = pd.merge(result_table, t, left_index=True, right_index=True)
     return result_table
-
 
 
 def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.1):

@@ -86,13 +86,25 @@ class TrajectoryData:
 
 class FeatureTrackingData:
     df_xvio_num_features: pd.DataFrame
+    df_xvio_tracks: pd.DataFrame
+    xvio_tracks_gt: np.ndarray
+    xvio_tracks_error: np.ndarray
+    xvio_tracking_evaluation_config: Dict
 
     df_eklt_num_features: Optional[pd.DataFrame]
     df_eklt_feature_age: Optional[pd.DataFrame]
+    df_eklt_tracks: Optional[pd.DataFrame]
+    eklt_tracks_gt: Optional[np.ndarray]
+    eklt_tracks_error: Optional[np.ndarray]
+    eklt_tracking_evaluation_config: Optional[Dict]
 
     def __init__(self):
         self.df_eklt_num_features = None
         self.df_eklt_feature_age = None
+        self.df_eklt_tracks = None
+        self.eklt_tracks_gt = None
+        self.eklt_tracks_error = None
+        self.eklt_tracking_evaluation_config = None
 
 
 class PerformanceData:
