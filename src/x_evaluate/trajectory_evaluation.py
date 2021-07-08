@@ -153,9 +153,9 @@ def plot_trajectory_comparison_overview(pc: PlotContext, summary_table: pd.DataF
     data = []
 
     if len(summary_table) < 5:
-        # do simple average barplots
-        for c in pos_table.columns:
-            data.append([np.mean(pos_table[c].to_numpy()), np.mean(rot_table[c].to_numpy())])
+        # simply plot averages using barplots
+        data.append([np.mean(pos_table[c].to_numpy()) for c in pos_table.columns])
+        data.append([np.mean(rot_table[c].to_numpy()) for c in rot_table.columns])
         barplot_compare(ax, evaluation_run_names, data, labels)
     else:
         data.append([pos_table[c].to_numpy() for c in pos_table.columns])

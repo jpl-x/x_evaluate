@@ -375,7 +375,8 @@ int main(int argc, char **argv) {
     }
     case Frontend::EKLT: {
       x::EkltPerformanceLoggerPtr eklt_logger = std::make_shared<x::EkltPerformanceLogger>(output_path);
-      x::EKLTVIO vio(xvio_logger, eklt_logger);
+      x::EventsPerformanceLoggerPtr events_logger = std::make_shared<x::EventsPerformanceLogger>(output_path);
+      x::EKLTVIO vio(xvio_logger, events_logger, eklt_logger);
       return evaluate(vio, output_path, params);
     }
     case Frontend::EVIO: {

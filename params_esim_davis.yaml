@@ -61,6 +61,9 @@ n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
 n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
+# Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
+a_m_max: 50.0
+
 #######
 # LRF #
 #######
@@ -121,23 +124,52 @@ eklt_arrow_length: 5
 
 eklt_max_corners: 60
 eklt_min_corners: 35
-eklt_min_distance: 25
-eklt_quality_level: 0.3
 eklt_log_eps: 0.01
 eklt_use_linlog_scale: false
-eklt_block_size: 3
-eklt_k: 0
-eklt_enable_outlier_removal: false
 
 eklt_first_image_t: -1
 eklt_tracks_file_txt: ""
+
+eklt_patch_timestamp_assignment: latest-event
+
+eklt_enable_outlier_removal: false
+eklt_outlier_method: 8
+eklt_outlier_param1: 0.6
+eklt_outlier_param2: 0.99
 
 eklt_ekf_feature_interpolation: linear-no-limit
 eklt_ekf_feature_extrapolation_limit: -1.0
 eklt_ekf_update_every_n: -1
 eklt_ekf_update_strategy: every-ros-event-message
 eklt_ekf_update_timestamp: patches-average
-eklt_patch_timestamp_assignment: latest-event
+eklt_harris_block_size: 3
+eklt_detection_min_distance: 25
+eklt_harris_k: 0
+eklt_harris_quality_level: 0.3
+
+#########
+# HASTE #
+#########
+
+haste_tracker_type: haste-difference-star
+haste_patch_size: 31
+haste_max_corners: 60
+haste_min_corners: 35
+
+haste_enable_outlier_removal: false
+haste_outlier_method: 8
+haste_outlier_param1: 0.6
+haste_outlier_param2: 0.99
+
+haste_ekf_feature_interpolation: nearest-neighbor
+haste_ekf_feature_extrapolation_limit: -1.0
+haste_ekf_update_every_n: -1
+haste_ekf_update_strategy: every-ros-event-message
+haste_ekf_update_timestamp: patches-maximum
+haste_harris_block_size: 3
+haste_detection_min_distance: 15
+haste_harris_k: 0.04
+haste_harris_quality_level: 0.01
 
 ##############
 # SLAM-MSCKF #
@@ -165,6 +197,22 @@ msckf_baseline: 15.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10
+
+#######
+# EKF #
+#######
+
+# State buffer size (default: 250 states)
+state_buffer_size: 250
+
+# Expected difference between successive IMU sequence IDs.
+delta_seq_imu: 1
+
+# Tolerance for how far in the future/past the closest state request can be without returning an invalid state. [s]
+state_buffer_time_margin: 0.02
+
+# Gravity vector in world frame [m/s^2]
+g: [0.0, 0.0, -9.81] # [x,y,z]
 
 ########
 # Misc #
