@@ -13,6 +13,7 @@ class FrontEnd(Enum):
     XVIO = 'XVIO'
     EKLT = 'EKLT'
     EVIO = 'EVIO'
+    HASTE = 'HASTE'
 
     def __str__(self):
         return self.value
