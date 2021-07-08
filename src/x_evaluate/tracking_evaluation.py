@@ -150,10 +150,10 @@ def plot_backend_feature_age_comparison(pc: PlotContext, eval_data: List[Evaluat
         age, start_time = get_feature_ages(convert_xvio_to_rpg_tracks(e.feature_data.df_xvio_tracks))
 
         # coarse resolution, since for each SLAM / MSCKF feature track there is only a single age (little data)
-        time, stats = get_quantized_statistics_along_axis(start_time, age, resolution=1)
+        time, stats = get_quantized_statistics_along_axis(start_time, age, resolution=5)
 
         times.append(time)
-        data.append(stats['mean'])
+        data.append(stats['median'])
 
     time_series_plot(pc, times, data, labels, F"SLAM and MSCKF average feature age throughout sequence {dataset_name}",
                      "Average feature age [s]")
@@ -337,7 +337,9 @@ def get_feature_ages(tracks):
 
     feature_ages = tracks[mask_end, 1] - tracks[mask_start, 1]
     start_times = tracks[mask_start, 1]
-    return feature_ages, start_times
+
+    sorted = start_times.argsort(kind='stable')
+    return feature_ages[sorted], start_times[sorted]
 
 
 def get_zero_aligned_feature_errors(errors):
