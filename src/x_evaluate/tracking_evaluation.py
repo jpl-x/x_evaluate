@@ -97,7 +97,7 @@ def get_tracking_error_statistics(tracks_error):
 
 
 def plot_feature_tracking_comparison(pc: PlotContext, eval_data: List[EvaluationData], labels, title,
-                                     feature_data_to_track_info, pre_tracks_error_hook=None):
+                                     feature_data_to_track_info, pre_tracks_error_hook=None, xlabel=None):
     means = []
     maxima = []
     times = []
@@ -119,7 +119,7 @@ def plot_feature_tracking_comparison(pc: PlotContext, eval_data: List[Evaluation
             assert tracker_info == info_string, F"Expecting same feature tracking evaluation settings on common " \
                                                 F"dataset: '{tracker_info}' != '{tracker_info}"
 
-    time_series_plot(pc, times, means, labels, F"{title}  w.r.t. {tracker_info}", "error [px]")
+    time_series_plot(pc, times, means, labels, F"{title}  w.r.t. {tracker_info}", "error [px]", xlabel=xlabel)
 
 
 def plot_backend_feature_age_comparison_boxplot(pc: PlotContext, summaries: List[EvaluationDataSummary],
@@ -184,9 +184,10 @@ def plot_xvio_feature_tracking_zero_aligned_comparison(pc: PlotContext, eval_dat
         # errors[:, 1] = traveled_distance
         return get_zero_aligned_feature_errors(errors)
 
-    plot_feature_tracking_comparison(pc, eval_data, labels, F"Average SLAM and MSCKF feature tracking error since "
-                                                            F"feature initialization on '{dataset_name}'",
-                                     xvio_feature_to_track_info, zero_align_errors)
+    plot_feature_tracking_comparison(pc, eval_data, labels,
+                                     F"Average SLAM and MSCKF feature tracking error on '{dataset_name}'",
+                                     xvio_feature_to_track_info, zero_align_errors,
+                                     xlabel="Relative time since feature initialization [s]")
 
 
 def plot_xvio_feature_update_interval_in_time(pc: PlotContext, eval_data: List[EvaluationData], names, dataset):
