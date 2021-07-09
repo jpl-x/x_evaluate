@@ -708,56 +708,56 @@ then
   if [ $COMPARISONS_ONLY -lt 1 ]
   then
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/000-baseline --frontend \
-    #  XVIO --name "XVIO baseline"
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/000-baseline --frontend \
+     XVIO --name "XVIO baseline"
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-opt-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-opt-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.003-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.003, w opt" --overrides n_a=0.003 n_ba=0.0003 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.003-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.003, w opt" --overrides n_a=0.003 n_ba=0.0003 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.004-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w opt" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.004-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w opt" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.005-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.005, w opt" --overrides n_a=0.005 n_ba=0.0005 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.005-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.005, w opt" --overrides n_a=0.005 n_ba=0.0005 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-opt-w-0.0001 --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w 0.0001" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0001 n_bw=0.00001
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-opt-w-0.0001 --frontend \
+     XVIO --name "XVIO IMU noise a opt, w 0.0001" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0001 n_bw=0.00001
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-opt-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w 0.0002" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-opt-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a opt, w 0.0002" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-opt-w-0.0003 --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w 0.0003" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0003 n_bw=0.00003
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-opt-w-0.0003 --frontend \
+     XVIO --name "XVIO IMU noise a opt, w 0.0003" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0003 n_bw=0.00003
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.004-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.0002" --overrides n_a=0.004 n_ba=0.0004 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.004-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.0002" --overrides n_a=0.004 n_ba=0.0004 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.0035-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.0035, w 0.0002" --overrides n_a=0.0035 n_ba=0.00035 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.0035-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.0035, w 0.0002" --overrides n_a=0.0035 n_ba=0.00035 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-0.00375-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.00375, w 0.0002" --overrides n_a=0.00375 n_ba=0.000375 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-0.00375-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.00375, w 0.0002" --overrides n_a=0.00375 n_ba=0.000375 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-0.00425-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.00425, w 0.0002" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-0.00425-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.00425, w 0.0002" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/012-imu-noise-a-0.0045-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.0045, w 0.0002" --overrides n_a=0.0045 n_ba=0.00045 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/012-imu-noise-a-0.0045-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.0045, w 0.0002" --overrides n_a=0.0045 n_ba=0.00045 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/013-imu-noise-a-0.004-w-0.00015 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.00015" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00015 n_bw=0.000015
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/013-imu-noise-a-0.004-w-0.00015 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.00015" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00015 n_bw=0.000015
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/014-imu-noise-a-0.004-w-0.000175 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.000175" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000175 n_bw=0.0000175
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/014-imu-noise-a-0.004-w-0.000175 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.000175" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000175 n_bw=0.0000175
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/015-imu-noise-a-0.004-w-0.000225 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.000225" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000225 n_bw=0.0000225
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/015-imu-noise-a-0.004-w-0.000225 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.000225" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000225 n_bw=0.0000225
      
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.00025" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00025 n_bw=0.000025
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.00025" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00025 n_bw=0.000025
      
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
      XVIO --name "XVIO IMU noise a 0.00425, w 0.00025" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.00025 n_bw=0.000025
@@ -881,7 +881,7 @@ fi
 if [ $EXPLORE_XVIO_ACC_SPIKE -gt 0 ]
 then
   echo
-  echo "Performing frame based XVIO IMU noise exploration"
+  echo "Performing frame based XVIO accelerometer spike exploration"
   echo
 
 
@@ -891,17 +891,23 @@ then
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/000-baseline --frontend \
      XVIO --name "XVIO baseline"
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/001-imu-noise-a-opt-w-opt --frontend \
-     XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/001-imu-acc-spike-10 --frontend \
+     XVIO --name "XVIO IMU spike 10" --overrides a_max=10
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/002-imu-noise-a-0.003-w-opt --frontend \
-     XVIO --name "XVIO IMU noise a 0.003, w opt" --overrides n_a=0.003 n_ba=0.0003 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/002-imu-acc-spike-20 --frontend \
+     XVIO --name "XVIO IMU spike 20" --overrides a_max=20
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/003-imu-noise-a-0.004-w-opt --frontend \
-     XVIO --name "XVIO IMU noise a 0.004, w opt" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/003-imu-acc-spike-30 --frontend \
+     XVIO --name "XVIO IMU spike 30" --overrides a_max=30
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/004-imu-noise-a-0.005-w-opt --frontend \
-     XVIO --name "XVIO IMU noise a 0.005, w opt" --overrides n_a=0.005 n_ba=0.0005 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/004-imu-acc-spike-40 --frontend \
+     XVIO --name "XVIO IMU spike 40" --overrides a_max=40
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/005-imu-acc-spike-50 --frontend \
+     XVIO --name "XVIO IMU spike 50" --overrides a_max=50
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/006-imu-acc-spike-60 --frontend \
+     XVIO --name "XVIO IMU spike 60" --overrides a_max=60
 
   fi
 
@@ -926,42 +932,42 @@ then
     cleanup $1/$DATE-eklt-patch-size/000-xvio-baseline
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/001-p-15 \
-      --frontend EKLT --name "EKLT p=15" --overrides eklt_patch_size=15 eklt_min_distance=7
+      --frontend EKLT --name "EKLT p=15" --overrides eklt_patch_size=15 eklt_detection_min_distance=7
 
     cleanup $1/$DATE-eklt-patch-size/001-p-15
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/002-p-17 \
-      --frontend EKLT --name "EKLT p=17" --overrides eklt_patch_size=17 eklt_min_distance=8
+      --frontend EKLT --name "EKLT p=17" --overrides eklt_patch_size=17 eklt_detection_min_distance=8
 
     cleanup $1/$DATE-eklt-patch-size/002-p-17
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/003-p-19 \
-      --frontend EKLT --name "EKLT p=19" --overrides eklt_patch_size=19 eklt_min_distance=9
+      --frontend EKLT --name "EKLT p=19" --overrides eklt_patch_size=19 eklt_detection_min_distance=9
 
     cleanup $1/$DATE-eklt-patch-size/003-p-19
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/004-p-21 \
-      --frontend EKLT --name "EKLT p=21" --overrides eklt_patch_size=21 eklt_min_distance=10
+      --frontend EKLT --name "EKLT p=21" --overrides eklt_patch_size=21 eklt_detection_min_distance=10
 
     cleanup $1/$DATE-eklt-patch-size/004-p-21
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/005-p-23 \
-      --frontend EKLT --name "EKLT p=23" --overrides eklt_patch_size=21 eklt_min_distance=11
+      --frontend EKLT --name "EKLT p=23" --overrides eklt_patch_size=21 eklt_detection_min_distance=11
 
     cleanup $1/$DATE-eklt-patch-size/005-p-23
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/006-p-25 \
-      --frontend EKLT --name "EKLT p=25" --overrides eklt_patch_size=25 eklt_min_distance=12
+      --frontend EKLT --name "EKLT p=25" --overrides eklt_patch_size=25 eklt_detection_min_distance=12
 
     cleanup $1/$DATE-eklt-patch-size/006-p-25
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/007-p-27 \
-      --frontend EKLT --name "EKLT p=27" --overrides eklt_patch_size=27 eklt_min_distance=13
+      --frontend EKLT --name "EKLT p=27" --overrides eklt_patch_size=27 eklt_detection_min_distance=13
 
     cleanup $1/$DATE-eklt-patch-size/007-p-27
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-patch-size/008-p-29 \
-      --frontend EKLT --name "EKLT p=29" --overrides eklt_patch_size=29 eklt_min_distance=14
+      --frontend EKLT --name "EKLT p=29" --overrides eklt_patch_size=29 eklt_detection_min_distance=14
 
     cleanup $1/$DATE-eklt-patch-size/008-p-29
 
@@ -1157,95 +1163,115 @@ then
     cleanup $1/$DATE-eklt-tracking-quality/000-xvio-baseline
 
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.0001" --overrides eklt_quality_level=0.0001
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001 \
+       --frontend EKLT --name "EKLT tracking-q=0.0001" --overrides eklt_tracking_quality=0.0001
 
-    # cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001
+     cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.001" --overrides eklt_quality_level=0.001
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001 \
+       --frontend EKLT --name "EKLT tracking-q=0.001" --overrides eklt_tracking_quality=0.001
 
-    # cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001
+     cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.005" --overrides eklt_quality_level=0.005
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005 \
+       --frontend EKLT --name "EKLT tracking-q=0.005" --overrides eklt_tracking_quality=0.005
 
-    # cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005
+     cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.01" --overrides eklt_quality_level=0.01
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01 \
+       --frontend EKLT --name "EKLT tracking-q=0.01" --overrides eklt_tracking_quality=0.01
 
-    # cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01
+     cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.1" --overrides eklt_quality_level=0.1
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1 \
+       --frontend EKLT --name "EKLT tracking-q=0.1" --overrides eklt_tracking_quality=0.1
 
-    # cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1
+     cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.15" --overrides eklt_quality_level=0.15
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15 \
+       --frontend EKLT --name "EKLT tracking-q=0.15" --overrides eklt_tracking_quality=0.15
 
-    # cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15
+     cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.2" --overrides eklt_quality_level=0.2
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2 \
+       --frontend EKLT --name "EKLT tracking-q=0.2" --overrides eklt_tracking_quality=0.2
 
-    # cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2
+     cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.25" --overrides eklt_quality_level=0.25
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25 \
+       --frontend EKLT --name "EKLT tracking-q=0.25" --overrides eklt_tracking_quality=0.25
 
-    # cleanup $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25
+     cleanup $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.3" --overrides eklt_quality_level=0.3
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3 \
+       --frontend EKLT --name "EKLT tracking-q=0.3" --overrides eklt_tracking_quality=0.3
 
-    # cleanup $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3
+     cleanup $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_quality_level=0.4
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
+       --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_tracking_quality=0.4
 
-    # cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
+     cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
 
-    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5 \
-    #   --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_quality_level=0.5
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5 \
+       --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_tracking_quality=0.5
 
-    # cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5
+     cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.16 \
-      --frontend EKLT --name "EKLT tracking-q=0.16" --overrides eklt_quality_level=0.16
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6 \
+       --frontend EKLT --name "EKLT tracking-q=0.6" --overrides eklt_tracking_quality=0.6
 
-    cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.16
+     cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.18 \
-      --frontend EKLT --name "EKLT tracking-q=0.18" --overrides eklt_quality_level=0.18
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7 \
+       --frontend EKLT --name "EKLT tracking-q=0.7" --overrides eklt_tracking_quality=0.7
 
-    cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.18
+     cleanup $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.19 \
-      --frontend EKLT --name "EKLT tracking-q=0.19" --overrides eklt_quality_level=0.19
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8 \
+       --frontend EKLT --name "EKLT tracking-q=0.8" --overrides eklt_tracking_quality=0.8
 
-    cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.19
+     cleanup $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.20 \
-      --frontend EKLT --name "EKLT tracking-q=0.20" --overrides eklt_quality_level=0.20
+     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.9 \
+       --frontend EKLT --name "EKLT tracking-q=0.9" --overrides eklt_tracking_quality=0.9
 
-    cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.20
+     cleanup $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.9
 
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.21 \
-      --frontend EKLT --name "EKLT tracking-q=0.21" --overrides eklt_quality_level=0.21
-
-    cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.21
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.22 \
-      --frontend EKLT --name "EKLT tracking-q=0.22" --overrides eklt_quality_level=0.22
-
-    cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.22
-
-    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.24 \
-      --frontend EKLT --name "EKLT tracking-q=0.24" --overrides eklt_quality_level=0.24
-
-    cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.24
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.16 \
+#      --frontend EKLT --name "EKLT tracking-q=0.16" --overrides eklt_tracking_quality=0.16
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.16
+#
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.18 \
+#      --frontend EKLT --name "EKLT tracking-q=0.18" --overrides eklt_tracking_quality=0.18
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.18
+#
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.19 \
+#      --frontend EKLT --name "EKLT tracking-q=0.19" --overrides eklt_tracking_quality=0.19
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.19
+#
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.20 \
+#      --frontend EKLT --name "EKLT tracking-q=0.20" --overrides eklt_tracking_quality=0.20
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.20
+#
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.21 \
+#      --frontend EKLT --name "EKLT tracking-q=0.21" --overrides eklt_tracking_quality=0.21
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.21
+#
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.22 \
+#      --frontend EKLT --name "EKLT tracking-q=0.22" --overrides eklt_tracking_quality=0.22
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.22
+#
+#    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.24 \
+#      --frontend EKLT --name "EKLT tracking-q=0.24" --overrides eklt_tracking_quality=0.24
+#
+#    cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.24
 
   fi
 
@@ -1387,14 +1413,27 @@ then
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/000-xvio-baseline \
       --frontend XVIO --name "XVIO baseline"
 
+    cleanup $1/$DATE-eklt-interpolation-ts/000-xvio-baseline
+
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/001-eklt-baseline \
       --frontend EKLT --name "EKLT baseline"
+
+    cleanup $1/$DATE-eklt-interpolation-ts/001-eklt-baseline
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/002-eklt-interpolation-t-avg \
       --frontend EKLT --name "EKLT ekf update ts AVG" --overrides eklt_ekf_update_timestamp=patches-average
 
+    cleanup $1/$DATE-eklt-interpolation-ts/002-eklt-interpolation-t-avg
+
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/003-eklt-interpolation-t-max \
       --frontend EKLT --name "EKLT ekf update ts MAX" --overrides eklt_ekf_update_timestamp=patches-maximum
+
+    cleanup $1/$DATE-eklt-interpolation-ts/003-eklt-interpolation-t-max
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-interpolation-ts/004-eklt-interpolation-latest-ev \
+      --frontend EKLT --name "EKLT ekf update ts latest event" --overrides eklt_ekf_update_timestamp=latest-event-ts
+
+    cleanup $1/$DATE-eklt-interpolation-ts/004-eklt-interpolation-latest-ev
 
   fi
 
@@ -1598,7 +1637,7 @@ fi
 if [ $EXPLORE_EKLT_SIGMA_IMG -gt 0 ]
 then
   echo
-  echo "Performing frame based XVIO sigma_img exploration"
+  echo "Performing EKLT sigma_img exploration"
   echo
 
 

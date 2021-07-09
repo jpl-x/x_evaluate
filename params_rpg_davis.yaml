@@ -61,7 +61,7 @@ n_w:  0.0002  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00002 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
 # Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
-a_m_max: 50.0
+a_m_max: 88.29 # 9g should be enough https://www.youtube.com/watch?v=_0nbRYIBVDQ
 
 #######
 # LRF #
@@ -106,7 +106,7 @@ max_feat_per_tile: 10000
 # EKLT #
 ########
 
-eklt_batch_size: 300
+eklt_batch_size: 500
 eklt_update_every_n_events: 20
 eklt_displacement_px: 0.6
 eklt_patch_size: 17
@@ -202,7 +202,7 @@ min_track_length: 10
 #######
 
 # State buffer size (default: 250 states)
-state_buffer_size: 250
+state_buffer_size: 500
 
 # Expected difference between successive IMU sequence IDs.
 delta_seq_imu: 1
