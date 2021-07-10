@@ -1,6 +1,8 @@
 import argparse
 import os
 
+import yaml
+
 from x_evaluate.utils import name_to_identifier
 from x_evaluate.scriptlets import read_evaluation_pickle
 
@@ -27,9 +29,17 @@ def main():
         print(F"Plotting summary plots for '{key}' in subfolder '{output_folder}'")
         output_folder = os.path.join(output_root, output_folder)
 
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
         pe.plot_performance_plots(evaluation, output_folder)
         te.plot_trajectory_plots(evaluation, output_folder)
         fe.plot_feature_plots(evaluation, output_folder)
+
+        params_yaml_file = os.path.join(output_folder, "params.yaml")
+        if not os.path.exists(params_yaml_file):
+            with open(params_yaml_file, 'w') as tmp_yaml_file:
+                yaml.dump(evaluation.params, tmp_yaml_file)
 
         i += 1
 
