@@ -155,17 +155,19 @@ haste_tracker_type: haste-correlation-star
 haste_patch_size: 31
 haste_max_corners: 60
 haste_min_corners: 35
+haste_bootstrap_from_frames: false
+haste_bootstrap_with_unit_length_of: true
 
-haste_enable_outlier_removal: false
+haste_enable_outlier_removal: true
 haste_outlier_method: 8
 haste_outlier_param1: 0.6
 haste_outlier_param2: 0.99
 
-haste_ekf_feature_interpolation: linear-no-limit
+haste_ekf_feature_interpolation: nearest-neighbor
 haste_ekf_feature_extrapolation_limit: -1.0
-haste_ekf_update_every_n: -1
-haste_ekf_update_strategy: every-ros-event-message
-haste_ekf_update_timestamp: patches-average
+haste_ekf_update_every_n: 3200
+haste_ekf_update_strategy: every-n-events
+haste_ekf_update_timestamp: patches-maximum
 haste_harris_block_size: 3
 haste_detection_min_distance: 15
 haste_harris_k: 0
