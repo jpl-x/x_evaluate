@@ -31,6 +31,8 @@ class PlotContext:
         self.axis = []
 
     def __enter__(self):
+        # plt.rc('text', usetex=True)
+        # plt.rc('axes', linewidth=3)
         self.figure = plt.figure()
         self.subplot_idx = 0
         self.figure.set_size_inches(self.width_inch, self.height_inch)
