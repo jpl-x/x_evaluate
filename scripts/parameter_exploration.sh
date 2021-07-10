@@ -892,22 +892,22 @@ then
      XVIO --name "XVIO baseline"
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/001-imu-acc-spike-10 --frontend \
-     XVIO --name "XVIO IMU spike 10" --overrides a_max=10
+     XVIO --name "XVIO IMU spike 10" --overrides a_m_max=10
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/002-imu-acc-spike-20 --frontend \
-     XVIO --name "XVIO IMU spike 20" --overrides a_max=20
+     XVIO --name "XVIO IMU spike 20" --overrides a_m_max=20
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/003-imu-acc-spike-30 --frontend \
-     XVIO --name "XVIO IMU spike 30" --overrides a_max=30
+     XVIO --name "XVIO IMU spike 30" --overrides a_m_max=30
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/004-imu-acc-spike-40 --frontend \
-     XVIO --name "XVIO IMU spike 40" --overrides a_max=40
+     XVIO --name "XVIO IMU spike 40" --overrides a_m_max=40
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/005-imu-acc-spike-50 --frontend \
-     XVIO --name "XVIO IMU spike 50" --overrides a_max=50
+     XVIO --name "XVIO IMU spike 50" --overrides a_m_max=50
 
     python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-xvio-acc-spike/006-imu-acc-spike-60 --frontend \
-     XVIO --name "XVIO IMU spike 60" --overrides a_max=60
+     XVIO --name "XVIO IMU spike 60" --overrides a_m_max=60
 
   fi
 
