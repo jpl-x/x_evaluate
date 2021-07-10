@@ -75,10 +75,17 @@ def tracker_config_to_info_string(tracker_config):
     raise ValueError(F"Unknown tracking evaluation GT type {tracker_config['type']}")
 
 
-def plot_tracking_error(pc: PlotContext, tracks_error, tracker_config, title):
+def plot_tracking_error(pc: PlotContext, tracks_error, tracker_config, title, zero_aligned=False):
+    if zero_aligned:
+        tracks_error = get_zero_aligned_feature_errors(tracks_error)
     t, stats = get_tracking_error_statistics(tracks_error)
     title = F"{title} w.r.t. {tracker_config_to_info_string(tracker_config)}"
-    plot_moving_boxplot_in_time_from_stats(pc, t, stats, title, ylabel="Feature tracking error [px]")
+
+    if zero_aligned:
+        plot_moving_boxplot_in_time_from_stats(pc, t, stats, title, ylabel="Feature tracking error [px]",
+                                               xlabel="Relative time since feature initialization [s]")
+    else:
+        plot_moving_boxplot_in_time_from_stats(pc, t, stats, title, ylabel="Feature tracking error [px]")
 
 
 def get_tracking_error_statistics(tracks_error):
@@ -428,19 +435,19 @@ def plot_feature_plots(d: EvaluationData, output_folder):
 
     if d.feature_data.df_eklt_num_features is not None:
         df = d.feature_data.df_eklt_num_features
-    with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes "), subplot_rows=1, subplot_cols=2) as pc:
+    with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes"), subplot_rows=1, subplot_cols=2) as pc:
         plot_xvio_features_position_changes(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval "), subplot_rows=1, subplot_cols=2)\
+    with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval"), subplot_rows=1, subplot_cols=2)\
             as pc:
         plot_xvio_features_update_interval(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "backend_feature_pos_changes ")) as pc:
+    with PlotContext(os.path.join(output_folder, "backend_feature_pos_changes")) as pc:
         plot_xvio_feature_pos_changes(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "backend_feature_tracking_error ")) as pc:
+    with PlotContext(os.path.join(output_folder, "backend_feature_tracking_error_zero_aligned")) as pc:
         plot_tracking_error(pc, d.feature_data.xvio_tracks_error, d.feature_data.xvio_tracking_evaluation_config,
-                            "SLAM and MSCKF feature tracking errors")
+                            "SLAM and MSCKF feature tracking errors", zero_aligned=True)
 
     if d.feature_data.df_eklt_num_features is not None:
         df = d.feature_data.df_eklt_num_features

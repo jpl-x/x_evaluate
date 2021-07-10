@@ -357,7 +357,7 @@ def plot_moving_boxplot_in_time(pc: PlotContext, t, data, title=None, ylabel=Non
     plot_moving_boxplot_in_time_from_stats(pc, t_quantized, stats, title, ylabel, color)
 
 
-def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None, ylabel=None, color=None):
+def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None, ylabel=None, color=None, xlabel=None):
     if not color:
         color = DEFAULT_COLORS[0]
     ax = pc.get_axis()
@@ -366,7 +366,9 @@ def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None
 
     if ylabel:
         ax.set_ylabel(ylabel)
-    ax.set_xlabel("time [s]")
+    if not xlabel:
+        xlabel = "time [s]"
+    ax.set_xlabel(xlabel)
     if title:
         ax.set_title(title)
 
