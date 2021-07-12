@@ -19,7 +19,6 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
-//#include <easy/converter/converter.h>
 
 #include <x_vio_ros/parameter_loader.h>
 #include <x/vio/abstract_vio.h>
@@ -159,7 +158,7 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
 
   rosbag::View view(bag, from, to);
 
-  std::cerr << "Initializing at time " << view.getBeginTime().toSec() << std::endl;
+  std::cerr << "Initializing at time " << std::setprecision(17) << view.getBeginTime().toSec() << std::endl;
   vio.initAtTime(view.getBeginTime().toSec());
 
   std::cerr << "Processing rosbag from time " << view.getBeginTime() << " to " << view.getEndTime()

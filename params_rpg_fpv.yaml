@@ -22,17 +22,17 @@ sigma_dba: [0.3, 0.3, 0.3] # [m/s^2]
 # Calibration #
 ###############
 
-cam1_fx: 0.829551527
-cam1_fy: 1.104604558
-cam1_cx: 0.550800297
-cam1_cy: 0.615070333
-cam1_dist_model: radial-tangential
-cam1_dist_params: [-0.3684363117977873, 0.1509472435566583, -0.0002961305343848646, -0.000759431726241032, 0]
-cam1_img_width: 240
-cam1_img_height: 180
-cam1_q_ic: [0.999965419952174, 0.004660206319180, -0.003190841088148, -0.006104089619662]
-cam1_p_ic: [0.00674696422488, 0.0007279224709, 0.0342573613538] # [x,y,z]
-cam1_time_offset: 0.0027626144716691903  # from Kalibr run on checkerboard sequence
+cam1_fx: 0.5002309156507843
+cam1_fy: 0.6656671073341341
+cam1_cx: 0.4719951933816623
+cam1_cy: 0.5192265112426236
+cam1_dist_model: equidistant
+cam1_dist_params: [-0.03252275347038443, 0.0010042799356776398, -0.0048537750326187136, 0.0014604134198771906]
+cam1_img_width: 346
+cam1_img_height: 260
+cam1_q_ic: [ -0.99999034, 0.00117482, -0.00392135, -0.00160356]  # [w, x, y, z]
+cam1_p_ic: [-0.00109897,  0.00261366,  0.02223472] # [x,y,z]
+cam1_time_offset: 0.005733889300479769
 
 cam2_fx: 0.8307143111366176
 cam2_fy: 1.1094881524187095
@@ -47,18 +47,18 @@ cam2_p_ic: [0.00674696422488, 0.0007279224709, 0.0342573613538] # [x,y,z]
 cam2_time_offset: 0.0
 
 # Feature noise (normalized coordinate standard deviation)
-sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
+sigma_img: 0.028888392540119216
+
 
 #######
 # IMU #
 #######
 
-# Optimized for RPG Davis Data
-n_a:  0.004316  # Accel noise spectral density [m/s^2/sqrt(Hz)]
-n_ba: 0.0004316 # Accel bias random walk [m/s^3/sqrt(Hz)]
-# ADXRS610 gyros (Astec)
-n_w:  0.0002  # Gyro noise spectral density [rad/s/sqrt(Hz)]
-n_bw: 0.00002 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+# calculated from Kalibr output
+n_a:  0.0031622776601683794  # Accel noise spectral density [m/s^2/sqrt(Hz)]
+n_ba: 6.324555320336759e-05 # Accel bias random walk [m/s^3/sqrt(Hz)]
+n_w:  0.0015811388300841897  # Gyro noise spectral density [rad/s/sqrt(Hz)]
+n_bw: 1.2649110640673519e-06 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
 # Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
 a_m_max: 88.29 # 9g should be enough https://www.youtube.com/watch?v=_0nbRYIBVDQ
@@ -93,10 +93,10 @@ outlier_method: 8
 # beyond which the point is considered an outlier and is not used for computing the final fundamental
 # matrix. It can be set to something like 1-3, depending on the accuracy of the point localization,
 # image resolution, and the image noise.
-outlier_param1: 0.6
+outlier_param1: 0.3
 # Parameter used for the RANSAC or LMedS methods only. It specifies a desirable level of confidence
 # (probability) that the estimated matrix is correct.
-outlier_param2: 0.978
+outlier_param2: 0.99
 # 1 <=> no tiling
 n_tiles_h: 1
 n_tiles_w: 1
@@ -159,7 +159,7 @@ haste_bootstrap_with_unit_length_of: true
 
 haste_enable_outlier_removal: true
 haste_outlier_method: 8
-haste_outlier_param1: 1.3
+haste_outlier_param1: 0.6
 haste_outlier_param2: 0.95
 
 haste_ekf_feature_interpolation: nearest-neighbor
@@ -194,7 +194,7 @@ sigma_rho_0: 0.65
 iekf_iter: 1
 
 # Minimum baseline to trigger MSCKF measurement (pixels)
-msckf_baseline: 15.0
+msckf_baseline: 30.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10

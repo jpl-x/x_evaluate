@@ -1,0 +1,74 @@
+
+common_params:
+  fast_detection_delta: 20
+  non_max_supp: True
+  # block_half_length: 20
+  # margin: 20
+  n_feat_min: 400
+  outlier_method: 8
+#  outlier_param1: 0.6
+#  outlier_param2: 0.98
+  n_tiles_h: 1
+  n_tiles_w: 1
+  max_feat_per_tile: 10000
+  n_poses_max: 10
+  n_slam_features_max: 15
+  iekf_iter: 1
+  msckf_baseline: 30.0
+  min_track_length: 10
+
+  eklt_batch_size: 500
+  eklt_update_every_n_events: 20
+  eklt_displacement_px: 0.6
+#  eklt_patch_size: 35
+  eklt_max_num_iterations: 25
+#  eklt_tracking_quality: 0.6
+  eklt_bootstrap: "klt"
+  eklt_lk_window_size: 20
+  eklt_num_pyramidal_layers: 3
+  eklt_scale: 4
+  eklt_display_features: false
+  eklt_display_feature_id: false
+  eklt_display_feature_patches: false
+  eklt_max_corners: 60
+  eklt_min_corners: 35
+  eklt_log_eps: 0.01
+  eklt_harris_block_size: 3
+  eklt_harris_k: 0.04
+#  eklt_detection_min_distance: 25
+  eklt_harris_quality_level: 0.3
+
+datasets:
+  - name: Indoor 45 Seq 2
+    rosbag: ${XVIO_DATASET_DIR}/rpg_fpv/indoor_45_2_davis_with_gt.bag
+    from: 1545305731.5095596
+    to: 1545305770.6105537
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /groundtruth/colmap
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_fpv.yaml
+    override_params:
+      # initial state computed from topic /groundtruth/colmap over 100ms:
+      p: [ -3.44464409301, 4.65997703584, -0.801343059478 ]
+      v: [ 0.5435364022578789, 1.1860373128293273, 1.923599302722088 ]
+      q: [ -0.306097713576, 0.93164031599, -0.183486788497, 0.068433250789 ] #[w,x,y,z]
+
+  - name: Indoor 45 Seq 12
+    rosbag: ${XVIO_DATASET_DIR}/rpg_fpv/indoor_45_12_davis_with_gt.bag
+    from: 1545313504.2094511
+    to: 1545313548.7104790
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /groundtruth/colmap
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${XVIO_SRC_ROOT}/params_rpg_fpv.yaml
+    override_params:
+      # initial state computed from topic /groundtruth/colmap over 100ms:
+      p: [ -4.82944522786, 4.32989302502, -1.00369279693 ]
+      v: [ -0.009830929637316676, 0.000989647805908094, 0.005835679570204378 ]
+      q: [ -0.339599726372, 0.828465062019, -0.408797665913, 0.176641261335 ] #[w,x,y,z]
