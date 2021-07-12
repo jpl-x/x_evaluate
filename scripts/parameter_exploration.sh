@@ -33,7 +33,19 @@ EXPLORE_EKLT_FEATURE_INTERPOLATION_RELATIVE_LIMIT=0
 EXPLORE_EKLT_FEATURE_INTERPOLATION_ABSOLUTE_LIMIT=0
 EXPLORE_EKLT_LINLOG_SCALE=0
 EXPLORE_EKLT_PATCH_TIMESTAMP_ASSIGNMENT=0
-EXPLORE_EKLT_SIGMA_IMG=1
+EXPLORE_EKLT_SIGMA_IMG=0
+EXPLORE_EKLT_HARRIS_K=1
+EXPLORE_EKLT_HARRIS_QL=0
+EXPLORE_HASTE_TYPE=0
+EXPLORE_HASTE_HARRIS_K=0
+EXPLORE_HASTE_HARRIS_QL=0
+EXPLORE_HASTE_OUTLIER_METHOD=0
+EXPLORE_HASTE_OUTLIER_METHOD_EVRY_MSG=0
+EXPLORE_HASTE_DIFF_HASTE_OUTLIER_METHOD=0
+EXPLORE_HASTE_INTERPOLATION_TIMESTAMP=0
+EXPLORE_HASTE_FEATURE_INTERPOLATION=0
+EXPLORE_HASTE_UPDATE_STRATEGY_N_MSEC=0
+EXPLORE_HASTE_UPDATE_STRATEGY_N_EVENTS=0
 
 
 cleanup () {
@@ -1692,5 +1704,840 @@ then
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-eklt-sigma-img/ --output_folder $1/$DATE-eklt-sigma-img/results
+
+fi
+
+
+if [ $EXPLORE_EKLT_HARRIS_K -gt 0 ]
+then
+  echo
+  echo "Performing EKLT HARRIS K exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-eklt-harris-k/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/001-harris-k-0 --frontend \
+     EKLT --name "EKLT harris_k=0" --overrides eklt_harris_k=0
+
+    cleanup $1/$DATE-eklt-harris-k/001-harris-k-0
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/002-harris-k-0.01 --frontend \
+     EKLT --name "EKLT harris_k=0.01" --overrides eklt_harris_k=0.01
+
+    cleanup $1/$DATE-eklt-harris-k/002-harris-k-0.01
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/003-harris-k-0.025 --frontend \
+     EKLT --name "EKLT harris_k=0.025" --overrides eklt_harris_k=0.025
+
+    cleanup $1/$DATE-eklt-harris-k/003-harris-k-0.025
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/004-harris-k-0.04 --frontend \
+     EKLT --name "EKLT harris_k=0.04" --overrides eklt_harris_k=0.04
+
+    cleanup $1/$DATE-eklt-harris-k/004-harris-k-0.04
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/005-harris-k-0.06 --frontend \
+     EKLT --name "EKLT harris_k=0.06" --overrides eklt_harris_k=0.06
+
+    cleanup $1/$DATE-eklt-harris-k/005-harris-k-0.06
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/006-harris-k-0.08 --frontend \
+     EKLT --name "EKLT harris_k=0.08" --overrides eklt_harris_k=0.08
+
+    cleanup $1/$DATE-eklt-harris-k/006-harris-k-0.08
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/007-harris-k-0.1 --frontend \
+     EKLT --name "EKLT harris_k=0.1" --overrides eklt_harris_k=0.1
+
+    cleanup $1/$DATE-eklt-harris-k/007-harris-k-0.1
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-k/008-harris-k-0.2 --frontend \
+     EKLT --name "EKLT harris_k=0.2" --overrides eklt_harris_k=0.2
+
+    cleanup $1/$DATE-eklt-harris-k/008-harris-k-0.2
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-harris-k/ --output_folder $1/$DATE-eklt-harris-k/results
+
+fi
+
+
+if [ $EXPLORE_EKLT_HARRIS_QL -gt 0 ]
+then
+  echo
+  echo "Performing EKLT HARRIS QL exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-eklt-harris-ql/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/002-harris-ql-0.05 --frontend \
+     EKLT --name "EKLT harris_ql=0.05" --overrides eklt_harris_quality_level=0.05
+
+    cleanup $1/$DATE-eklt-harris-ql/002-harris-ql-0.05
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/003-harris-ql-0.1 --frontend \
+     EKLT --name "EKLT harris_ql=0.1" --overrides eklt_harris_quality_level=0.1
+
+    cleanup $1/$DATE-eklt-harris-ql/003-harris-ql-0.1
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/004-harris-ql-0.15 --frontend \
+     EKLT --name "EKLT harris_ql=0.15" --overrides eklt_harris_quality_level=0.15
+
+    cleanup $1/$DATE-eklt-harris-ql/004-harris-ql-0.15
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/005-harris-ql-0.2 --frontend \
+     EKLT --name "EKLT harris_ql=0.2" --overrides eklt_harris_quality_level=0.2
+
+    cleanup $1/$DATE-eklt-harris-ql/005-harris-ql-0.2
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/006-harris-ql-0.25 --frontend \
+     EKLT --name "EKLT harris_ql=0.25" --overrides eklt_harris_quality_level=0.25
+
+    cleanup $1/$DATE-eklt-harris-ql/006-harris-ql-0.25
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/007-harris-ql-0.3 --frontend \
+     EKLT --name "EKLT harris_ql=0.3" --overrides eklt_harris_quality_level=0.3
+
+    cleanup $1/$DATE-eklt-harris-ql/007-harris-ql-0.3
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-eklt-harris-ql/008-harris-ql-0.35 --frontend \
+     EKLT --name "EKLT harris_ql=0.35" --overrides eklt_harris_quality_level=0.35
+
+    cleanup $1/$DATE-eklt-harris-ql/008-harris-ql-0.35
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-eklt-harris-ql/ --output_folder $1/$DATE-eklt-harris-ql/results
+
+fi
+
+
+
+if [ $EXPLORE_HASTE_OUTLIER_METHOD -gt 0 ]
+then
+  echo
+  echo "Performing HASTE outlier_method exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/000-baseline --frontend \
+     HASTE --name "HASTE baseline"
+
+    cleanup $1/$DATE-haste-outlier-method/000-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/000-haste-remove-outliers-off \
+      --frontend HASTE --name "HASTE outlier removal OFF" --overrides haste_enable_outlier_removal=false
+
+    cleanup $1/$DATE-haste-outlier-method/000-haste-remove-outliers-off
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/001-ransac-px-1.2 --frontend \
+     HASTE --name "HASTE RANSAC px=1.2" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/001-ransac-px-1.2
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/002-ransac-px-1.3 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/002-ransac-px-1.3
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/003-ransac-px-1.4 --frontend \
+     HASTE --name "HASTE RANSAC px=1.4" --overrides haste_outlier_method=8 haste_outlier_param1=1.4 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/003-ransac-px-1.4
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/004-ransac-px-1.5 --frontend \
+     HASTE --name "HASTE RANSAC px=1.5" --overrides haste_outlier_method=8 haste_outlier_param1=1.5 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/004-ransac-px-1.5
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/005-ransac-px-1.6 --frontend \
+     HASTE --name "HASTE RANSAC px=1.6" --overrides haste_outlier_method=8 haste_outlier_param1=1.6 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/005-ransac-px-1.6
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/006-ransac-px-1.7 --frontend \
+     HASTE --name "HASTE RANSAC px=1.7" --overrides haste_outlier_method=8 haste_outlier_param1=1.7 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/006-ransac-px-1.7
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/007-ransac-px-1.8 --frontend \
+     HASTE --name "HASTE RANSAC px=1.8" --overrides haste_outlier_method=8 haste_outlier_param1=1.8 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/007-ransac-px-1.8
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/008-ransac-px-1.9 --frontend \
+     HASTE --name "HASTE RANSAC px=1.9" --overrides haste_outlier_method=8 haste_outlier_param1=1.9 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/008-ransac-px-1.9
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/009-ransac-px-2.0 --frontend \
+     HASTE --name "HASTE RANSAC px=2.0" --overrides haste_outlier_method=8 haste_outlier_param1=2.0 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/009-ransac-px-2.0
+
+    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/010-ransac-px-1.0 --frontend \
+    #  HASTE --name "HASTE RANSAC px=1.0" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.95
+
+    # cleanup $1/$DATE-haste-outlier-method/010-ransac-px-1.0
+
+    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/011-ransac-px-1.1 --frontend \
+    #  HASTE --name "HASTE RANSAC px=1.1" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.95
+
+    # cleanup $1/$DATE-haste-outlier-method/011-ransac-px-1.1
+
+    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/012-ransac-px-1.2 --frontend \
+    #  HASTE --name "HASTE RANSAC px=1.2" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.95
+
+    # cleanup $1/$DATE-haste-outlier-method/012-ransac-px-1.2
+
+    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/013-ransac-px-1.3 --frontend \
+    #  HASTE --name "HASTE RANSAC px=1.3" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95
+
+    # cleanup $1/$DATE-haste-outlier-method/013-ransac-px-1.3
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/014-ransac-p-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.8" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.8
+
+    cleanup $1/$DATE-haste-outlier-method/014-ransac-p-0.8
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/015-ransac-p-0.85 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.85" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.85
+
+    cleanup $1/$DATE-haste-outlier-method/015-ransac-p-0.85
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/016-ransac-p-0.9 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.9" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.9
+
+    cleanup $1/$DATE-haste-outlier-method/016-ransac-p-0.9
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/017-ransac-p-0.95 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method/017-ransac-p-0.95
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/017-ransac-p-0.98 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method/017-ransac-p-0.98
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method/017-ransac-p-0.99 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method/017-ransac-p-0.99
+    
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method/ --output_folder $1/$DATE-haste-outlier-method/results
+
+fi
+
+
+
+
+
+
+
+if [ $EXPLORE_HASTE_OUTLIER_METHOD_EVRY_MSG -gt 0 ]
+then
+  echo
+  echo "Performing HASTE outlier_method EVRY_MSG exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/000-baseline --frontend \
+     HASTE --name "HASTE baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/000-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/000-haste-remove-outliers-off \
+      --frontend HASTE --name "HASTE outlier removal OFF" --overrides haste_enable_outlier_removal=false haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/000-haste-remove-outliers-off
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/001-ransac-px-0.1 --frontend \
+     HASTE --name "HASTE RANSAC px=0.1" --overrides haste_outlier_method=8 haste_outlier_param1=0.1 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/001-ransac-px-0.1
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/002-ransac-px-0.2 --frontend \
+     HASTE --name "HASTE RANSAC px=0.2" --overrides haste_outlier_method=8 haste_outlier_param1=0.2 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/002-ransac-px-0.2
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/003-ransac-px-0.3 --frontend \
+     HASTE --name "HASTE RANSAC px=0.3" --overrides haste_outlier_method=8 haste_outlier_param1=0.3 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/003-ransac-px-0.3
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/004-ransac-px-0.4 --frontend \
+     HASTE --name "HASTE RANSAC px=0.4" --overrides haste_outlier_method=8 haste_outlier_param1=0.4 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/004-ransac-px-0.4
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/005-ransac-px-0.5 --frontend \
+     HASTE --name "HASTE RANSAC px=0.5" --overrides haste_outlier_method=8 haste_outlier_param1=0.5 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/005-ransac-px-0.5
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/006-ransac-px-0.6 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/006-ransac-px-0.6
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/007-ransac-px-0.7 --frontend \
+     HASTE --name "HASTE RANSAC px=0.7" --overrides haste_outlier_method=8 haste_outlier_param1=0.7 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/007-ransac-px-0.7
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/008-ransac-px-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=0.8" --overrides haste_outlier_method=8 haste_outlier_param1=0.8 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/008-ransac-px-0.8
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/009-ransac-px-0.9 --frontend \
+     HASTE --name "HASTE RANSAC px=0.9" --overrides haste_outlier_method=8 haste_outlier_param1=0.9 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/009-ransac-px-0.9
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/010-ransac-px-1.0 --frontend \
+     HASTE --name "HASTE RANSAC px=1.0" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/010-ransac-px-1.0
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/011-ransac-px-1.1 --frontend \
+     HASTE --name "HASTE RANSAC px=1.1" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/011-ransac-px-1.1
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/012-ransac-px-1.2 --frontend \
+     HASTE --name "HASTE RANSAC px=1.2" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/012-ransac-px-1.2
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/013-ransac-px-1.3 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/013-ransac-px-0.85
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/014-ransac-p-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.8" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.8 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/014-ransac-p-0.8
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/015-ransac-p-0.85 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.85" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.85 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/015-ransac-p-0.85
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/016-ransac-p-0.9 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.9" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.9 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/016-ransac-p-0.9
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-outlier-method-evry-msg/017-ransac-p-0.95 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.95 haste_ekf_update_strategy=every-ros-event-message
+
+    cleanup $1/$DATE-haste-outlier-method-evry-msg/017-ransac-p-0.95
+    
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-evry-msg/ --output_folder $1/$DATE-haste-outlier-method-evry-msg/results
+
+fi
+
+
+
+
+
+if [ $EXPLORE_HASTE_DIFF_HASTE_OUTLIER_METHOD -gt 0 ]
+then
+  echo
+  echo "Performing HASTE DIFF haste_outlier_method exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-diff-outlier-method/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/001-ransac-px-0.2 --frontend \
+     HASTE --name "HASTE RANSAC px=0.2" --overrides haste_outlier_method=8 haste_outlier_param1=0.2 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/001-ransac-px-0.2
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/002-ransac-px-0.25 --frontend \
+     HASTE --name "HASTE RANSAC px=0.25" --overrides haste_outlier_method=8 haste_outlier_param1=0.25 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/002-ransac-px-0.25
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/003-ransac-px-0.35 --frontend \
+     HASTE --name "HASTE RANSAC px=0.35" --overrides haste_outlier_method=8 haste_outlier_param1=0.35 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/003-ransac-px-0.35
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/004-ransac-px-0.4 --frontend \
+     HASTE --name "HASTE RANSAC px=0.4" --overrides haste_outlier_method=8 haste_outlier_param1=0.4 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/004-ransac-px-0.4
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/005-ransac-px-0.45 --frontend \
+     HASTE --name "HASTE RANSAC px=0.45" --overrides haste_outlier_method=8 haste_outlier_param1=0.45 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/005-ransac-px-0.45
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/006-ransac-px-0.5 --frontend \
+     HASTE --name "HASTE RANSAC px=0.5" --overrides haste_outlier_method=8 haste_outlier_param1=0.5 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/006-ransac-px-0.5
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/007-ransac-px-0.55 --frontend \
+     HASTE --name "HASTE RANSAC px=0.55" --overrides haste_outlier_method=8 haste_outlier_param1=0.55 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/007-ransac-px-0.55
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/008-ransac-px-0.6 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/008-ransac-px-0.6
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/009-ransac-px-0.65 --frontend \
+     HASTE --name "HASTE RANSAC px=0.65" --overrides haste_outlier_method=8 haste_outlier_param1=0.65 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/009-ransac-px-0.65
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/010-ransac-px-0.7 --frontend \
+     HASTE --name "HASTE RANSAC px=0.7" --overrides haste_outlier_method=8 haste_outlier_param1=0.7 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/010-ransac-px-0.7
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/011-ransac-px-0.75 --frontend \
+     HASTE --name "HASTE RANSAC px=0.75" --overrides haste_outlier_method=8 haste_outlier_param1=0.75 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/011-ransac-px-0.75
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/012-ransac-px-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=0.8" --overrides haste_outlier_method=8 haste_outlier_param1=0.8 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/012-ransac-px-0.8
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/013-ransac-px-0.85 --frontend \
+     HASTE --name "HASTE RANSAC px=0.85" --overrides haste_outlier_method=8 haste_outlier_param1=0.85 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/013-ransac-px-0.85
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/014-ransac-p-0.95 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.95 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/014-ransac-p-0.95
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/015-ransac-p-0.98 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.98 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/015-ransac-p-0.98
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/016-ransac-p-0.99 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.99 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/016-ransac-p-0.99
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-diff-outlier-method/017-ransac-p-0.999 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.999" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.999 haste_tracker_type=haste-difference
+
+    cleanup $1/$DATE-haste-diff-outlier-method/017-ransac-p-0.999
+    
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-diff-outlier-method/ --output_folder $1/$DATE-haste-diff-outlier-method/results
+
+fi
+
+
+if [ $EXPLORE_HASTE_TYPE -gt 0 ]
+then
+  echo
+  echo "Performing HASTE type exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-tracker-type/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-tracker-type/001-type-correlation \
+      --frontend HASTE --name "HASTE (correlation)" --overrides haste_tracker_type=correlation
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-tracker-type/002-type-haste-correlation \
+      --frontend HASTE --name "HASTE (haste-correlation)" --overrides haste_tracker_type=haste-correlation
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-tracker-type/003-type-haste-correlation-star \
+      --frontend HASTE --name "HASTE (haste-correlation-star)" --overrides haste_tracker_type=haste-correlation-star
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-tracker-type/004-type-haste-difference \
+      --frontend HASTE --name "HASTE (haste-difference)" --overrides haste_tracker_type=haste-difference
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-tracker-type/005-type-haste-difference-star \
+      --frontend HASTE --name "HASTE (haste-difference-star)" --overrides haste_tracker_type=haste-difference-star
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-tracker-type/ --output_folder $1/$DATE-haste-tracker-type/results
+
+fi
+
+
+if [ $EXPLORE_HASTE_INTERPOLATION_TIMESTAMP -gt 0 ]
+then
+  echo
+  echo "Performing HASTE INTERPOLATION_TIMESTAMP exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-interpolation-ts/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-interpolation-ts/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-interpolation-ts/001-haste-baseline \
+      --frontend HASTE --name "HASTE baseline"
+
+    cleanup $1/$DATE-haste-interpolation-ts/001-haste-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-interpolation-ts/002-haste-interpolation-t-avg \
+      --frontend HASTE --name "HASTE ekf update ts AVG" --overrides haste_ekf_update_timestamp=patches-average
+
+    cleanup $1/$DATE-haste-interpolation-ts/002-haste-interpolation-t-avg
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-interpolation-ts/003-haste-interpolation-t-max \
+      --frontend HASTE --name "HASTE ekf update ts MAX" --overrides haste_ekf_update_timestamp=patches-maximum
+
+    cleanup $1/$DATE-haste-interpolation-ts/003-haste-interpolation-t-max
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-interpolation-ts/004-haste-interpolation-latest-ev \
+      --frontend HASTE --name "HASTE ekf update ts latest event" --overrides haste_ekf_update_timestamp=latest-event-ts
+
+    cleanup $1/$DATE-haste-interpolation-ts/004-haste-interpolation-latest-ev
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-interpolation-ts/ --output_folder $1/$DATE-haste-interpolation-ts/results
+
+fi
+
+
+
+if [ $EXPLORE_HASTE_FEATURE_INTERPOLATION -gt 0 ]
+then
+  echo
+  echo "Performing HASTE FEATURE_INTERPOLATION exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-feature-interpolation/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-feature-interpolation/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-feature-interpolation/001-haste-nearest-neighbor \
+      --frontend HASTE --name "HASTE 10ms feat interpol NN" --overrides haste_ekf_feature_interpolation=nearest-neighbor haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=10
+
+    cleanup $1/$DATE-haste-feature-interpolation/001-haste-nearest-neighbor
+
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-feature-interpolation/002-haste-relative-limit \
+      --frontend HASTE --name "HASTE 10ms linear-relative-limit 1.0" --overrides haste_ekf_feature_interpolation=linear-relative-limit haste_ekf_feature_extrapolation_limit=1.0 haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=10
+
+    cleanup $1/$DATE-haste-feature-interpolation/002-haste-relative-limit
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-feature-interpolation/003-haste-absolute-limit \
+      --frontend HASTE --name "HASTE 10ms linear-absolute-limit 5ms" --overrides haste_ekf_feature_interpolation=linear-absolute-limit haste_ekf_feature_extrapolation_limit=5 haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=10
+
+    cleanup $1/$DATE-haste-feature-interpolation/003-haste-absolute-limit
+
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-feature-interpolation/ --output_folder $1/$DATE-haste-feature-interpolation/results
+
+fi
+
+
+
+
+if [ $EXPLORE_HASTE_UPDATE_STRATEGY_N_MSEC -gt 0 ]
+then
+  echo
+  echo "Performing HASTE UPDATE_STRATEGY_N_MSEC exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-update-strategy-msec/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/001-haste-update-1-msec \
+      --frontend HASTE --name "HASTE update every 1msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=1
+
+    cleanup $1/$DATE-haste-update-strategy-msec/001-haste-update-1-msec
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/002-haste-update-2-msec \
+      --frontend HASTE --name "HASTE update every 2msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=2
+
+    cleanup $1/$DATE-haste-update-strategy-msec/002-haste-update-2-msec
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/003-haste-update-3-msec \
+      --frontend HASTE --name "HASTE update every 3msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=3
+
+    cleanup $1/$DATE-haste-update-strategy-msec/003-haste-update-3-msec
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/004-haste-update-5-msec \
+      --frontend HASTE --name "HASTE update every 5msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=5
+
+    cleanup $1/$DATE-haste-update-strategy-msec/004-haste-update-5-msec
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/005-haste-update-7-msec \
+      --frontend HASTE --name "HASTE update every 7msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=7
+
+    cleanup $1/$DATE-haste-update-strategy-msec/005-haste-update-7-msec
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/006-haste-update-9-msec \
+      --frontend HASTE --name "HASTE update every 9msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=9
+
+    cleanup $1/$DATE-haste-update-strategy-msec/006-haste-update-9-msec
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/007-haste-update-12-msec \
+      --frontend HASTE --name "HASTE update every 12msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=12
+
+    cleanup $1/$DATE-haste-update-strategy-msec/007-haste-update-12-msec
+
+    # python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-msec/008-haste-update-40-msec \
+    #   --frontend HASTE --name "HASTE update every 40msec" --overrides haste_ekf_update_strategy=every-n-msec-with-events haste_ekf_update_every_n=40
+
+    # cleanup $1/$DATE-haste-update-strategy-msec/008-haste-update-40-msec
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-update-strategy-msec/ --output_folder $1/$DATE-haste-update-strategy-msec/results
+
+fi
+
+
+
+
+
+if [ $EXPLORE_HASTE_UPDATE_STRATEGY_N_EVENTS -gt 0 ]
+then
+  echo
+  echo "Performing HASTE UPDATE_STRATEGY_N_EVENTS exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/000-xvio-baseline \
+      --frontend XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/001-haste-update-500-events \
+      --frontend HASTE --name "HASTE update every 500 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=500
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/001-haste-update-500-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/002-haste-update-1000-events \
+      --frontend HASTE --name "HASTE update every 1000 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=1000
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/002-haste-update-1000-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/003-haste-update-2000-events \
+      --frontend HASTE --name "HASTE update every 2000 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=2000
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/003-haste-update-2000-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/004-haste-update-3600-events \
+      --frontend HASTE --name "HASTE update every 3600 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=3600
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/004-haste-update-3600-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/005-haste-update-4800-events \
+      --frontend HASTE --name "HASTE update every 4800 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=4800
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/005-haste-update-4800-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/006-haste-update-7200-events \
+      --frontend HASTE --name "HASTE update every 7200 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=7200
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/006-haste-update-7200-events
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-update-strategy-n-events/007-haste-update-9200-events \
+      --frontend HASTE --name "HASTE update every 9200 events" --overrides haste_ekf_update_strategy=every-n-events haste_ekf_update_every_n=9200
+
+    cleanup $1/$DATE-haste-update-strategy-n-events/007-haste-update-9200-events
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-update-strategy-n-events/ --output_folder $1/$DATE-haste-update-strategy-n-events/results
+
+fi
+
+
+
+if [ $EXPLORE_HASTE_HARRIS_K -gt 0 ]
+then
+  echo
+  echo "Performing HASTE HARRIS K exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-harris-k/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/001-harris-k-0 --frontend \
+     HASTE --name "HASTE harris_k=0" --overrides haste_harris_k=0
+
+    cleanup $1/$DATE-haste-harris-k/001-harris-k-0
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/002-harris-k-0.01 --frontend \
+     HASTE --name "HASTE harris_k=0.01" --overrides haste_harris_k=0.01
+
+    cleanup $1/$DATE-haste-harris-k/002-harris-k-0.01
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/003-harris-k-0.025 --frontend \
+     HASTE --name "HASTE harris_k=0.025" --overrides haste_harris_k=0.025
+
+    cleanup $1/$DATE-haste-harris-k/003-harris-k-0.025
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/004-harris-k-0.04 --frontend \
+     HASTE --name "HASTE harris_k=0.04" --overrides haste_harris_k=0.04
+
+    cleanup $1/$DATE-haste-harris-k/004-harris-k-0.04
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/005-harris-k-0.06 --frontend \
+     HASTE --name "HASTE harris_k=0.06" --overrides haste_harris_k=0.06
+
+    cleanup $1/$DATE-haste-harris-k/005-harris-k-0.06
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/006-harris-k-0.08 --frontend \
+     HASTE --name "HASTE harris_k=0.08" --overrides haste_harris_k=0.08
+
+    cleanup $1/$DATE-haste-harris-k/006-harris-k-0.08
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/007-harris-k-0.1 --frontend \
+     HASTE --name "HASTE harris_k=0.1" --overrides haste_harris_k=0.1
+
+    cleanup $1/$DATE-haste-harris-k/007-harris-k-0.1
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-k/008-harris-k-0.2 --frontend \
+     HASTE --name "HASTE harris_k=0.2" --overrides haste_harris_k=0.2
+
+    cleanup $1/$DATE-haste-harris-k/008-harris-k-0.2
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-harris-k/ --output_folder $1/$DATE-haste-harris-k/results
+
+fi
+
+
+if [ $EXPLORE_HASTE_HARRIS_QL -gt 0 ]
+then
+  echo
+  echo "Performing HASTE HARRIS QL exploration"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-harris-ql/000-xvio-baseline
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/001-harris-ql-0 --frontend \
+     HASTE --name "HASTE harris_ql=0" --overrides haste_harris_quality_level=0
+
+    cleanup $1/$DATE-haste-harris-ql/001-harris-ql-0
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/002-harris-ql-0.05 --frontend \
+     HASTE --name "HASTE harris_ql=0.05" --overrides haste_harris_quality_level=0.05
+
+    cleanup $1/$DATE-haste-harris-ql/002-harris-ql-0.05
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/003-harris-ql-0.1 --frontend \
+     HASTE --name "HASTE harris_ql=0.1" --overrides haste_harris_quality_level=0.1
+
+    cleanup $1/$DATE-haste-harris-ql/003-harris-ql-0.1
+
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/004-harris-ql-0.15 --frontend \
+     HASTE --name "HASTE harris_ql=0.15" --overrides haste_harris_quality_level=0.15
+
+    cleanup $1/$DATE-haste-harris-ql/004-harris-ql-0.15
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/005-harris-ql-0.2 --frontend \
+     HASTE --name "HASTE harris_ql=0.2" --overrides haste_harris_quality_level=0.2
+
+    cleanup $1/$DATE-haste-harris-ql/005-harris-ql-0.2
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/006-harris-ql-0.25 --frontend \
+     HASTE --name "HASTE harris_ql=0.25" --overrides haste_harris_quality_level=0.25
+
+    cleanup $1/$DATE-haste-harris-ql/006-harris-ql-0.25
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/007-harris-ql-0.3 --frontend \
+     HASTE --name "HASTE harris_ql=0.3" --overrides haste_harris_quality_level=0.3
+
+    cleanup $1/$DATE-haste-harris-ql/007-harris-ql-0.3
+     
+    python evaluate.py --configuration evaluate.yaml --output_folder $1/$DATE-haste-harris-ql/008-harris-ql-0.35 --frontend \
+     HASTE --name "HASTE harris_ql=0.35" --overrides haste_harris_quality_level=0.35
+
+    cleanup $1/$DATE-haste-harris-ql/008-harris-ql-0.35
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-harris-ql/ --output_folder $1/$DATE-haste-harris-ql/results
 
 fi
