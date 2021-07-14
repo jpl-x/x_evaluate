@@ -13,7 +13,7 @@ from x_evaluate.utils import read_output_files, read_eklt_output_files, DynamicA
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
-                     frontend):
+                     frontend, from_t=None, to_t=None):
     if pose_topic is None:
         pose_topic = "\"\""
     if events_topic is None:
@@ -28,6 +28,12 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, eve
               F" --params_file {params_file}" \
               F" --output_folder {output_folder}" \
               F" --frontend {frontend}"
+
+    if from_t:
+        command += F" --from {from_t}"
+
+    if to_t:
+        command += F" --to {to_t}"
     # when running from console this was necessary
     command = command.replace('\n', ' ')
     print(F"Running {command}")
@@ -54,6 +60,16 @@ def get_git_info(path) -> GitInfo:
                    files_changed=len(x.index.diff(None)) > 0)
 
 
+def does_key_exist(dataset, key):
+    return (key in dataset.keys()) and dataset[key] is not None
+
+
+def get_param_if_exists(dataset, key):
+    if does_key_exist(dataset, key):
+        return dataset[key]
+    return None
+
+
 def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file, cmdline_override_params,
                     frontend: FrontEnd) -> EvaluationData:
 
@@ -63,11 +79,11 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     d.params = create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename, cmdline_override_params)
     d.command = run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
                                  dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
-                                 frontend)
+                                 frontend, get_param_if_exists(dataset, 'from'), get_param_if_exists(dataset, 'to'))
 
     print(F"Running dataset completed, analyzing outputs now...")
 
-    gt_available = dataset['pose_topic'] is not None
+    gt_available = does_key_exist(dataset, 'pose_topic')
 
     df_groundtruth, df_poses, df_realtime, df_features,\
     df_resources, df_xvio_tracks, df_imu_bias = read_output_files(output_folder, gt_available)
