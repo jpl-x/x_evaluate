@@ -907,23 +907,23 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/000-baseline --frontend \
      XVIO --name "XVIO baseline"
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/001-imu-acc-spike-10 --frontend \
-     XVIO --name "XVIO IMU spike 10" --overrides a_m_max=10
-
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/002-imu-acc-spike-20 --frontend \
-     XVIO --name "XVIO IMU spike 20" --overrides a_m_max=20
-
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/003-imu-acc-spike-30 --frontend \
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/001-imu-acc-spike-30 --frontend \
      XVIO --name "XVIO IMU spike 30" --overrides a_m_max=30
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/004-imu-acc-spike-40 --frontend \
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/002-imu-acc-spike-40 --frontend \
      XVIO --name "XVIO IMU spike 40" --overrides a_m_max=40
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/005-imu-acc-spike-50 --frontend \
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/003-imu-acc-spike-50 --frontend \
      XVIO --name "XVIO IMU spike 50" --overrides a_m_max=50
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/006-imu-acc-spike-60 --frontend \
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/004-imu-acc-spike-60 --frontend \
      XVIO --name "XVIO IMU spike 60" --overrides a_m_max=60
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/005-imu-acc-spike-70 --frontend \
+     XVIO --name "XVIO IMU spike 70" --overrides a_m_max=70
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-acc-spike/006-imu-acc-spike-80 --frontend \
+     XVIO --name "XVIO IMU spike 80" --overrides a_m_max=80
 
   fi
 
@@ -952,10 +952,10 @@ then
 
     cleanup $1/$DATE-eklt-patch-size/001-p-15
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/002-p-17 \
-      --frontend EKLT --name "EKLT p=17" --overrides eklt_patch_size=17 eklt_detection_min_distance=8
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/002-p-17 \
+    #   --frontend EKLT --name "EKLT p=17" --overrides eklt_patch_size=17 eklt_detection_min_distance=8
 
-    cleanup $1/$DATE-eklt-patch-size/002-p-17
+    # cleanup $1/$DATE-eklt-patch-size/002-p-17
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/003-p-19 \
       --frontend EKLT --name "EKLT p=19" --overrides eklt_patch_size=19 eklt_detection_min_distance=9
@@ -967,25 +967,30 @@ then
 
     cleanup $1/$DATE-eklt-patch-size/004-p-21
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/005-p-23 \
-      --frontend EKLT --name "EKLT p=23" --overrides eklt_patch_size=21 eklt_detection_min_distance=11
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/005-p-23 \
+    #   --frontend EKLT --name "EKLT p=23" --overrides eklt_patch_size=21 eklt_detection_min_distance=11
 
-    cleanup $1/$DATE-eklt-patch-size/005-p-23
+    # cleanup $1/$DATE-eklt-patch-size/005-p-23
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/006-p-25 \
       --frontend EKLT --name "EKLT p=25" --overrides eklt_patch_size=25 eklt_detection_min_distance=12
 
     cleanup $1/$DATE-eklt-patch-size/006-p-25
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/007-p-27 \
-      --frontend EKLT --name "EKLT p=27" --overrides eklt_patch_size=27 eklt_detection_min_distance=13
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/007-p-27 \
+    #   --frontend EKLT --name "EKLT p=27" --overrides eklt_patch_size=27 eklt_detection_min_distance=13
 
     cleanup $1/$DATE-eklt-patch-size/007-p-27
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/008-p-29 \
-      --frontend EKLT --name "EKLT p=29" --overrides eklt_patch_size=29 eklt_detection_min_distance=14
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/008-p-31 \
+      --frontend EKLT --name "EKLT p=31" --overrides eklt_patch_size=31 eklt_detection_min_distance=14
 
-    cleanup $1/$DATE-eklt-patch-size/008-p-29
+    cleanup $1/$DATE-eklt-patch-size/008-p-31
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/009-p-35 \
+      --frontend EKLT --name "EKLT p=35" --overrides eklt_patch_size=35 eklt_detection_min_distance=14
+
+    cleanup $1/$DATE-eklt-patch-size/009-p-35
 
     
   fi
@@ -1109,52 +1114,52 @@ then
     cleanup $1/$DATE-eklt-outlier-removal/002-eklt-remove-outliers-off
 
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/003-eklt-outliers-px0.3-p0.8 \
-      --frontend EKLT --name "EKLT outlier px=0.3 p=0.8" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.8
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/003-eklt-outliers-px1.3-p0.8 \
+      --frontend EKLT --name "EKLT outlier px=1.3 p=0.8" --overrides eklt_enable_outlier_removal=true outlier_param1=1.3 outlier_param2=0.8
 
-    cleanup $1/$DATE-eklt-outlier-removal/003-eklt-outliers-px0.3-p0.8
-
-
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/004-eklt-outliers-px0.3-p0.9 \
-      --frontend EKLT --name "EKLT outlier px=0.3 p=0.9" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.9
-
-    cleanup $1/$DATE-eklt-outlier-removal/004-eklt-outliers-px0.3-p0.9
+    cleanup $1/$DATE-eklt-outlier-removal/003-eklt-outliers-px1.3-p0.8
 
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/005-eklt-outliers-px0.3-p0.95 \
-      --frontend EKLT --name "EKLT outlier px=0.3 p=0.95" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.95
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/004-eklt-outliers-px1.3-p0.9 \
+      --frontend EKLT --name "EKLT outlier px=1.3 p=0.9" --overrides eklt_enable_outlier_removal=true outlier_param1=1.3 outlier_param2=0.9
 
-    cleanup $1/$DATE-eklt-outlier-removal/005-eklt-outliers-px0.3-p0.95
-
-
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/006-eklt-outliers-px0.3-p0.99 \
-      --frontend EKLT --name "EKLT outlier px=0.3 p=0.99" --overrides eklt_enable_outlier_removal=true outlier_param1=0.3 outlier_param2=0.99
-
-    cleanup $1/$DATE-eklt-outlier-removal/006-eklt-outliers-px0.3-p0.99
+    cleanup $1/$DATE-eklt-outlier-removal/004-eklt-outliers-px1.3-p0.9
 
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/007-eklt-outliers-px0.6-p0.8 \
-      --frontend EKLT --name "EKLT outlier px=0.6 p=0.8" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.8
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/005-eklt-outliers-px1.3-p0.95 \
+      --frontend EKLT --name "EKLT outlier px=1.3 p=0.95" --overrides eklt_enable_outlier_removal=true outlier_param1=1.3 outlier_param2=0.95
 
-    cleanup $1/$DATE-eklt-outlier-removal/007-eklt-outliers-px0.6-p0.8
-
-
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/008-eklt-outliers-px0.6-p0.9 \
-      --frontend EKLT --name "EKLT outlier px=0.6 p=0.9" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.9
-
-    cleanup $1/$DATE-eklt-outlier-removal/008-eklt-outliers-px0.6-p0.9
+    cleanup $1/$DATE-eklt-outlier-removal/005-eklt-outliers-px1.3-p0.95
 
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/009-eklt-outliers-px0.6-p0.95 \
-      --frontend EKLT --name "EKLT outlier px=0.6 p=0.95" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.95
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/006-eklt-outliers-px1.3-p0.99 \
+      --frontend EKLT --name "EKLT outlier px=1.3 p=0.99" --overrides eklt_enable_outlier_removal=true outlier_param1=1.3 outlier_param2=0.99
 
-    cleanup $1/$DATE-eklt-outlier-removal/009-eklt-outliers-px0.6-p0.95
+    cleanup $1/$DATE-eklt-outlier-removal/006-eklt-outliers-px1.3-p0.99
 
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/010-eklt-outliers-px0.6-p0.99 \
-      --frontend EKLT --name "EKLT outlier px=0.6 p=0.99" --overrides eklt_enable_outlier_removal=true outlier_param1=0.6 outlier_param2=0.99
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/007-eklt-outliers-px1.6-p0.8 \
+      --frontend EKLT --name "EKLT outlier px=1.6 p=0.8" --overrides eklt_enable_outlier_removal=true outlier_param1=1.6 outlier_param2=0.8
 
-    cleanup $1/$DATE-eklt-outlier-removal/010-eklt-outliers-px0.6-p0.99
+    cleanup $1/$DATE-eklt-outlier-removal/007-eklt-outliers-px1.6-p0.8
+
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/008-eklt-outliers-px1.6-p0.9 \
+      --frontend EKLT --name "EKLT outlier px=1.6 p=0.9" --overrides eklt_enable_outlier_removal=true outlier_param1=1.6 outlier_param2=0.9
+
+    cleanup $1/$DATE-eklt-outlier-removal/008-eklt-outliers-px1.6-p0.9
+
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/009-eklt-outliers-px1.6-p0.95 \
+      --frontend EKLT --name "EKLT outlier px=1.6 p=0.95" --overrides eklt_enable_outlier_removal=true outlier_param1=1.6 outlier_param2=0.95
+
+    cleanup $1/$DATE-eklt-outlier-removal/009-eklt-outliers-px1.6-p0.95
+
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-outlier-removal/010-eklt-outliers-px1.6-p0.99 \
+      --frontend EKLT --name "EKLT outlier px=1.6 p=0.99" --overrides eklt_enable_outlier_removal=true outlier_param1=1.6 outlier_param2=0.99
+
+    cleanup $1/$DATE-eklt-outlier-removal/010-eklt-outliers-px1.6-p0.99
 
 
   fi
