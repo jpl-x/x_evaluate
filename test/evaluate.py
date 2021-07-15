@@ -39,8 +39,8 @@ def main():
 
     if len(args.evaluate) == 0:
         try:
-            print("Calling catkin_find x_vio_ros evaluate")
-            stream = os.popen('catkin_find x_vio_ros evaluate')
+            print("Calling catkin_find x_evaluate evaluate")
+            stream = os.popen('catkin_find x_evaluate evaluate')
             args.evaluate = stream.read()
         finally:
             if len(args.evaluate) == 0:
@@ -54,10 +54,10 @@ def main():
     if len(args.dataset_dir) > 0:
         os.environ['XVIO_DATASET_DIR'] = args.dataset_dir
 
-    if 'XVIO_SRC_ROOT' not in os.environ:
+    if 'X_EVALUATE_SRC_ROOT' not in os.environ:
         src_root = os.path.normpath(os.path.join(script_dir, '..'))
-        print(F"Assuming '{src_root}' to be the xVIO source root")
-        os.environ['XVIO_SRC_ROOT'] = src_root
+        print(F"Assuming '{src_root}' to be the x_evaluate source root")
+        os.environ['X_EVALUATE_SRC_ROOT'] = src_root
 
     print(F"Reading '{args.configuration}'")
 
@@ -106,13 +106,13 @@ def main():
         pe.print_realtime_factor_summary(summary)
         fe.plot_summary_plots(summary, args.output_folder)
 
-        x_vio_ros_root = os.environ['XVIO_SRC_ROOT']
-        x_root = os.path.normpath(os.path.join(x_vio_ros_root, "../x"))
+        x_evaluate_root = os.environ['X_EVALUATE_SRC_ROOT']
+        x_root = os.path.normpath(os.path.join(x_evaluate_root, "../x"))
 
         print(F"Assuming '{x_root}' to be the x source root")
 
         summary.x_git_info = get_git_info(x_root)
-        summary.x_vio_ros_git_info = get_git_info(x_vio_ros_root)
+        summary.x_vio_ros_git_info = get_git_info(x_evaluate_root)
 
     finally:
         if summary is not None:

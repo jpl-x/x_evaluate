@@ -14,7 +14,7 @@ datasets:
     imu_topic: /dvs/imu
     depth_map_topic:
     camera_info_topic:
-    params: ${XVIO_SRC_ROOT}/params_rpg_fpv.yaml
+    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_fpv.yaml
     override_params:
       # initial state computed from topic /groundtruth/colmap over 100ms:
       p: [ -3.44464409301, 4.65997703584, -0.801343059478 ]
@@ -31,7 +31,7 @@ datasets:
     imu_topic: /dvs/imu
     depth_map_topic:
     camera_info_topic:
-    params: ${XVIO_SRC_ROOT}/params_rpg_fpv.yaml
+    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_fpv.yaml
     override_params:
       # initial state computed from topic /groundtruth/colmap over 100ms:
       p: [ -4.82944522786, 4.32989302502, -1.00369279693 ]

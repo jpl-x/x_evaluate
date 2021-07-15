@@ -19,6 +19,7 @@
 #include <memory>
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
+#include <cv_bridge/cv_bridge.h>
 
 #include <x/vio/parameter_loader.h>
 #include <x/vio/abstract_vio.h>
@@ -33,7 +34,6 @@
 #include <dvs_msgs/EventArray.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
-#include <x_vio_ros/ros_utils.h>
 
 // @see https://stackoverflow.com/a/58328388 and https://github.com/boostorg/timer/issues/12
 #define BOOST_ALLOW_DEPRECATED_HEADERS
@@ -42,6 +42,65 @@
 
 #include <sys/resource.h>
 #include <ctime>
+
+
+
+/**********************************************************************************************************************
+ *     Handy functions from ros_utils.cpp (x_vio_ros) --> (ugly duplication but avoids dependency on x_vio_ros)       *
+ **********************************************************************************************************************/
+
+x::EventArray::Ptr msgToEvents(const dvs_msgs::EventArrayConstPtr &events_msg_ptr) {
+  std::vector<x::Event> event_list;
+  event_list.reserve(events_msg_ptr->events.size());
+
+  for (const auto& e : events_msg_ptr->events) {
+    event_list.emplace_back(e.x, e.y, e.ts.toSec(), e.polarity);
+  }
+
+  x::EventArray::Ptr x_events(new x::EventArray(events_msg_ptr->header.seq, events_msg_ptr->height,
+                                                events_msg_ptr->width, event_list));
+  return x_events;
+}
+
+cv_bridge::CvImageConstPtr msgToImage(const sensor_msgs::ImageConstPtr &img) {
+  cv_bridge::CvImageConstPtr cv_ptr;
+  try
+  {
+    cv_ptr = cv_bridge::toCvShare(img, sensor_msgs::image_encodings::MONO8);
+  }
+  catch (cv_bridge::Exception& e)
+  {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+  }
+  return cv_ptr;
+}
+
+bool msgToTiledImage(const x::Params& params, const sensor_msgs::ImageConstPtr &img, x::TiledImage &tiledImage) {
+
+  auto cv_ptr = msgToImage(img);
+  if (!cv_ptr)
+    return false;
+
+  const unsigned int frame_number = img->header.seq;
+  auto timestamp = img->header.stamp.toSec();
+
+  // Shallow copies
+  tiledImage = x::TiledImage(cv_ptr->image, timestamp, frame_number,
+                             params.n_tiles_h, params.n_tiles_w, params.max_feat_per_tile);
+
+  return true;
+}
+
+inline x::Vector3 msgVector3ToEigen(geometry_msgs::Vector3 vector) {
+  return { vector.x, vector.y, vector.z };
+}
+
+
+
+/**********************************************************************************************************************
+ *                                  Command line arguments definition and processing                                  *
+ **********************************************************************************************************************/
+
 
 enum class Frontend : int8_t {
   XVIO = 0,
@@ -65,6 +124,9 @@ DEFINE_string(pose_topic, "", "(optional) topic publishing IMU pose ground truth
 DEFINE_string(imu_topic, "/imu", "topic in rosbag publishing sensor_msgs::Imu");
 DEFINE_string(params_file, "", "filename of the params.yaml to use");
 DEFINE_string(output_folder, "", "folder where to write output files, is created if not existent");
+DEFINE_double(from, std::numeric_limits<double>::min(), "skip messages with timestamp lower than --form");
+DEFINE_double(to, std::numeric_limits<double>::max(), "skip messages with timestamp bigger than --to");
+
 
 static bool validateFrontend(const char* flagname, const std::string& value) {
   if (frontends.find(value) != frontends.end())
@@ -85,8 +147,6 @@ static bool validateFrontend(const char* flagname, const std::string& value) {
 
 DEFINE_string(frontend, "XVIO", "which frontend to use");
 DEFINE_validator(frontend, &validateFrontend);
-DEFINE_double(from, std::numeric_limits<double>::min(), "skip messages with timestamp lower than --form");
-DEFINE_double(to, std::numeric_limits<double>::max(), "skip messages with timestamp bigger than --to");
 
 
 using PoseCsv = x::CsvWriter<std::string,
@@ -196,8 +256,8 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       auto msg = m.instantiate<sensor_msgs::Imu>();
       ++counter_imu;
 
-      auto a_m = x::msgVector3ToEigen(msg->linear_acceleration);
-      auto w_m = x::msgVector3ToEigen(msg->angular_velocity);
+      auto a_m = msgVector3ToEigen(msg->linear_acceleration);
+      auto w_m = msgVector3ToEigen(msg->angular_velocity);
 
       state = vio.processImu(msg->header.stamp.toSec(), msg->header.seq, w_m, a_m);
       EASY_END_BLOCK;
@@ -209,7 +269,7 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       ++counter_image;
 
       x::TiledImage image;
-      if (!x::msgToTiledImage(params, msg, image))
+      if (!msgToTiledImage(params, msg, image))
         continue;
       x::TiledImage feature_img(image);
       state = vio.processImageMeasurement(image.getTimestamp(), image.getFrameNumber(), image, feature_img);
@@ -221,7 +281,7 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       auto msg = m.instantiate<dvs_msgs::EventArray>();
       ++counter_events;
 
-      x::EventArray::Ptr x_events = x::msgToEvents(msg);
+      x::EventArray::Ptr x_events = msgToEvents(msg);
 
       x::TiledImage tracker_img, feature_img;
       state = vio.processEventsMeasurement(x_events, tracker_img, feature_img);

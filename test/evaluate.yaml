@@ -48,7 +48,7 @@ datasets:
      imu_topic: /imu
      depth_map_topic: /cam0/depthmap
      camera_info_topic: /cam0/camera_info
-     params: ${XVIO_SRC_ROOT}/params_esim_davis.yaml
+     params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis.yaml
      override_params:
        eklt_harris_k: 0
        eklt_harris_quality_level: 0.3
@@ -61,7 +61,7 @@ datasets:
 # #   image_topic: /cam0/image_raw
 # #   pose_topic: /cam0/pose
 # #   imu_topic: /imu
-# #   params: ${XVIO_SRC_ROOT}/params_esim_xplorer.yaml
+# #   params: ${X_EVALUATE_SRC_ROOT}/params_esim_xplorer.yaml
 # #   override_params:
 # #     eklt_harris_k: 0
 # #     eklt_harris_quality_level: 0.3
@@ -76,7 +76,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [0.3973783621825099, 1.4634966189993928, 1.277009988555527]
@@ -92,7 +92,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [0.4377675702385785, 1.4355954622129725, 1.347800331994997]
@@ -108,7 +108,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [0.8716231755899706, 0.44474793350063335, 0.9989513431677441]
@@ -124,7 +124,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [1.7204384315639738, -1.4040365404676252, 1.3217831481394802]
@@ -140,7 +140,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [1.7559837657864839, -1.4029898123647613, 1.295176006034351]
@@ -156,7 +156,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [0.5465085018503225, 1.317912016657276, 1.0658333845008365]
@@ -172,7 +172,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [4.418570010385964, -0.44641587064501287, 1.362028001448223]
@@ -188,7 +188,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [4.435079038565721, -0.4512899051834541, 1.436505416579184]
@@ -204,7 +204,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [4.552652911436765, -0.5422805681515743, 1.5452093200444588]
@@ -220,7 +220,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [4.346317210366623, 1.7357815456832344, 1.358592863606204]
@@ -236,7 +236,7 @@ datasets:
 #   imu_topic: /dvs/imu
 #   depth_map_topic:
 #   camera_info_topic:
-#   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 #   override_params:
 #     # initial state computed from topic /optitrack/davis over 100ms:
 #     p: [4.449337495808546, 1.6355674798866782, 1.4283528409457567]
@@ -252,7 +252,7 @@ datasets:
 ##   imu_topic: /fcu/imu
 ##   depth_map_topic:
 ##   camera_info_topic:
-##   params: ${XVIO_SRC_ROOT}/params.yaml
+##   params: ${X_EVALUATE_SRC_ROOT}/params.yaml
 ##
 #
 ## # ROTATION (diverging <-> non observable depth):
@@ -265,7 +265,7 @@ datasets:
 ##    imu_topic: /dvs/imu
 ##    depth_map_topic:
 ##    camera_info_topic:
-##    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+##    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 ##    override_params:
 ##      # initial state computed from topic /optitrack/davis over 100ms:
 ##      p: [0.30291768098742905, 1.430519451034191, 1.3521637770392119]
@@ -281,7 +281,7 @@ datasets:
 ##   imu_topic: /dvs/imu
 ##   depth_map_topic:
 ##   camera_info_topic:
-##   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+##   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 ##   override_params:
 ##     # initial state computed from topic /optitrack/davis over 100ms:
 ##     p: [1.6859278477713469, -1.4658295591389563, 1.298812520634158]
@@ -297,7 +297,7 @@ datasets:
 ##   imu_topic: /dvs/imu
 ##   depth_map_topic:
 ##   camera_info_topic:
-##   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+##   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 ##   override_params:
 ##     # initial state computed from topic /optitrack/davis over 100ms:
 ##     p: [4.461422921154449, 1.5512600588125605, 1.4175439815328836]
@@ -312,7 +312,7 @@ datasets:
 ##   imu_topic: /dvs/imu
 ##   depth_map_topic:
 ##   camera_info_topic:
-##   params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+##   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
 ##   override_params:
 ##     # initial state computed from topic /optitrack/davis over 100ms:
 ##     p: [4.526394089455742, -0.5973192737165077, 1.4715116414139455]
