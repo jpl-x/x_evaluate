@@ -20,7 +20,7 @@
 #include <yaml-cpp/yaml.h>
 #include <easy/profiler.h>
 
-#include <x_vio_ros/parameter_loader.h>
+#include <x/vio/parameter_loader.h>
 #include <x/vio/abstract_vio.h>
 #include <x/vio/vio.h>
 #include <x/eklt/types.h>
@@ -352,7 +352,16 @@ int main(int argc, char **argv) {
   YAML::Node config = YAML::LoadFile(FLAGS_params_file);
   x::ParameterLoader l;
   x::Params params;
-  auto success = l.loadXParamsWithYamlFile(config, params);
+  auto success = l.loadXParams(params, [config](const std::string& key, auto &par) -> bool {
+    if (config[key].IsDefined()) {
+      // this is ugly but the only way to get the correct auto type for the template interface as<T>
+      const auto& v = config[key].as<std::remove_reference_t<decltype(par)>>();
+      par = v;
+      return true;
+    }
+    return false;
+  });
+
   std::cerr << "Reading config '" << FLAGS_params_file << "' was " << (success ? "successful" : "failing")
             << std::endl;
 
