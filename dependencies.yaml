@@ -7,7 +7,3 @@ repositories:
     type: git
     url: git@github.com:ethz-asl/gflags_catkin.git
     version: master
-  x:
-    type: git
-    url: git@fornat1.jpl.nasa.gov:x/x.git
-    version: events
