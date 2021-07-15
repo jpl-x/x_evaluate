@@ -19,7 +19,10 @@ project(x_vio_ros)
 
 set (CMAKE_BUILD_TYPE Release)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og") # REMOVE ME LATER
+# build with catkin build x_vio_ros --cmake-args -DMY_DEBUG=1
+if (MY_DEBUG)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og")
+endif()
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og -fno-omit-frame-pointer -fsanitize=address") # REMOVE ME LATER
 #set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -g -Og -fno-omit-frame-pointer -fsanitize=address") # REMOVE ME LATER
@@ -123,7 +126,6 @@ include_directories (
 # ROS node executable
 #####################
 set (SOURCE
-  src/x_vio_ros/parameter_loader.cpp
   src/x_vio_ros/ros_utils.cpp
   src/x_vio_ros/node.cpp
   src/x_vio_ros/xvio_eklt_node.cpp

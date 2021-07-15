@@ -273,10 +273,19 @@ def main():
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
             te.plot_rpg_error_arrays(pc, evaluations, names)
 
+        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_{d_id}"), subplot_cols=2) as pc:
+            pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
+            te.plot_rpg_error_arrays(pc, evaluations, names, realtive_to_trav_dist=True)
+
         #   - [x] Boxplots
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_log_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
             te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True)
+
+        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_log_{d_id}"), subplot_cols=2) as\
+                pc:
+            pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
+            te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True, realtive_to_trav_dist=True)
 
         #   - [x] SLAM / MSCKF / Opp number of features
         with PlotContext(os.path.join(args.output_folder, F"compare_backend_num_features_{d_id}"),
