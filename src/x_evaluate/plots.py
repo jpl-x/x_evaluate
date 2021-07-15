@@ -1,3 +1,4 @@
+from copy import copy
 from enum import Enum
 from typing import List
 import numpy as np
@@ -116,9 +117,9 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
             t = time
 
         if use_scatter:
-            ax.scatter(t, data[i], label=label)
+            ax.scatter(t, data[i], label=label, color=DEFAULT_COLORS[i])
         else:
-            ax.plot(t, data[i], label=label)
+            ax.plot(t, data[i], label=label, color=DEFAULT_COLORS[i])
 
     ax.legend()
     ax.set_title(title)
@@ -157,7 +158,7 @@ def bubble_plot(pc: PlotContext, xy_data, labels, y_resolution=0.1, x_resolution
     for i, d in enumerate(data):
         size = px_size_min + (sizes[i] - s_min) / (s_max - s_min) * (px_size_max - px_size_min)
         size = np.power(size, 2)
-        ax.scatter(times[i], d, s=size, label=labels[i], alpha=0.5)
+        ax.scatter(times[i], d, s=size, label=labels[i], alpha=0.5, color=DEFAULT_COLORS[i])
 
     ax.legend()
     if title:
@@ -225,7 +226,7 @@ def barplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, ylabel=Non
     n_xlabel = len(x_tick_labels)
 
     for idx, d in enumerate(data):
-        positions, widths = evenly_distribute_plot_positions(idx, n_xlabel, n_data)
+        positions, widths = evenly_distribute_plot_positions(idx, n_xlabel, n_data, rel_space_btw_entries=0)
 
         ax.bar(positions, d, widths, label=legend_labels[idx], color=colors[idx])
 
@@ -260,7 +261,7 @@ def hist_from_bin_values(ax: plt.Axes, bins, hist, xlabel=None, use_percentages=
 
 
 def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True, ylabel=None,
-                    title=None):
+                    title=None, showfliers=True):
     if colors is None:
         colors = DEFAULT_COLORS
 
@@ -273,16 +274,27 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
     for idx, d in enumerate(data):
         positions, widths = evenly_distribute_plot_positions(idx, n_xlabel, n_data)
         props = {
-            'facecolor': colors[idx]
+            'color': colors[idx],
+            'linestyle': '-',
+            'lw': 2
         }
-
+        flier_props = {
+            'markeredgecolor': colors[idx],
+        }
+        box_props = {
+            'facecolor': mcolors.to_rgba(colors[idx], 0.3),
+            'edgecolor': colors[idx],
+            'linestyle': '-',
+            'lw': 2
+        }
         if isinstance(d[0], dict):
-            bp = ax.bxp(d, positions=positions, widths=widths, patch_artist=True, boxprops=props)
+            bp = ax.bxp(d, positions=positions, widths=widths, patch_artist=True, capprops=props, meanprops=props,
+                        boxprops=box_props, flierprops=flier_props, medianprops=props, whiskerprops=props,
+                        showfliers=showfliers)
         else:
-            bp = ax.boxplot(d, positions=positions, widths=widths, patch_artist=True, boxprops=props)
-        # boxprops=dict(
-        # facecolor=colors[idx]))
-        color_box(bp, colors[idx])
+            bp = ax.boxplot(d, positions=positions, widths=widths, patch_artist=True, capprops=props, meanprops=props,
+                            boxprops=box_props, flierprops=flier_props, medianprops=props, whiskerprops=props,
+                            showfliers=showfliers)
         bps.append(bp)
         tmp, = plt.plot([1, 1], c=colors[idx], alpha=0)
         leg_handles.append(tmp)
@@ -290,8 +302,7 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
 
     ax.set_xticks(np.arange(n_xlabel))
     ax.set_xticklabels(x_tick_labels)
-    # xlims = ax.get_xlim()
-    # ax.set_xlim([xlims[0]-0.1, xlims[1]-0.1])
+    ax.set_xlim(-.6, n_xlabel-.4)
     if legend:
         # ax.legend(leg_handles, leg_labels, bbox_to_anchor=(
             # 1.05, 1), loc=2, borderaxespad=0.)
@@ -325,11 +336,12 @@ def draw_lines_on_top_of_comparison_plots(ax: plt.Axes, data, num_comparisons):
         ax.plot(x, d, color="black", linestyle="--", linewidth=1)
 
 
-def evenly_distribute_plot_positions(idx, num_slots, num_entries):
-    width = 1 / (1.5 * num_entries + 1.5)
+def evenly_distribute_plot_positions(idx, num_slots, num_entries, space_btw_groups=0.5, rel_space_btw_entries=0.15):
+    width = (1 - space_btw_groups) / (num_entries + (num_entries - 1) * rel_space_btw_entries)
+    # width = 1 / (1.5 * num_entries + 1.5)
     widths = [width] * num_slots
 
-    positions = [pos - 0.5 + 1.5 * width + idx * width
+    positions = [pos - 0.5 + (space_btw_groups + width) / 2 + width*(1+rel_space_btw_entries)*idx
                  for pos in np.arange(num_slots)]
 
     return positions, widths

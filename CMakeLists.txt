@@ -126,7 +126,6 @@ include_directories (
 # ROS node executable
 #####################
 set (SOURCE
-  src/x_vio_ros/parameter_loader.cpp
   src/x_vio_ros/ros_utils.cpp
   src/x_vio_ros/node.cpp
   src/x_vio_ros/xvio_eklt_node.cpp

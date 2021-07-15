@@ -7,7 +7,7 @@ from x_evaluate.evaluation_data import PerformanceData, EKLTPerformanceData, Eva
     DistributionSummary
 from x_evaluate.utils import timestamp_to_real_time, timestamp_to_rosbag_time_zero
 from x_evaluate.plots import time_series_plot, PlotContext, boxplot_from_summary, barplot_compare, hist_from_bin_values, \
-    boxplot_compare, summary_to_dict, draw_lines_on_top_of_comparison_plots
+    boxplot_compare, summary_to_dict, draw_lines_on_top_of_comparison_plots, DEFAULT_COLORS
 
 RT_FACTOR_RESOLUTION = 0.2
 
@@ -173,9 +173,7 @@ def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData
     ax = pc.get_axis()
     max_length = 0
 
-    i = 0
-
-    for d in evaluations:
+    for i, d in enumerate(evaluations):
         length = len(d.performance_data.rt_factors)
         max_length = max(length, max_length)
         t_targets = np.arange(0.0, length) * RT_FACTOR_RESOLUTION
@@ -185,11 +183,10 @@ def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData
             # this causes issues, quick fix:
             if label.startswith('_'):
                 label = label[1:]
-            i += 1
-        ax.plot(t_targets, d.performance_data.rt_factors, label=label)
+        ax.plot(t_targets, d.performance_data.rt_factors, label=label, color=DEFAULT_COLORS[i])
 
     t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
-    ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--")
+    ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--", color="black")
     ax.legend()
     if title:
         ax.set_title(title)
