@@ -1,0 +1,9 @@
+repositories:
+  rpg_dvs_ros:
+    type: git
+    url: git@github.com:uzh-rpg/rpg_dvs_ros.git
+    version: master
+  gflags_catkin:
+    type: git
+    url: git@github.com:ethz-asl/gflags_catkin.git
+    version: master

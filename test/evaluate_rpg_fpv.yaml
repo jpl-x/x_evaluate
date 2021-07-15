@@ -1,0 +1,39 @@
+
+common_params:
+  fast_detection_delta: 20
+
+
+datasets:
+  - name: Indoor 45 Seq 2
+    rosbag: ${XVIO_DATASET_DIR}/rpg_fpv/indoor_45_2_davis_with_gt.bag
+    from: 1545305731.5095596
+    to: 1545305770.6105537
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /groundtruth/colmap
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_fpv.yaml
+    override_params:
+      # initial state computed from topic /groundtruth/colmap over 100ms:
+      p: [ -3.44464409301, 4.65997703584, -0.801343059478 ]
+      v: [ 0.5435364022578789, 1.1860373128293273, 1.923599302722088 ]
+      q: [ -0.306097713576, 0.93164031599, -0.183486788497, 0.068433250789 ] #[w,x,y,z]
+
+  - name: Indoor 45 Seq 12
+    rosbag: ${XVIO_DATASET_DIR}/rpg_fpv/indoor_45_12_davis_with_gt.bag
+    from: 1545313504.2094511
+    to: 1545313548.7104790
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /groundtruth/colmap
+    imu_topic: /dvs/imu
+    depth_map_topic:
+    camera_info_topic:
+    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_fpv.yaml
+    override_params:
+      # initial state computed from topic /groundtruth/colmap over 100ms:
+      p: [ -4.82944522786, 4.32989302502, -1.00369279693 ]
+      v: [ -0.009830929637316676, 0.000989647805908094, 0.005835679570204378 ]
+      q: [ -0.339599726372, 0.828465062019, -0.408797665913, 0.176641261335 ] #[w,x,y,z]

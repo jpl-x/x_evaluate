@@ -2,15 +2,9 @@
 # Initial state estimates #
 ###########################
 
-## Default initial state: static, level.
-#p:    [0, 0, 0.5] # [x,y,z]
-#v:    [0.0, 0.0, 0.0] # [x,y,z]
-#q:    [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
-
-## Initial state for myBags/201604026/circle_high_vel.bag at t = 0 s
-p:    [-0.168942875105, -0.573647949818, 1.09445961816] # [x,y,z]
-v:    [0.0, 0.0, 0.0] # [x,y,z]
-q:    [-0.329112656567, -0.0699724433216, 0.0214667765852, 0.941449889249] # [w,x,y,z]
+p:    [0.0, 0.0, 20.0] # [x,y,z]
+v:    [1.0, 1.0, 0.0] # [x,y,z]
+q:    [0.0, 1.0, 0.0, 0.0] # [w,x,y,z]
 
 # Initial IMU bias estimates
 b_w: [0.0, 0.0, 0.0] # [x,y,z]
@@ -27,30 +21,52 @@ sigma_dba: [0.3, 0.3, 0.3] # [m/s^2]
 # Calibration #
 ###############
 
-# Camera calibration for myBags/20160426 bags
-cam1_fx: 0.46513
-cam1_fy: 0.726246
-cam1_cx: 0.499822
-cam1_cy: 0.458086
-cam1_dist_model: FOV
-cam1_dist_params: [0.950711]
-cam1_img_width: 752
-cam1_img_height: 480
-cam1_q_ic: [-0.004059133072894, 0.928890463133302, 0.370065735566358, -0.014049352983967] # [w,x,y,z]
-cam1_p_ic: [-0.05914814,  0.04309647, -0.03085167] # [x,y,z]
-cam1_time_offset: -0.00397400522578
+# Camera info published for ESIM rosbags:
 
-cam2_fx: 0.46513
-cam2_fy: 0.726246
-cam2_cx: 0.499822
-cam2_cy: 0.458086
+#height: 480
+#width: 640
+#distortion_model: "plumb_bob"
+#D: []
+#K: [320.0, 0.0, 320.0,
+#    0.0, 320.0, 240.0,
+#    0.0, 0.0, 1.0]
+#R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+#P: [320.0, 0.0, 320.0, 0.0,
+#    0.0, 320.0, 240.0, 0.0,
+#    0.0, 0.0, 1.0, 0.0]
+#binning_x: 0
+#binning_y: 0
+#roi:
+#  x_offset: 0
+#  y_offset: 0
+#  height: 0
+#  width: 0
+#  do_rectify: False
+
+cam1_fx: 0.6437500
+cam1_fy: 0.8583333
+cam1_cx: 0.5000000
+cam1_cy: 0.5000000
+cam1_dist_model: FOV
+cam1_dist_params: [0.0]
+cam1_img_width: 640
+cam1_img_height: 480
+cam1_q_ic: [1.0, 0.0, 0.0, 0.0] # [w,x,y,z]
+cam1_p_ic: [0.0, 0.0, 0.0] # [x,y,z]
+cam1_time_offset: 0.0
+
+cam2_fx: 0.5
+cam2_fy: 0.66
+cam2_cx: 0.5
+cam2_cy: 0.5
 cam2_dist_model: FOV
-cam2_dist_params: [0.950711]
-cam2_img_width: 752
+cam2_dist_params: [0.0]
+cam2_img_width: 640
 cam2_img_height: 480
-cam2_q_ic: [-0.004059133072894, 0.928890463133302, 0.370065735566358, -0.014049352983967] # [w,x,y,z]
-cam2_p_ic: [-0.05914814,  0.04309647, -0.03085167] # [x,y,z]
-cam2_time_offset: -0.00397400522578
+cam2_q_ic: [1, 0, 0, 0] # [w,x,y,z]
+#cam2_q_ic: [0.0000, -0.0000, -0.7071, 0.7071] # [w,x,y,z]
+cam2_p_ic: [0,  0, 0] # [x,y,z]
+cam2_time_offset: 0.0
 
 # Feature noise (normalized coordinate standard deviation)
 sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
@@ -62,7 +78,6 @@ sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
 # MXR9500G/M accels (Astec)
 n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
 n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
-
 # ADXRS610 gyros (Astec)
 n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
@@ -113,23 +128,23 @@ max_feat_per_tile: 10000
 # EKLT #
 ########
 
-eklt_batch_size: 300
+eklt_batch_size: 500
 eklt_update_every_n_events: 20
 eklt_displacement_px: 0.6
-eklt_patch_size: 25
-eklt_max_num_iterations: 10
-eklt_tracking_quality: 0.6
+eklt_patch_size: 21
+eklt_max_num_iterations: 25
+eklt_tracking_quality: 0.7
 eklt_bootstrap: "klt"
 eklt_lk_window_size: 20
 eklt_num_pyramidal_layers: 3
 eklt_scale: 4
 eklt_display_features: true
-eklt_display_feature_id: false
-eklt_display_feature_patches: false
+eklt_display_feature_id: true
+eklt_display_feature_patches: true
 eklt_arrow_length: 5
 
-eklt_max_corners: 100
-eklt_min_corners: 0
+eklt_max_corners: 60
+eklt_min_corners: 35
 eklt_log_eps: 0.01
 eklt_use_linlog_scale: false
 
@@ -144,14 +159,14 @@ eklt_outlier_param1: 0.6
 eklt_outlier_param2: 0.99
 
 eklt_ekf_feature_interpolation: linear-no-limit
-eklt_ekf_feature_extrapolation_limit: -1.0
+eklt_ekf_feature_extrapolation_limit: 5.0
 eklt_ekf_update_every_n: -1
 eklt_ekf_update_strategy: every-ros-event-message
-eklt_ekf_update_timestamp: patches-maximum
+eklt_ekf_update_timestamp: patches-average
 eklt_harris_block_size: 3
-eklt_detection_min_distance: 10
-eklt_harris_k: 0.04
-eklt_harris_quality_level: 0.01
+eklt_detection_min_distance: 25
+eklt_harris_k: 0
+eklt_harris_quality_level: 0.3
 
 #########
 # HASTE #
@@ -175,7 +190,7 @@ haste_ekf_update_every_n: 3200
 haste_ekf_update_strategy: every-n-events
 haste_ekf_update_timestamp: patches-maximum
 haste_harris_block_size: 3
-haste_detection_min_distance: 10
+haste_detection_min_distance: 15
 haste_harris_k: 0
 haste_harris_quality_level: 0.3
 
@@ -187,21 +202,21 @@ haste_harris_quality_level: 0.3
 n_poses_max: 10
 
 # Number of SLAM features
-n_slam_features_max: 15
+n_slam_features_max: 25
 
 # Initial inverse depth of SLAM features [1/m]
 # (default: 1 / (2 * d_min) [Montiel, 2006])
-rho_0: 2.5
+rho_0: 0.05
 
 # Initial standard deviation of SLAM inverse depth [1/m]
 # (default: 1 / (4 * d_min) [Montiel, 2006])
-sigma_rho_0: 1.25
+sigma_rho_0: 0.025
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1
 
 # Minimum baseline to trigger MSCKF measurement (pixels)
-msckf_baseline: 30.0
+msckf_baseline: 15.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10

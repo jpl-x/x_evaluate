@@ -1,122 +1,65 @@
-#################################################################################
-# User build settings
-
-set(DUAL_THREAD true) # Set true to process image and inertial data on different
-		      # threads
-set(VERBOSE true) # Set false to disable all publishing and standard output
-				  # stream, except pose at update rate. That will improve runtime.
-set(PROFILING false)  # Set true to disable compiler flags which are not
-		      # compatible with Callgrind profiling tool.
-set(UNIT_TESTS false) # Set true to enable unit tests
-
-################################################################################ 
 
 cmake_minimum_required(VERSION 2.8.3)
-project(x_vio_ros)
+cmake_policy(SET CMP0048 NEW)  # avoids CMAKE_PROJECT_VERSION warning
+project(x_evaluate)
+
 set (CMAKE_BUILD_TYPE Release)
-
-# Set definitions
-if(DUAL_THREAD)
-  add_definitions(-DDUAL_THREAD)
-endif()
-if(VERBOSE)
-  add_definitions(-DVERBOSE)
-endif()
-if(UNIT_TESTS)
-  add_definitions(-DRUN_UNIT_TESTS)
-endif()
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-  add_definitions(-DDEBUG -DDEBUGMSF)
-elseif (CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-  # Enable asserts
-  add_definitions(-UNDEBUG)
-endif()
-add_definitions(-D_LINUX -D_REENTRANT)
-
-# Look for OpenCV >= 3.3.1
-find_package(OpenCV 4 QUIET)
-if(NOT ${OpenCV_FOUND})
-  find_package(OpenCV 3.3.1 QUIET)
-  if(NOT ${OpenCV_FOUND})
-    message(FATAL_ERROR "OpenCV >= 3.3.1 required.")
-  endif()
-endif()
-
-find_package(catkin REQUIRED COMPONENTS
-  x 
-  cv_bridge
-  image_geometry
-  dynamic_reconfigure
-  image_transport
-  roscpp
-  tf
-  message_generation
-  sensor_msgs
-  std_msgs
-)
-
-# Set build flags, depending on the architecture
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
-
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
-endif()
 
 if (CMAKE_BUILD_TYPE MATCHES Release)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64") # tested on Jetson TX2
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a+crypto -mcpu=cortex-a57+crypto -flto -ffast-math -fvect-cost-model=unlimited")
-  #elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch32") # uncomment with correct check for Snapdragon Flight Pro
-  #  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=softfp -flto -ffast-math -fvect-cost-model=unlimited")
-  endif()
-
-  if (${PROFILING} MATCHES false)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funsafe-loop-optimizations -fsee -funroll-loops -fno-math-errno -funsafe-math-optimizations -ffinite-math-only -fno-signed-zeros")
-  endif()
 endif()
 
-# Configure this package
-generate_dynamic_reconfigure_options(
-  cfg/xvio.cfg
-)
+# build with catkin build x_vio_ros --cmake-args -DMY_DEBUG=1
+if (MY_DEBUG)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og")
+endif()
 
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS dynamic_reconfigure
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og -fno-omit-frame-pointer -fsanitize=address") # REMOVE ME LATER
+#set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -g -Og -fno-omit-frame-pointer -fsanitize=address") # REMOVE ME LATER
+
+find_package(catkin REQUIRED COMPONENTS
+  x
+  cv_bridge
+  rosbag
+  dvs_msgs
+  sensor_msgs
+  std_msgs
+  gflags_catkin
+  easy_profiler_catkin
 )
+find_package(yaml-cpp REQUIRED) # used in evaluation executable
+catkin_python_setup()
+
+catkin_package()
+
+# Set build flags, depending on the architecture
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
+
 
 include_directories (
-  include
   ${OpenCV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ${easy_profiler_catkin_INCLUDE_DIRS}
 )
 
-# ROS node executable
-#####################
-set (SOURCE
-  src/x_vio_ros/node.cpp
-  src/x_vio_ros/main.cpp
-  src/x_vio_ros/ros_utils.cpp
-)
 
-add_executable (x_vio_ros ${SOURCE})
-
-# Make sure configure headers are built before any node using them
-add_dependencies(x_vio_ros ${PROJECT_NAME}_gencfg)
-
-# Additional libraries to link against
-target_link_libraries(x_vio_ros
-  ${OpenCV_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
-
-# Testing
-#########
-if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest_gtest(utest_node test/test_vio.test test/utest.cpp)
-  target_link_libraries(utest_node
-    ${OpenCV_LIBRARIES}
-    ${catkin_LIBRARIES}
-    ${rostest_LIBRARIES})
+set (FS_LIBRARY "")
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
+  set(FS_LIBRARY stdc++fs)
 endif()
+
+# add generic evaluation program as executable to be a able to call it from python
+add_executable(evaluate ${SOURCE} test/evaluate.cpp)
+target_link_libraries(evaluate
+        ${OpenCV_LIBRARIES}
+        ${catkin_LIBRARIES}
+        ${rostest_LIBRARIES}
+        ${YAML_CPP_LIBRARIES}
+        ${easy_profiler_catkin_LIBRARIES}
+        ${FS_LIBRARY}
+)
+
+target_compile_definitions(evaluate PUBLIC -DUSING_EASY_PROFILER)
+
+catkin_install_python(PROGRAMS test/evaluate.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
