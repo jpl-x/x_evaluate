@@ -1,6 +1,7 @@
 from distutils.core import setup
 
 setup(
+    name='x-evaluate',
     version='1.0.0',
     scripts=['test/evaluate.py'],
     packages=['x_evaluate'],
