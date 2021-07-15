@@ -212,7 +212,8 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     return np.hstack(tuple(arrays))
 
 
-def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData], labels=None, use_log=False):
+def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData], labels=None, use_log=False,
+                          realtive_to_trav_dist=False):
     auto_labels = []
     errors_rot_deg = []
     errors_trans_m = []
@@ -233,22 +234,35 @@ def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationDa
 
     distances = get_split_distances_on_equal_parts(gt_trajectory, 5)
 
-    data_trans_m = [[e[k] for k in distances] for e in errors_trans_m]
+    if realtive_to_trav_dist:
+        data_trans_m = [[e[k]/(0.01*k) for k in distances] for e in errors_trans_m]
+    else:
+        data_trans_m = [[e[k] for k in distances] for e in errors_trans_m]
 
     ax = pc.get_axis()
     ax.set_xlabel("Distance traveled [m]")
-    ax.set_ylabel(F"Translation error [m]")
+    if realtive_to_trav_dist:
+        ax.set_ylabel(F"Translation error [%]")
+    else:
+        ax.set_ylabel(F"Translation error [m]")
     if use_log:
         ax.set_yscale('log')
-    boxplot_compare(ax, distances, data_trans_m, labels)
+    boxplot_compare(ax, distances, data_trans_m, labels, showfliers=False)
 
     ax = pc.get_axis()
+
     ax.set_xlabel("Distance traveled [m]")
-    ax.set_ylabel(F"Rotation error [deg]")
+    if realtive_to_trav_dist:
+        ax.set_ylabel(F"Rotation error [deg/m]")
+    else:
+        ax.set_ylabel(F"Rotation error [deg]")
     if use_log:
         ax.set_yscale('log')
-    data_rot_deg = [[e[k] for k in distances] for e in errors_rot_deg]
-    boxplot_compare(ax, distances, data_rot_deg, labels)
+    if realtive_to_trav_dist:
+        data_rot_deg = [[e[k]/k for k in distances] for e in errors_rot_deg]
+    else:
+        data_rot_deg = [[e[k] for k in distances] for e in errors_rot_deg]
+    boxplot_compare(ax, distances, data_rot_deg, labels, showfliers=False)
 
 
 def plot_imu_bias(pc: PlotContext, eval_data: EvaluationData):
@@ -309,7 +323,7 @@ def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
 
     # with PlotContext(None) as pc:
     with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors"), subplot_cols=2) as pc:
-        plot_rpg_error_arrays(pc, [eval_data])
+        plot_rpg_error_arrays(pc, [eval_data], realtive_to_trav_dist=True)
 
 
 def create_summary_info(summary: EvaluationDataSummary):

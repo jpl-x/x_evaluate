@@ -3,11 +3,11 @@ import glob
 import os
 
 import numpy as np
-import numpy as np
 import pandas as pd
 from typing import Dict
 
-from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, create_parameter_changes_table
+from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, \
+    create_parameter_changes_table
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
 from x_evaluate.plots import PlotContext, PlotType
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
@@ -217,10 +217,19 @@ def main():
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
             te.plot_rpg_error_arrays(pc, evaluations, names)
 
+        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_{d_id}"), subplot_cols=2) as pc:
+            pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
+            te.plot_rpg_error_arrays(pc, evaluations, names, realtive_to_trav_dist=True)
+
         #   - [x] Boxplots
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_log_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
             te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True)
+
+        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_log_{d_id}"), subplot_cols=2) as\
+                pc:
+            pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
+            te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True, realtive_to_trav_dist=True)
 
         #   - [x] SLAM / MSCKF / Opp number of features
         with PlotContext(os.path.join(args.output_folder, F"compare_backend_num_features_{d_id}"),
