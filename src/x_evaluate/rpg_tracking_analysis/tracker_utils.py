@@ -101,6 +101,11 @@ def filter_tracks(tracks, filter_too_short=False, only_first_frame=True):
 
 
 def get_error(est_data, gt_data):
+    # When motion is crazy or texture is bad (e.g. last part of RPG Davis rosbags), it might happen that the KLT track
+    # gets initialized a few frames before, but does not make it to the start of the estimated track, or vise-versa
+    if gt_data[-1, 0] < est_data[0, 0] or est_data[-1, 0] < gt_data[0, 0]:
+        return np.array([]), np.array([]), np.array([])
+
     # discard gt which happen after last est_data
     gt_data = gt_data[gt_data[:, 0] <= est_data[-1, 0]]
 
@@ -124,6 +129,9 @@ def compare_tracks(est_track_data, gt_track_data):
     error_data = np.zeros(shape=(0, 4))
 
     for track_id, est_track in tqdm.tqdm(est_track_data.items()):
+        # might happen for tracks outside the frame timestamps when tracking with KLT
+        if track_id not in gt_track_data.keys():
+            continue
         gt_track = gt_track_data[track_id]
 
         # interpolate own track at time points given in gt track

@@ -114,6 +114,9 @@ class TrackerInitializer:
         tracks_init = {}
         print("[3/3] Initializing tracks")
         for track_id, track in tracks_dict.items():
+            # skip tracks outside of our range
+            if frame_dataset.times[-1] < track[0, 0]:
+                continue
             frame_dataset.set_to_first_after(track[0, 0])
             t_dataset, _ = frame_dataset.current()
 

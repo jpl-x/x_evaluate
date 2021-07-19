@@ -134,7 +134,11 @@ def call_rpg_feature_tracking_evaluation(dataset, track_file):
     args.plot_errors = False
     args.video_preview = False
 
-    if dataset['pose_topic'] and dataset['depth_map_topic'] and dataset['camera_info_topic']:
+    pose_topic = get_param_if_exists(dataset, 'pose_topic')
+    depth_map_topic = get_param_if_exists(dataset, 'depth_map_topic')
+    camera_info_topic = get_param_if_exists(dataset, 'camera_info_topic')
+
+    if pose_topic and depth_map_topic and camera_info_topic:
         tracker_config = {
             "type": "reprojection"
         }
@@ -142,9 +146,9 @@ def call_rpg_feature_tracking_evaluation(dataset, track_file):
             "type": "bag",
             "name": rosbag_name,
             "image_topic": dataset['image_topic'],
-            "depth_map_topic": dataset['depth_map_topic'],
-            "camera_info_topic": dataset['camera_info_topic'],
-            "pose_topic": dataset['pose_topic']
+            "depth_map_topic": depth_map_topic,
+            "camera_info_topic": camera_info_topic,
+            "pose_topic": pose_topic,
         }
     else:
         tracker_config = {
