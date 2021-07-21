@@ -39,9 +39,12 @@ class PlotContext:
         self.figure.set_size_inches(self.width_inch, self.height_inch)
         return self
 
-    def get_axis(self, **kwargs) -> plt.Axes:
+    def get_axis(self, subplot_arg=None, **kwargs) -> plt.Axes:
         self.subplot_idx += 1
-        ax = self.figure.add_subplot(self.subplot_rows, self.subplot_cols, self.subplot_idx, **kwargs)
+        if subplot_arg:
+            ax = self.figure.add_subplot(subplot_arg)
+        else:
+            ax = self.figure.add_subplot(self.subplot_rows, self.subplot_cols, self.subplot_idx, **kwargs)
         self.axis.append(ax)
         return ax
 
@@ -102,8 +105,8 @@ def boxplot_from_summary(pc: PlotContext, distribution_summaries: List[Distribut
 
 
 def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None, use_scatter=False, use_log=False,
-                     xlabel=None):
-    ax = pc.get_axis()
+                     xlabel=None, subplot_arg=None):
+    ax = pc.get_axis(subplot_arg)
     for i in range(len(data)):
 
         # this causes issues, quick fix:

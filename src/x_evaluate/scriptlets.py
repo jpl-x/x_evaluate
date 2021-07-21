@@ -19,6 +19,7 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, eve
     if events_topic is None:
         events_topic = "\"\""
 
+    # command = F"gdbserver :1106 {executable}" \
     command = F"{executable}" \
               F" --input_bag {rosbag}" \
               F" --image_topic {image_topic}" \

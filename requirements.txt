@@ -2,9 +2,11 @@ numpy>=1.19.2
 matplotlib>=3.3.4
 envyaml>=1.7
 pyyaml>=5.4.1
-evo>=1.13.5 --no-binary evo
 pandas>=1.2.3
 gitpython
 pycryptodomex
 gnupg
 tqdm
+evo>=1.13.5 --no-binary evo
+scipy>=1.6.2
+klampt>=0.8.7
