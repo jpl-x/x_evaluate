@@ -9,13 +9,15 @@ if (CMAKE_BUILD_TYPE MATCHES Release)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif()
 
-# build with catkin build x_vio_ros --cmake-args -DMY_DEBUG=1
+# build with catkin build x_evaluate --cmake-args -DMY_DEBUG=1
 if (MY_DEBUG)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og")
 endif()
 
+# for debugging memory leaks
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og -fno-omit-frame-pointer -fsanitize=address") # REMOVE ME LATER
 #set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -g -Og -fno-omit-frame-pointer -fsanitize=address") # REMOVE ME LATER
+
 
 find_package(catkin REQUIRED COMPONENTS
   x
