@@ -72,7 +72,7 @@ def get_param_if_exists(dataset, key):
 
 
 def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file, cmdline_override_params,
-                    frontend: FrontEnd) -> EvaluationData:
+                    frontend: FrontEnd, skip_feature_tracking) -> EvaluationData:
 
     d = EvaluationData()
     d.name = dataset['name']
@@ -111,15 +111,15 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     else:
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, None)
 
-    track_file = os.path.join(output_folder, "xvio_tracks.txt")
-    convert_xvio_to_rpg_tracks(df_xvio_tracks, track_file)
-    gt_tracks, error_data, tracker_config = call_rpg_feature_tracking_evaluation(dataset, track_file)
-    d.feature_data.df_xvio_tracks = df_xvio_tracks
-    d.feature_data.xvio_tracks_gt = gt_tracks
-    d.feature_data.xvio_tracks_error = error_data
-    d.feature_data.xvio_tracking_evaluation_config = tracker_config
-
-    d.configuration = copy.deepcopy(dataset)
+    if not skip_feature_tracking:
+        track_file = os.path.join(output_folder, "xvio_tracks.txt")
+        convert_xvio_to_rpg_tracks(df_xvio_tracks, track_file)
+        gt_tracks, error_data, tracker_config = call_rpg_feature_tracking_evaluation(dataset, track_file)
+        d.feature_data.df_xvio_tracks = df_xvio_tracks
+        d.feature_data.xvio_tracks_gt = gt_tracks
+        d.feature_data.xvio_tracks_error = error_data
+        d.feature_data.xvio_tracking_evaluation_config = tracker_config
+        d.configuration = copy.deepcopy(dataset)
     return d
 
 

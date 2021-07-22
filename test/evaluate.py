@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--configuration', type=str, default="", help="YAML file specifying what to run")
     parser.add_argument('--name', type=str, help="optional name, if not the output folder name is used")
     parser.add_argument('--dataset_dir', type=str, default="", help="substitutes XVIO_DATASET_DIR in yaml file")
+    parser.add_argument('--skip_feature_tracking', help="Whether to do a 3d plot.", action="store_true",  default=False)
     parser.add_argument('--output_folder', type=str, required=True)
     parser.add_argument('--frontend', type=FrontEnd, choices=list(FrontEnd), required=True)
     parser.add_argument('--overrides', nargs='*', action=ArgparseKeyValueAction)
@@ -90,7 +91,7 @@ def main():
             output_folder = os.path.join(args.output_folder, output_folder)
 
             d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config,
-                                cmdline_override_params, args.frontend)
+                                cmdline_override_params, args.frontend, args.skip_feature_tracking)
 
             pe.plot_performance_plots(d, output_folder)
             te.plot_trajectory_plots(d, output_folder)
