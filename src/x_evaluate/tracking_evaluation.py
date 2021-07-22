@@ -433,21 +433,20 @@ def plot_feature_plots(d: EvaluationData, output_folder):
     with PlotContext(os.path.join(output_folder, "backend_num_features"), subplot_rows=2, subplot_cols=2) as pc:
         plot_xvio_num_features(pc, [d])
 
-    if d.feature_data.df_eklt_num_features is not None:
-        df = d.feature_data.df_eklt_num_features
-    with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes"), subplot_rows=1, subplot_cols=2) as pc:
-        plot_xvio_features_position_changes(pc, d)
+    if d.feature_data.df_xvio_tracks is not None:
+        with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes"), subplot_rows=1, subplot_cols=2) as pc:
+            plot_xvio_features_position_changes(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval"), subplot_rows=1, subplot_cols=2)\
-            as pc:
-        plot_xvio_features_update_interval(pc, d)
+        with PlotContext(os.path.join(output_folder, "xvio_feature_update_interval"), subplot_rows=1, subplot_cols=2)\
+                as pc:
+            plot_xvio_features_update_interval(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "backend_feature_pos_changes")) as pc:
-        plot_xvio_feature_pos_changes(pc, d)
+        with PlotContext(os.path.join(output_folder, "backend_feature_pos_changes")) as pc:
+            plot_xvio_feature_pos_changes(pc, d)
 
-    with PlotContext(os.path.join(output_folder, "backend_feature_tracking_error_zero_aligned")) as pc:
-        plot_tracking_error(pc, d.feature_data.xvio_tracks_error, d.feature_data.xvio_tracking_evaluation_config,
-                            "SLAM and MSCKF feature tracking errors", zero_aligned=True)
+        with PlotContext(os.path.join(output_folder, "backend_feature_tracking_error_zero_aligned")) as pc:
+            plot_tracking_error(pc, d.feature_data.xvio_tracks_error, d.feature_data.xvio_tracking_evaluation_config,
+                                "SLAM and MSCKF feature tracking errors", zero_aligned=True)
 
     if d.feature_data.df_eklt_num_features is not None:
         df = d.feature_data.df_eklt_num_features
