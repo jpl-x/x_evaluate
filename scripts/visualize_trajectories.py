@@ -4,6 +4,7 @@ import os
 from typing import List, Callable
 
 import numpy as np
+import time
 
 import pandas as pd
 from evo.core.trajectory import PoseTrajectory3D
@@ -15,6 +16,8 @@ from evo.tools import plot
 from x_evaluate.plots import PlotContext, time_series_plot
 import matplotlib.pyplot as plt
 
+from x_evaluate.utils import convert_to_evo_trajectory, convert_t_xyz_wxyz_to_evo_trajectory
+
 
 class EvoTrajectoryVisualizer:
     def __init__(self, pc: PlotContext, files: List[str], filename_to_evo_trajectory: Callable[[str], PoseTrajectory3D],
@@ -25,6 +28,8 @@ class EvoTrajectoryVisualizer:
         self._files = files
         self._enter_action = enter_action
         self._filename_to_evo_trajectory = filename_to_evo_trajectory
+        self._digits = None
+        self._digits_last_ts = None
 
         self._current_idx = 0
         self._current_trajectory = self._filename_to_evo_trajectory(self._files[self._current_idx])
@@ -63,17 +68,31 @@ class EvoTrajectoryVisualizer:
         v_max = np.round(stats['v_max (m/s)'], 1)
         t = np.round(self._current_trajectory.timestamps[-1] - self._current_trajectory.timestamps[0], 1)
         d = np.round(self._current_trajectory.distances[-1], 1)
-        self._pc.figure.suptitle(F"n = {len(self._current_trajectory.timestamps)} poses, {d}m, {t}s, v = {v_avg} m/s "
-                                 F"(max: {v_max} m/s)")
+        self._pc.figure.suptitle(F"[{self._current_idx}/{len(self._files)}] n = {len(self._current_trajectory.timestamps)} "
+                                 F"poses,"
+                                 F" {d}m,"
+                                 F" {t}s, v = {v_avg} m/s (max: {v_max} m/s)")
 
     def block(self):
         plt.show()
 
     def press(self, event):
-        if event.key == 'escape':
+        if event.key in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+            if self._digits and self._digits_last_ts and (time.time() - self._digits_last_ts < 1):
+                self._digits = F"{self._digits}{event.key}"
+            else:
+                self._digits = event.key
+            self._digits_last_ts = time.time()
+        elif event.key == 'escape':
             plt.close(self._pc.figure)
         elif event.key == 'enter':
-            if self._enter_action:
+            if self._digits and self._digits_last_ts and (time.time() - self._digits_last_ts < 1):
+                new_idx = int(self._digits)
+                if 0 <= new_idx < len(self._files)-1:
+                    self._current_idx = new_idx
+                    self.update_current_trajectory()
+                self._digits = None
+            elif self._enter_action:
                 self._enter_action(self._current_trajectory)
         elif event.key == 'left':
             if self._current_idx > 0:
@@ -92,30 +111,15 @@ class EvoTrajectoryVisualizer:
         self.plot_current_trajectory()
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Converting NeuroBEM drone trajectories to ESIM compatible csv')
-
-    parser.add_argument('--input', type=str, required=True)
-    parser.add_argument('--output', type=str, required=True)
-    args = parser.parse_args()
-
-    # matches = glob.glob(os.path.join(args.input_folder, "*"))
-
-    matcher = os.path.join(os.path.dirname(args.input), "*.csv")
-    matches = glob.glob(matcher)
-    matches.sort()
-
-    with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
-        v = EvoTrajectoryVisualizer(pc, matches, read_neurobem_trajectory,
-                                    enter_action=lambda t: convert_to_esim_trajectory(args.output, t))
-        v.plot_current_trajectory()
-
-        # input("Let's try this")
-
-
 def convert_to_esim_trajectory(output_filename, trajectory: PoseTrajectory3D):
     print(F"Converting NeuroBEM to ESIM trajectory, and saving to '{output_filename}'")
     headers = ["timestamp", "x", "y", "z", "qx", "qy", "qz", "qw"]
+
+    # # let the camera look downwards
+    tf = np.eye(4)
+    tf[1, 1] = -1
+    tf[2, 2] = -1
+    trajectory.transform(tf, True)
 
     # normalize quaternions: ESIM checks for this, and seems NeuroBEM trajectories are not perfect in this regard
     rotations = R.from_quat(trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
@@ -124,6 +128,12 @@ def convert_to_esim_trajectory(output_filename, trajectory: PoseTrajectory3D):
                       trajectory.positions_xyz, rotations.as_quat())).T
     # output_traj = pd.concat(data, axis=1, keys=headers)
     output_traj = pd.DataFrame.from_dict(dict(zip(headers, data)))
+
+    t = output_traj['timestamp'].to_numpy()
+    print(F"Average delta t: {np.mean(t[1:]-t[:-1]) / 1e9}")
+
+    output_traj = output_traj.iloc[::2, :]
+
     print(output_traj)
     with open(output_filename, 'w') as f:
         # ESIM checks for this header comment
@@ -138,6 +148,22 @@ def read_neurobem_trajectory(filename):
     t_xyz_wxyz = input_traj[["t", "pos x", "pos y", "pos z", "quat w", "quat x", "quat y", "quat z"]].to_numpy()
     trajectory = PoseTrajectory3D(t_xyz_wxyz[:, 1:4], t_xyz_wxyz[:, 4:8], t_xyz_wxyz[:, 0])
     return trajectory
+
+
+def read_x_evaluate_gt_csv(gt_csv_filename):
+    df_groundtruth = pd.read_csv(gt_csv_filename, delimiter=";")
+    evo_trajectory, _ = convert_to_evo_trajectory(df_groundtruth)
+    return evo_trajectory
+
+
+def read_esim_trajectory_csv(csv_filename):
+    df_trajectory = pd.read_csv(csv_filename)
+    # columns: ['# timestamp', ' x', ' y', ' z', ' qx', ' qy', ' qz', ' qw']
+
+    df_trajectory['# timestamp'] /= 1e9
+
+    t_xyz_wxyz = df_trajectory[['# timestamp', ' x', ' y', ' z', ' qw', ' qx', ' qy', ' qz']].to_numpy()
+    return convert_t_xyz_wxyz_to_evo_trajectory(t_xyz_wxyz)
 
 
 def add_bootstrapping(trajectory: PoseTrajectory3D):
@@ -177,13 +203,14 @@ def add_bootstrapping(trajectory: PoseTrajectory3D):
     print(F'Rotation around z: {np.rad2deg(bootstrap_rot.as_euler("ZYX")[0])}')
 
     origin = se3.from_translation([0, 0, 0])
-    left = se3.from_translation([0, 1, 0])
-    front = se3.from_translation([1, 0, 0])
+    left = se3.from_translation([0, 1.5, 0])
+    front = se3.from_translation([1.5, 0, 0])
 
-    sequence = [origin, origin, left, origin, front, origin]
+    sequence = [origin, origin, left, origin, front, origin, origin]
+    sequence_t = [  -8,     -7, -5.75,  -4.5,  -2.75,  -1.5,     -1]
 
     bootstrap_poses = [se3.mul(bootstrap_pose, s) for s in sequence]
-    bootstrap_times = [i + t_zero for i in range(-len(sequence), 0)]
+    bootstrap_times = [i + t_zero for i in sequence_t]
     bootstrapping_chunk = SE3Trajectory(bootstrap_times, bootstrap_poses)
 
     bootstrapping = SE3HermiteTrajectory()
@@ -210,6 +237,31 @@ def add_bootstrapping(trajectory: PoseTrajectory3D):
     new_trajectory = PoseTrajectory3D(xyz, wxyz, t)
 
     return new_trajectory
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Converting NeuroBEM drone trajectories to ESIM compatible csv')
+
+    parser.add_argument('--input', type=str, required=True)
+    parser.add_argument('--output', type=str, required=True)
+    args = parser.parse_args()
+
+    matcher = os.path.join(os.path.dirname(args.input), "*.csv")
+    matches = glob.glob(matcher)
+    matches.sort()
+
+    # selected_indices = [1]
+    # matches = [matches[i] for i in selected_indices]
+
+    esim_csvs = ["/tmp/esim_spline_dump.csv"]
+
+    with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
+        v = EvoTrajectoryVisualizer(pc, esim_csvs, read_esim_trajectory_csv,
+        # v = EvoTrajectoryVisualizer(pc, matches, read_neurobem_trajectory,
+                                    enter_action=lambda t: convert_to_esim_trajectory(args.output, t))
+        v.plot_current_trajectory()
+
+        # input("Let's try this")
 
 
 if __name__ == '__main__':
