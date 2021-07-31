@@ -211,3 +211,28 @@ def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.
             stats[k][i] = stats_func[k](data_slice)
 
     return buckets, stats
+
+
+def read_neurobem_trajectory(filename):
+    input_traj = pd.read_csv(filename)
+    # zero align
+    input_traj['t'] -= input_traj['t'][0]
+    t_xyz_wxyz = input_traj[["t", "pos x", "pos y", "pos z", "quat w", "quat x", "quat y", "quat z"]].to_numpy()
+    trajectory = PoseTrajectory3D(t_xyz_wxyz[:, 1:4], t_xyz_wxyz[:, 4:8], t_xyz_wxyz[:, 0])
+    return trajectory
+
+
+def read_x_evaluate_gt_csv(gt_csv_filename):
+    df_groundtruth = pd.read_csv(gt_csv_filename, delimiter=";")
+    evo_trajectory, _ = convert_to_evo_trajectory(df_groundtruth)
+    return evo_trajectory
+
+
+def read_esim_trajectory_csv(csv_filename):
+    df_trajectory = pd.read_csv(csv_filename)
+    # columns: ['# timestamp', ' x', ' y', ' z', ' qx', ' qy', ' qz', ' qw']
+
+    df_trajectory['# timestamp'] /= 1e9
+
+    t_xyz_wxyz = df_trajectory[['# timestamp', ' x', ' y', ' z', ' qw', ' qx', ' qy', ' qz']].to_numpy()
+    return convert_t_xyz_wxyz_to_evo_trajectory(t_xyz_wxyz)

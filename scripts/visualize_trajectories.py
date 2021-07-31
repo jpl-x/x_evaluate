@@ -1,7 +1,9 @@
 import argparse
+import copy
+from datetime import datetime
 import glob
 import os
-from typing import List, Callable
+from typing import List, Callable, Optional, Dict
 
 import numpy as np
 import time
@@ -11,22 +13,21 @@ from evo.core.trajectory import PoseTrajectory3D
 from klampt.math import se3
 from klampt.model.trajectory import SE3Trajectory, SE3HermiteTrajectory
 from scipy.spatial.transform import Rotation as R
-from evo.tools import plot
 
-from x_evaluate.plots import PlotContext, time_series_plot
+from x_evaluate.plots import PlotContext, plot_evo_trajectory_with_euler_angles
 import matplotlib.pyplot as plt
 
-from x_evaluate.utils import convert_to_evo_trajectory, convert_t_xyz_wxyz_to_evo_trajectory
+from x_evaluate.utils import read_neurobem_trajectory, read_esim_trajectory_csv
 
 
 class EvoTrajectoryVisualizer:
     def __init__(self, pc: PlotContext, files: List[str], filename_to_evo_trajectory: Callable[[str], PoseTrajectory3D],
-                 enter_action=None):
+                 special_key_actions=Optional[Dict[str, Callable[[PoseTrajectory3D], PoseTrajectory3D]]]):
         assert len(files) > 0, "provide at least one trajectory"
 
         self._pc = pc
         self._files = files
-        self._enter_action = enter_action
+        self._special_key_actions: Optional[Dict[str, Callable[[PoseTrajectory3D], None]]] = special_key_actions
         self._filename_to_evo_trajectory = filename_to_evo_trajectory
         self._digits = None
         self._digits_last_ts = None
@@ -49,29 +50,23 @@ class EvoTrajectoryVisualizer:
             self.block()
 
     def _plot_evo_trajectory(self):
-        traj_by_label = {
-            str(os.path.basename(self._files[self._current_idx])): self._current_trajectory
-        }
-        plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xyz, subplot_arg=211)
-        time_series_plot(self._pc, self._current_trajectory.timestamps, self._current_trajectory.positions_xyz.T,
-                         ["x", "y", "z"], subplot_arg=223)
-        rotations = R.from_quat(self._current_trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
+        label = self._files[self._current_idx]
+        trajectory = self._current_trajectory
+        plot_context = self._pc
+        plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label)
 
-        time_series_plot(self._pc, self._current_trajectory.timestamps, np.rad2deg(rotations.as_euler("ZYX")).T,
-                         ["euler_z", "euler_y", "euler_x"], subplot_arg=224)
-        # plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xy, subplot_arg=121)
-        # plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xz, subplot_arg=122)
-
-        stats = self._current_trajectory.get_statistics()
+        stats = trajectory.get_statistics()
 
         v_avg = np.round(stats['v_avg (m/s)'], 1)
         v_max = np.round(stats['v_max (m/s)'], 1)
-        t = np.round(self._current_trajectory.timestamps[-1] - self._current_trajectory.timestamps[0], 1)
-        d = np.round(self._current_trajectory.distances[-1], 1)
-        self._pc.figure.suptitle(F"[{self._current_idx}/{len(self._files)}] n = {len(self._current_trajectory.timestamps)} "
-                                 F"poses,"
+        t = np.round(trajectory.timestamps[-1] - trajectory.timestamps[0], 1)
+        d = np.round(trajectory.distances[-1], 1)
+        hz = np.round(1/np.mean(trajectory.timestamps[1:]-trajectory.timestamps[:-1]) , 1)
+        ts = os.path.getmtime(self._files[self._current_idx])
+        plot_context.figure.suptitle(F"[{self._current_idx}/{len(self._files)}] n = {len(trajectory.timestamps)} "
+                                 F"poses, {hz}Hz, "
                                  F" {d}m,"
-                                 F" {t}s, v = {v_avg} m/s (max: {v_max} m/s)")
+                                 F" {t}s, v = {v_avg} m/s (max: {v_max} m/s) [{datetime.fromtimestamp(ts).ctime()}]")
 
     def block(self):
         plt.show()
@@ -85,101 +80,77 @@ class EvoTrajectoryVisualizer:
             self._digits_last_ts = time.time()
         elif event.key == 'escape':
             plt.close(self._pc.figure)
-        elif event.key == 'enter':
-            if self._digits and self._digits_last_ts and (time.time() - self._digits_last_ts < 1):
-                new_idx = int(self._digits)
-                if 0 <= new_idx < len(self._files)-1:
-                    self._current_idx = new_idx
-                    self.update_current_trajectory()
-                self._digits = None
-            elif self._enter_action:
-                self._enter_action(self._current_trajectory)
+        elif event.key == 'enter' and self._digits and self._digits_last_ts and (time.time() - self._digits_last_ts <1):
+            new_idx = int(self._digits)
+            if 0 <= new_idx < len(self._files)-1:
+                self._current_idx = new_idx
+                self.load_trajectory_from_current_index()
+            self._digits = None
         elif event.key == 'left':
             if self._current_idx > 0:
                 self._current_idx -= 1
-                self.update_current_trajectory()
+                self.load_trajectory_from_current_index()
         elif event.key == 'right':
             if self._current_idx < len(self._files) - 1:
                 self._current_idx += 1
-                self.update_current_trajectory()
-        elif event.key == 'b':
-            self._current_trajectory = add_bootstrapping(self._current_trajectory)
+                self.load_trajectory_from_current_index()
+        elif self._special_key_actions and event.key in self._special_key_actions.keys():
+            self._current_trajectory = self._special_key_actions[event.key](self._current_trajectory)
             self.plot_current_trajectory()
 
-    def update_current_trajectory(self):
+    def load_trajectory_from_current_index(self):
         self._current_trajectory = self._filename_to_evo_trajectory(self._files[self._current_idx])
         self.plot_current_trajectory()
 
 
-def convert_to_esim_trajectory(output_filename, trajectory: PoseTrajectory3D):
+def convert_to_esim_trajectory(output_filename, input_trajectory: PoseTrajectory3D):
+    output_trajectory = copy.deepcopy(input_trajectory)
     print(F"Converting NeuroBEM to ESIM trajectory, and saving to '{output_filename}'")
     headers = ["timestamp", "x", "y", "z", "qx", "qy", "qz", "qw"]
 
-    # # let the camera look downwards
+    # # # let the camera look downwards
     tf = np.eye(4)
     tf[1, 1] = -1
     tf[2, 2] = -1
-    trajectory.transform(tf, True)
+    output_trajectory.transform(tf, True)
 
     # normalize quaternions: ESIM checks for this, and seems NeuroBEM trajectories are not perfect in this regard
-    rotations = R.from_quat(trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
+    rotations = R.from_quat(output_trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
 
-    data = np.hstack(((trajectory.timestamps[:, np.newaxis] - trajectory.timestamps[0]) * 1e9,
-                      trajectory.positions_xyz, rotations.as_quat())).T
+    data = np.hstack(((output_trajectory.timestamps[:, np.newaxis] - output_trajectory.timestamps[0]) * 1e9,
+                      output_trajectory.positions_xyz, rotations.as_quat())).T
     # output_traj = pd.concat(data, axis=1, keys=headers)
     output_traj = pd.DataFrame.from_dict(dict(zip(headers, data)))
 
     t = output_traj['timestamp'].to_numpy()
-    print(F"Average delta t: {np.mean(t[1:]-t[:-1]) / 1e9}")
-
-    output_traj = output_traj.iloc[::2, :]
 
     print(output_traj)
     with open(output_filename, 'w') as f:
         # ESIM checks for this header comment
         f.write("# timestamp, x, y, z, qx, qy, qz, qw\n")
         output_traj.to_csv(f, header=False, index=False)
+    return input_trajectory  # return unchanged trajectory
 
 
-def read_neurobem_trajectory(filename):
-    input_traj = pd.read_csv(filename)
-    # zero align
-    input_traj['t'] -= input_traj['t'][0]
-    t_xyz_wxyz = input_traj[["t", "pos x", "pos y", "pos z", "quat w", "quat x", "quat y", "quat z"]].to_numpy()
-    trajectory = PoseTrajectory3D(t_xyz_wxyz[:, 1:4], t_xyz_wxyz[:, 4:8], t_xyz_wxyz[:, 0])
-    return trajectory
+def downsample(trajectory: PoseTrajectory3D) -> PoseTrajectory3D:
+    t = trajectory.timestamps[::2]
+    xyz = trajectory.positions_xyz[::2, :]
+    wxyz = trajectory.orientations_quat_wxyz[::2, :]
+    return PoseTrajectory3D(xyz, wxyz, t)
+
+# output_traj = output_traj.iloc[::8, :]
+# t = output_traj['timestamp'].to_numpy()
+# print(F"Average pose freq after down-sampling: {1/np.round(np.mean(t[1:]-t[:-1]) / 1e9, 6)}Hz")
 
 
-def read_x_evaluate_gt_csv(gt_csv_filename):
-    df_groundtruth = pd.read_csv(gt_csv_filename, delimiter=";")
-    evo_trajectory, _ = convert_to_evo_trajectory(df_groundtruth)
-    return evo_trajectory
-
-
-def read_esim_trajectory_csv(csv_filename):
-    df_trajectory = pd.read_csv(csv_filename)
-    # columns: ['# timestamp', ' x', ' y', ' z', ' qx', ' qy', ' qz', ' qw']
-
-    df_trajectory['# timestamp'] /= 1e9
-
-    t_xyz_wxyz = df_trajectory[['# timestamp', ' x', ' y', ' z', ' qw', ' qx', ' qy', ' qz']].to_numpy()
-    return convert_t_xyz_wxyz_to_evo_trajectory(t_xyz_wxyz)
-
-
-def add_bootstrapping(trajectory: PoseTrajectory3D):
-    xyz = trajectory.positions_xyz
+def add_bootstrapping_sequence(trajectory: PoseTrajectory3D) -> PoseTrajectory3D:
     t = trajectory.timestamps
 
     t_zero = trajectory.timestamps[0]
 
-    v0 = (xyz[1, :] - xyz[0, :])/(t[1] - t[0])
-
-    print(F"v_0 = {np.round(v0, 2)}")
-    print(F"||v_0|| = {np.round(np.linalg.norm(v0), 2)} m/s")
-
     first_n = 50
-
-    target_poses = [se3.from_homogeneous(t) for t in trajectory.poses_se3[:first_n]]
+    target_poses = [(rot.as_matrix().flatten().tolist(), pos.flatten().tolist()) for rot, pos in \
+            zip(R.from_quat(trajectory.orientations_quat_wxyz[:first_n, [1, 2, 3, 0]]), trajectory.positions_xyz[:first_n])]
 
     target_chunk = SE3Trajectory(t[:first_n], target_poses)
 
@@ -188,26 +159,23 @@ def add_bootstrapping(trajectory: PoseTrajectory3D):
     v0_spline = np.array(target_chunk_spline.deriv(0.0)[1])
 
     initial_rot = R.from_quat(trajectory.orientations_quat_wxyz[0, [1, 2, 3, 0]])
-    # rot_z, rot_y, rot_x = initial_rot.as_euler("ZYX")
-    # print(F'Rotation around z: {np.rad2deg(rot_z)}')
-    #
-    # if np.max(np.abs(np.rad2deg([rot_y, rot_x]))) > 15:
-    #     print("WARNING: initial orientation is tilted more than 15° in x or y")
-    #
+    rot_z, rot_y, rot_x = initial_rot.as_euler("ZYX")
+
+    if np.max(np.abs(np.rad2deg([rot_y, rot_x]))) > 15:
+        print("WARNING: initial orientation is tilted more than 15° in x or y, interpolation to bootstrapping "
+              "sequence might be non-smooth")
+
     initial_pos = np.array(trajectory.positions_xyz[0, :])
     bootstrap_pos = initial_pos - 0.5*v0_spline
-    # bootstrap_rot = R.from_euler("ZYX", [rot_z, 0, 0])
-    bootstrap_rot = initial_rot
+    bootstrap_rot = R.from_euler("ZYX", [rot_z, 0, 0])
     bootstrap_pose = (bootstrap_rot.as_matrix().flatten(), bootstrap_pos.flatten())
 
-    print(F'Rotation around z: {np.rad2deg(bootstrap_rot.as_euler("ZYX")[0])}')
-
     origin = se3.from_translation([0, 0, 0])
-    left = se3.from_translation([0, 1.5, 0])
-    front = se3.from_translation([1.5, 0, 0])
+    left = se3.from_translation([0, 2, 0])
+    front = se3.from_translation([2, 0, 0])
 
     sequence = [origin, origin, left, origin, front, origin, origin]
-    sequence_t = [  -8,     -7, -5.75,  -4.5,  -2.75,  -1.5,     -1]
+    sequence_t = [ -10,   -8.5,   -7,   -5.5,    -4,   -2.5,     -1]
 
     bootstrap_poses = [se3.mul(bootstrap_pose, s) for s in sequence]
     bootstrap_times = [i + t_zero for i in sequence_t]
@@ -217,25 +185,19 @@ def add_bootstrapping(trajectory: PoseTrajectory3D):
     concatenated = bootstrapping_chunk.concat(target_chunk)
     bootstrapping.makeSpline(concatenated)
 
-    v0_final = np.array(bootstrapping.deriv(t_zero)[1])
-
-    print(F"v_0 ~ {np.round(v0_final, 2)}")
-    print(F"||v_0|| ~ {np.round(np.linalg.norm(v0_final), 2)} m/s")
-
-    dt = trajectory.timestamps[1] - trajectory.timestamps[0]
+    dt = np.mean(trajectory.timestamps[1:] - trajectory.timestamps[:-1])
     prefix_trajectory = bootstrapping.discretize(dt)
     prefix_trajectory = prefix_trajectory.before(-dt + t_zero)  # before(..) logic means '<=' ---> do not include zero
 
     xyz = np.array(prefix_trajectory.getPositionTrajectory().milestones)
     xyzw = R.from_matrix(np.array(prefix_trajectory.getRotationTrajectory().milestones).reshape((-1, 3, 3))).as_quat()
-    xyzw[:, :] = initial_rot.as_quat()
+    # xyzw[:, :] = initial_rot.as_quat()
     wxyz = xyzw[:, [3, 0, 1, 2]]
     t = np.array(prefix_trajectory.times)
     xyz = np.concatenate((xyz, trajectory.positions_xyz))
     wxyz = np.concatenate((wxyz, trajectory.orientations_quat_wxyz))
     t = np.concatenate((t, trajectory.timestamps))
     new_trajectory = PoseTrajectory3D(xyz, wxyz, t)
-
     return new_trajectory
 
 
@@ -258,10 +220,12 @@ def main():
     with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
         v = EvoTrajectoryVisualizer(pc, esim_csvs, read_esim_trajectory_csv,
         # v = EvoTrajectoryVisualizer(pc, matches, read_neurobem_trajectory,
-                                    enter_action=lambda t: convert_to_esim_trajectory(args.output, t))
+                                    special_key_actions={
+                                        'enter': lambda t: convert_to_esim_trajectory(args.output, t),
+                                        'b': add_bootstrapping_sequence,
+                                        'd': downsample
+                                    })
         v.plot_current_trajectory()
-
-        # input("Let's try this")
 
 
 if __name__ == '__main__':

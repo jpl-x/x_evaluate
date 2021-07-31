@@ -1,8 +1,11 @@
-from copy import copy
+import os
 from enum import Enum
 from typing import List
 import numpy as np
+from evo.tools import plot
 from matplotlib import pyplot as plt
+from scipy.spatial.transform import Rotation as R
+
 from x_evaluate.evaluation_data import DistributionSummary
 
 import matplotlib.colors as mcolors
@@ -52,9 +55,10 @@ class PlotContext:
         self.figure.tight_layout()
         if self.filename is None:
             self.figure.show()
-        else:
-            for f in self.FORMATS:
-                self.figure.savefig(self.filename + f)
+            return  # do not close figure in interactive mode
+
+        for f in self.FORMATS:
+            self.figure.savefig(self.filename + f)
 
         for a in self.axis:
             a.set_xscale('linear')  # workaround for https://github.com/matplotlib/matplotlib/issues/9970
@@ -399,3 +403,19 @@ def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None
     # MIN-MAX
     ax.fill_between(t, stats['min'], stats['q25'], alpha=0.1, lw=0, facecolor=color)
     ax.fill_between(t, stats['q75'], stats['max'], alpha=0.1, lw=0, facecolor=color)
+
+
+def plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label):
+    traj_by_label = {
+        str(os.path.basename(label)): trajectory
+    }
+    plot.trajectories(plot_context.figure, traj_by_label, plot.PlotMode.xyz, subplot_arg=211)
+    time_series_plot(plot_context, trajectory.timestamps, trajectory.positions_xyz.T,
+                     ["x", "y", "z"], subplot_arg=223)
+    rotations = R.from_quat(trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
+    euler_angles = np.rad2deg(rotations.as_euler("ZYX")).T
+    # euler_angles[2, :] = np.fmod(euler_angles[2, :] + 360, 360)
+    time_series_plot(plot_context, trajectory.timestamps, euler_angles,
+                     ["euler_z", "euler_y", "euler_x"], subplot_arg=224)
+    # plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xy, subplot_arg=121)
+    # plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xz, subplot_arg=122)
