@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   gflags_catkin
+  glog_catkin
   easy_profiler_catkin
 )
 find_package(yaml-cpp REQUIRED) # used in evaluation executable
@@ -42,6 +43,7 @@ include_directories (
   ${OpenCV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${easy_profiler_catkin_INCLUDE_DIRS}
+  ${glog_catkin_INCLUDE_DIRS}
 )
 
 
