@@ -94,7 +94,7 @@ def main():
                                 cmdline_override_params, args.frontend, args.skip_feature_tracking)
 
             pe.plot_performance_plots(d, output_folder)
-            te.plot_trajectory_plots(d, output_folder)
+            te.plot_trajectory_plots(d.trajectory_data, d.name, output_folder)
             fe.plot_feature_plots(d, output_folder)
 
             summary.data[dataset['name']] = d
@@ -102,7 +102,7 @@ def main():
             print(F"Analysis of output {i+1} of {n} completed")
 
         te.plot_summary_plots(summary, args.output_folder)
-        te.create_summary_info(summary)
+        te.create_summary_info(summary, args.output_folder)
         pe.plot_summary_plots(summary, args.output_folder)
         pe.print_realtime_factor_summary(summary)
         fe.plot_summary_plots(summary, args.output_folder)
@@ -119,8 +119,8 @@ def main():
         if summary is not None:
             write_evaluation_pickle(summary, args.output_folder)
 
-        if os.path.exists(tmp_yaml_filename):
-            os.remove(tmp_yaml_filename)
+        # if os.path.exists(tmp_yaml_filename):
+        #     os.remove(tmp_yaml_filename)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 
 import numpy as np
@@ -11,7 +10,7 @@ from x_evaluate.comparisons import identify_common_datasets, identify_changing_p
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
 from x_evaluate.plots import PlotContext, PlotType
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
-from x_evaluate.scriptlets import read_evaluation_pickle, write_evaluation_pickle
+from x_evaluate.scriptlets import read_evaluation_pickle, find_evaluation_files_recursively
 
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
@@ -31,13 +30,9 @@ def main():
         input_folders = args.sub_folders.split(':')
         input_folders = [os.path.join(args.input_folder, f) for f in input_folders]
     else:
-        matches = glob.glob(os.path.join(args.input_folder, "*"))
-        matches.sort()
-        for f in matches:
-            if os.path.isdir(f) and os.path.isfile(os.path.join(f, "evaluation.pickle")):
-                input_folders.append(f)
-
-    input_folders = [os.path.normpath(f) for f in input_folders]
+        root_folder = args.input_folder
+        input_folders = find_evaluation_files_recursively(root_folder)
+        input_folders = [os.path.dirname(f) for f in input_folders]
 
     if args.output_folder is None:
         print(F"Using '{input_folders[0]}' as output_folder")
@@ -60,12 +55,21 @@ def main():
     changing_parameters = identify_changing_parameters(list(summaries.values()))
 
     names = [s.name for s in summaries.values()]
+
+    # input_folders = [os.path.dirname(f) for f in input_folders]
     eklt_names = [s.name for s in summaries.values() if s.frontend == FrontEnd.EKLT]
 
-    eklt_summaries = []
+    eklt_summaries = [s for s in summaries.values() if s.frontend == FrontEnd.EKLT]
+
+    feature_tracking_summaries = []
+
     for s in summaries.values():
-        if s.frontend == FrontEnd.EKLT:
-            eklt_summaries.append(s)
+        has_feature_tracks = [hasattr(s.data[dataset].feature_data, 'xvio_tracks_error') and s.data[
+            dataset].feature_data.xvio_tracks_error is not None for dataset in s.data.keys()]
+        has_feature_tracks = np.all(has_feature_tracks)
+
+        if has_feature_tracks:
+            feature_tracking_summaries.append(s)
 
     print(F"Comparing {', '.join(summaries.keys())} on following datasets: {', '.join(common_datasets)}")
     print(F"Overall the following parameters change (excluding initial filter states): {changing_parameters}")
@@ -131,21 +135,22 @@ def main():
                      base_width_inch=scaled_width_datasets) as pc:
         pe.plot_memory_usage_boxplot_comparison(pc, summaries, common_datasets)
 
-    #   - [x] Pixel tracking accuracy
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_tracking")) as pc:
-        fe.plot_xvio_feature_tracking_comparison_boxplot(pc, list(summaries.values()), common_datasets)
+    if len(feature_tracking_summaries) > 0:
+        #   - [x] Pixel tracking accuracy
+        with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_tracking")) as pc:
+            fe.plot_xvio_feature_tracking_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
-    #   - [x] Feature update interval
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_update_intervals")) as pc:
-        fe.plot_xvio_feature_update_interval_comparison_boxplot(pc, list(summaries.values()), common_datasets)
+        #   - [x] Feature update interval
+        with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_update_intervals")) as pc:
+            fe.plot_xvio_feature_update_interval_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
-    #   - [x] Backend feature age boxplot
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age")) as pc:
-        fe.plot_backend_feature_age_comparison_boxplot(pc, list(summaries.values()), common_datasets)
+        #   - [x] Backend feature age boxplot
+        with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age")) as pc:
+            fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
-    #   - [x] Backend feature age boxplot
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age_log")) as pc:
-        fe.plot_backend_feature_age_comparison_boxplot(pc, list(summaries.values()), common_datasets, use_log=True)
+        #   - [x] Backend feature age boxplot
+        with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age_log")) as pc:
+            fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets, use_log=True)
 
     if len(eklt_summaries) > 0:
         #   - [x] Optimization iterations
@@ -160,13 +165,29 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_update_interval")) as pc:
             fe.plot_eklt_feature_update_interval_comparison_boxplot(pc, eklt_summaries, common_datasets)
 
+    ########################################## PER-DATASET COMPARISON PLOTS ############################################
+
     for dataset in common_datasets:
         d_id = name_to_identifier(dataset)
 
         evaluations = [s.data[dataset] for s in summaries.values()]
         rows, cols = n_to_grid_size(len(evaluations))
+
+        feature_tracking_evaluations = [s.data[dataset] for s in summaries.values()
+                                        if hasattr(s.data[dataset].feature_data, 'xvio_tracks_error')
+                                        and s.data[dataset].feature_data.xvio_tracks_error is not None]
+        for s in summaries.values():
+            has_feature_tracks = [hasattr(s.data[dataset].feature_data, 'xvio_tracks_error') and s.data[
+                dataset].feature_data.xvio_tracks_error is not None]
+            has_feature_tracks = np.all(has_feature_tracks)
+
+            if has_feature_tracks:
+                feature_tracking_summaries.append(s)
         eklt_evaluations = [s.data[dataset] for s in summaries.values() if s.frontend == FrontEnd.EKLT]
         eklt_rows, eklt_cols = n_to_grid_size(len(eklt_evaluations))
+
+        trajectories_data = [s.data[dataset].trajectory_data for s in summaries.values()
+                             if s.data[dataset].trajectory_data is not None]
 
         if len(eklt_evaluations) > 0:
 
@@ -205,32 +226,33 @@ def main():
         with PlotContext(os.path.join(args.output_folder, F"compare_memory_usage_in_time_{d_id}")) as pc:
             pe.plot_memory_usage_in_time_comparison(pc, evaluations, names, dataset)
 
-        #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_{d_id}_feature_tracking")) as pc:
-            fe.plot_xvio_feature_tracking_comparison(pc, evaluations, names, dataset)
+        if len(feature_tracking_evaluations) > 0:
+            #   - [x] Pixel tracking accuracy
+            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_{d_id}")) as pc:
+                fe.plot_xvio_feature_tracking_comparison(pc, feature_tracking_evaluations, names, dataset)
 
-        #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
-            fe.plot_backend_feature_age_comparison(pc, evaluations, names, dataset)
+            #   - [x] Pixel tracking accuracy
+            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
+                fe.plot_backend_feature_age_comparison(pc, feature_tracking_evaluations, names, dataset)
 
-        #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}")) as\
-                pc:
-            fe.plot_xvio_feature_tracking_zero_aligned_comparison(pc, evaluations, names, dataset)
+            #   - [x] Pixel tracking accuracy
+            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}")) as\
+                    pc:
+                fe.plot_xvio_feature_tracking_zero_aligned_comparison(pc, feature_tracking_evaluations, names, dataset)
 
-        #   - [x] Pixel change histograms
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_pos_changes_{d_id}"),
-                         subplot_rows=rows, subplot_cols=cols) as pc:
-            fe.plot_xvio_all_feature_pos_changes(pc, evaluations, names)
+            #   - [x] Pixel change histograms
+            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_pos_changes_{d_id}"),
+                             subplot_rows=rows, subplot_cols=cols) as pc:
+                fe.plot_xvio_all_feature_pos_changes(pc, feature_tracking_evaluations, names)
 
-        #   - [x] Pixel change histograms
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_optical_flows_{d_id}"),
-                         subplot_rows=rows, subplot_cols=cols) as pc:
-            fe.plot_xvio_all_feature_optical_flows(pc, evaluations, names)
+            #   - [x] Pixel change histograms
+            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_optical_flows_{d_id}"),
+                             subplot_rows=rows, subplot_cols=cols) as pc:
+                fe.plot_xvio_all_feature_optical_flows(pc, feature_tracking_evaluations, names)
 
-        #   - [x] Feature update interval
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_update_interval_{d_id}")) as pc:
-            fe.plot_xvio_feature_update_interval_in_time(pc, evaluations, names, dataset)
+            #   - [x] Feature update interval
+            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_update_interval_{d_id}")) as pc:
+                fe.plot_xvio_feature_update_interval_in_time(pc, feature_tracking_evaluations, names, dataset)
 
         #   - [x] Error in time
         with PlotContext(os.path.join(args.output_folder, F"compare_ape_in_time_{d_id}"), subplot_cols=2,
@@ -271,21 +293,21 @@ def main():
         #   - [x] Boxplots
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
-            te.plot_rpg_error_arrays(pc, evaluations, names)
+            te.plot_rpg_error_arrays(pc, trajectories_data, names)
 
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
-            te.plot_rpg_error_arrays(pc, evaluations, names, realtive_to_trav_dist=True)
+            te.plot_rpg_error_arrays(pc, trajectories_data, names, realtive_to_trav_dist=True)
 
         #   - [x] Boxplots
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_log_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
-            te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True)
+            te.plot_rpg_error_arrays(pc, trajectories_data, names, use_log=True)
 
         with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_log_{d_id}"), subplot_cols=2) as\
                 pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
-            te.plot_rpg_error_arrays(pc, evaluations, names, use_log=True, realtive_to_trav_dist=True)
+            te.plot_rpg_error_arrays(pc, trajectories_data, names, use_log=True, realtive_to_trav_dist=True)
 
         #   - [x] SLAM / MSCKF / Opp number of features
         with PlotContext(os.path.join(args.output_folder, F"compare_backend_num_features_{d_id}"),

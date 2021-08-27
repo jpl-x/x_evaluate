@@ -1,0 +1,97 @@
+
+common_params:
+  fast_detection_delta: 20
+  non_max_supp: True
+  # block_half_length: 20
+  # margin: 20
+  n_feat_min: 400
+  outlier_method: 8
+#  outlier_param1: 0.6
+#  outlier_param2: 0.98
+  n_tiles_h: 1
+  n_tiles_w: 1
+  max_feat_per_tile: 10000
+  n_poses_max: 10
+  n_slam_features_max: 15
+  iekf_iter: 1
+  msckf_baseline: 30.0
+  min_track_length: 10
+
+  eklt_batch_size: 500
+  eklt_update_every_n_events: 20
+  eklt_displacement_px: 0.6
+#  eklt_patch_size: 35
+  eklt_max_num_iterations: 25
+#  eklt_tracking_quality: 0.6
+  eklt_bootstrap: "klt"
+  eklt_lk_window_size: 20
+  eklt_num_pyramidal_layers: 3
+  eklt_scale: 4
+  eklt_display_features: false
+  eklt_display_feature_id: false
+  eklt_display_feature_patches: false
+  eklt_max_corners: 60
+  eklt_min_corners: 35
+  eklt_log_eps: 0.01
+  eklt_harris_block_size: 3
+  eklt_harris_k: 0.04
+#  eklt_detection_min_distance: 25
+  eklt_harris_quality_level: 0.3
+
+datasets:
+  -
+    name: Boxes Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+      # initial state computed from topic /optitrack/davis over 100ms:
+      p: [0.30291768098742905, 1.430519451034191, 1.3521637770392119]
+      v: [-0.003301541735693611, 0.005962067389282077, -0.010828869392393976]
+      q: [0.013829174831521022, -0.03468748297254869, 0.8955545300641503, -0.4433820205309269]  # [w,x,y,z]
+
+  -
+    name: Dynamic Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/dynamic_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+     # initial state computed from topic /optitrack/davis over 100ms:
+     p: [1.6859278477713469, -1.4658295591389563, 1.298812520634158]
+     v: [0.0026893406797981628, 0.010057065949884923, -0.007002804190208332]
+     q: [0.346405045682845, -0.5720589852495133, 0.6355752910378475, -0.3857409897106071]  # [w,x,y,z]
+
+
+  -
+    name: Shapes Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/shapes_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+     # initial state computed from topic /optitrack/davis over 100ms:
+     p: [4.461422921154449, 1.5512600588125605, 1.4175439815328836]
+     v: [0.007208901640846718, 0.009767413656861793, 0.008575371720832243]
+     q: [-0.4775463051309417, 0.5201921377433283, -0.4965123080459334, 0.5048021337561005]  # [w,x,y,z]
+
+  -
+    name: Poster Rotation
+    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/poster_rotation.bag
+    events_topic: /dvs/events
+    image_topic: /dvs/image_raw
+    pose_topic: /optitrack/davis
+    imu_topic: /dvs/imu
+    params: ${XVIO_SRC_ROOT}/params_rpg_davis.yaml
+    override_params:
+     # initial state computed from topic /optitrack/davis over 100ms:
+     p: [4.526394089455742, -0.5973192737165077, 1.4715116414139455]
+     v: [0.003121604446743642, 0.005615239263361253, -0.010553776392296934]
+     q: [-0.4840108206676073, 0.4998577950717239, -0.5032014415263013, 0.5125075798742454]  # [w,x,y,z]

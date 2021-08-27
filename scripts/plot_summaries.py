@@ -33,7 +33,7 @@ def main():
             os.makedirs(output_folder)
 
         pe.plot_performance_plots(evaluation, output_folder)
-        te.plot_trajectory_plots(evaluation, output_folder)
+        te.plot_trajectory_plots(evaluation.trajectory_data, evaluation.name, output_folder)
         fe.plot_feature_plots(evaluation, output_folder)
 
         params_yaml_file = os.path.join(output_folder, "params.yaml")
@@ -44,7 +44,7 @@ def main():
         i += 1
 
     te.plot_summary_plots(s, output_root)
-    te.create_summary_info(s)
+    te.create_summary_info(s, output_root)
     pe.plot_summary_plots(s, output_root)
     pe.print_realtime_factor_summary(s)
     fe.plot_summary_plots(s, output_root)

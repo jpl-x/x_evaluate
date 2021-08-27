@@ -2,10 +2,11 @@
 # Initial state estimates #
 ###########################
 
-# initial state computed from topic /cam0/pose over 100ms of australia_02_circle_slow.bag:
-p: [3.4859545394552285, 5.097065806403151, 2.141299659418331]
-v: [0.2520361389274396, 1.2428214515885843, -0.05271952862835757]
-q: [0.02087197808098014, 0.9947669933301431, -0.10001493413481322, -4.9617569059957606e-05] #[w,x,y,z]
+# initial state computed from topic /cam0/pose over 100ms:
+p: [10.994448574561252, 0.18781498078706146, 2.1113211287076195]
+v: [-0.011227893724244873, 0.3454561641542648, 0.00136436957854492]
+q: [0.018553667425696627, 0.9993808576351664, 0.029818314747772214, 0.0021285964997393883] #[w,x,y,z]
+
 
 # Initial IMU bias estimates
 b_w: [0.0, 0.0, 0.0] # [x,y,z]
@@ -26,11 +27,11 @@ cam1_fx: 0.595876796300578
 cam1_fy: 0.7929745058461538
 cam1_cx: 0.4985549132947977
 cam1_cy: 0.4980769230769231
-cam1_dist_model: radial-tangential
-cam1_dist_params: [0.0, 0.0, 0.0, 0.0, 0.0]
+cam1_dist_model: fov
+cam1_dist_params: [0.0]
 cam1_img_width: 346
 cam1_img_height: 260
-cam1_q_ic: [0.0, 1.0, 0.0, 0.0]  # [w,x,y,z]
+cam1_q_ic: [1.0, 0.0, 0.0, 0.0]  # [w,x,y,z]
 cam1_p_ic: [0.0, 0.0, 0.0]  # [x,y,z]
 cam1_time_offset: 0.0
 
@@ -47,18 +48,27 @@ cam2_p_ic: [0.00674696422488, 0.0007279224709, 0.0342573613538] # [x,y,z]
 cam2_time_offset: 0.0
 
 # Feature noise (normalized coordinate standard deviation)
-sigma_img: 0.028888392540119216
+sigma_img: 0.04297354180455127
+# 2.5/f   0.012125717213473835
+# 5/f     0.02425143442694767
+# 8.86/f  0.04297354180455127
 
 
 #######
 # IMU #
 #######
 
-# calculated from Kalibr output
-n_a:  0.0031622776601683794  # Accel noise spectral density [m/s^2/sqrt(Hz)]
-n_ba: 6.324555320336759e-05 # Accel bias random walk [m/s^3/sqrt(Hz)]
-n_w:  0.0015811388300841897  # Gyro noise spectral density [rad/s/sqrt(Hz)]
-n_bw: 1.2649110640673519e-06 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+## calculated from Kalibr output
+
+# n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
+# n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
+# n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
+# n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+
+n_a:  0.00186  # Accel noise spectral density [m/s^2/sqrt(Hz)]
+n_ba: 0.000433 # Accel bias random walk [m/s^3/sqrt(Hz)]
+n_w:  0.000186  # Gyro noise spectral density [rad/s/sqrt(Hz)]
+n_bw: 0.0000266 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
 # Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
 a_m_max: 88.29 # 9g should be enough https://www.youtube.com/watch?v=_0nbRYIBVDQ
@@ -82,11 +92,11 @@ w_s: [0.0, 0.0, 1.0] # [x,y,z]
 # Tracker #
 ###########
 
-fast_detection_delta: 20
+fast_detection_delta: 10
 non_max_supp: True
-block_half_length: 6
-margin: 6
-n_feat_min: 400
+block_half_length: 12
+margin: 12
+n_feat_min: 500
 # RANSAC: 8 / LMEDS: 4 (see OpenCV doc)
 outlier_method: 8
 # Parameter used for RANSAC. It is the maximum distance from a point to an epipolar line in pixels,
@@ -144,7 +154,7 @@ eklt_ekf_update_timestamp: patches-maximum
 eklt_harris_block_size: 3
 eklt_detection_min_distance: 8  # 10
 eklt_harris_k: 0  # 0.04
-eklt_harris_quality_level: 0.3 # 0.01
+eklt_harris_quality_level: 0.01 # 0.01
 
 #########
 # HASTE #
@@ -170,7 +180,7 @@ haste_ekf_update_timestamp: patches-maximum
 haste_harris_block_size: 3
 haste_detection_min_distance: 8
 haste_harris_k: 0
-haste_harris_quality_level: 0.3
+haste_harris_quality_level: 0.01
 
 ##############
 # SLAM-MSCKF #
@@ -184,17 +194,17 @@ n_slam_features_max: 25
 
 # Initial inverse depth of SLAM features [1/m]
 # (default: 1 / (2 * d_min) [Montiel, 2006])
-rho_0: 1.3
+rho_0: 1.5
 
 # Initial standard deviation of SLAM inverse depth [1/m]
 # (default: 1 / (4 * d_min) [Montiel, 2006])
-sigma_rho_0: 0.65
+sigma_rho_0: 0.75
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1
 
 # Minimum baseline to trigger MSCKF measurement (pixels)
-msckf_baseline: 15.0
+msckf_baseline: 60.0
 
 # Minimum track length for a visual feature to be processed
 min_track_length: 10

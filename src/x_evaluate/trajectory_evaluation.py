@@ -29,7 +29,8 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame, df
         TrajectoryData:
     d = TrajectoryData()
     # filter invalid states
-    d.imu_bias = df_imu_bias[df_imu_bias['t'] != -1]
+    if df_imu_bias is not None:
+        d.imu_bias = df_imu_bias[df_imu_bias['t'] != -1]
     traj_est, d.raw_est_t_xyz_wxyz = convert_to_evo_trajectory(df_poses, prefix="estimated_")
     d.traj_gt, _ = convert_to_evo_trajectory(df_groundtruth)
 
@@ -212,25 +213,19 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     return np.hstack(tuple(arrays))
 
 
-def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationData], labels=None, use_log=False,
+def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[TrajectoryData], labels, use_log=False,
                           realtive_to_trav_dist=False):
-    auto_labels = []
     errors_rot_deg = []
     errors_trans_m = []
     gt_trajectory = None
     for t in trajectories:
-        if t.trajectory_data is not None:
-            errors_rot_deg.append(t.trajectory_data.rpe_error_r)
-            errors_trans_m.append(t.trajectory_data.rpe_error_t)
-            auto_labels.append(t.name)
-            if gt_trajectory is None:
-                gt_trajectory = t.trajectory_data.traj_gt
+        errors_rot_deg.append(t.rpe_error_r)
+        errors_trans_m.append(t.rpe_error_t)
+        if gt_trajectory is None:
+            gt_trajectory = t.traj_gt
 
     if len(errors_rot_deg) <= 0:
         return
-
-    if labels is None:
-        labels = auto_labels
 
     distances = get_split_distances_on_equal_parts(gt_trajectory, 5)
 
@@ -265,18 +260,35 @@ def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[EvaluationDa
     boxplot_compare(ax, distances, data_rot_deg, labels, showfliers=False)
 
 
-def plot_imu_bias(pc: PlotContext, eval_data: EvaluationData):
-    df = eval_data.trajectory_data.imu_bias
+def plot_imu_bias(pc: PlotContext, trajectory_data: TrajectoryData, name):
+    df = trajectory_data.imu_bias
     # filter invalid states
     df = df[df['t'] != -1]
     t = df['t'].to_numpy()
     t = t - t[0]
-    labels = ["b_a_x", "b_a_y", "b_a_z"]
-    b_a_xyz = list(df[labels].to_numpy().T)
-    time_series_plot(pc, t, b_a_xyz, labels, F"Accelerometer bias on '{eval_data.name}'", "m/s^2")
-    labels = ["b_w_x", "b_w_y", "b_w_z"]
-    b_w_xyz = list(df[labels].to_numpy().T)
-    time_series_plot(pc, t, b_w_xyz, labels, F"Gyroscope bias on '{eval_data.name}'", "rad/s")
+
+    if "sigma_b_w_x" in df.columns.values:
+        labels = ["b_a_x", "b_a_y", "b_a_z"]
+        b_a_xyz = df[labels].to_numpy().T
+        sigma_b_a = df[["sigma_b_a_x", "sigma_b_a_y", "sigma_b_a_z"]].to_numpy().T
+        sigma_b_a_lower = b_a_xyz - np.sqrt(sigma_b_a)
+        sigma_b_a_upper = b_a_xyz + np.sqrt(sigma_b_a)
+        time_series_plot(pc, t, list(b_a_xyz), labels, F"Accelerometer bias on '{name}'", "m/s^2",
+                         shaded_area_lower=list(sigma_b_a_lower), shaded_area_upper=list(sigma_b_a_upper))
+        labels = ["b_w_x", "b_w_y", "b_w_z"]
+        b_w_xyz = df[labels].to_numpy().T
+        sigma_b_w = df[["sigma_b_w_x", "sigma_b_w_y", "sigma_b_w_z"]].to_numpy().T
+        sigma_b_w_lower = b_w_xyz - np.sqrt(sigma_b_w)
+        sigma_b_w_upper = b_w_xyz + np.sqrt(sigma_b_w)
+        time_series_plot(pc, t, list(b_w_xyz), labels, F"Gyroscope bias on '{name}'", "rad/s",
+                         shaded_area_lower=list(sigma_b_w_lower), shaded_area_upper=list(sigma_b_w_upper))
+    else:
+        labels = ["b_a_x", "b_a_y", "b_a_z"]
+        b_a_xyz = list(df[labels].to_numpy().T)
+        time_series_plot(pc, t, b_a_xyz, labels, F"Accelerometer bias on '{name}'", "m/s^2")
+        labels = ["b_w_x", "b_w_y", "b_w_z"]
+        b_w_xyz = list(df[labels].to_numpy().T)
+        time_series_plot(pc, t, b_w_xyz, labels, F"Gyroscope bias on '{name}'", "rad/s")
 
 
 def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
@@ -312,25 +324,32 @@ def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
     ax_right.set_ylabel("rad/s")
 
 
-def plot_trajectory_plots(eval_data: EvaluationData, output_folder):
+def plot_trajectory_plots(trajectory_data: TrajectoryData, name, output_folder):
 
-    if hasattr(eval_data.trajectory_data, 'imu_bias') and eval_data.trajectory_data.imu_bias is not None:
+    if hasattr(trajectory_data, 'imu_bias') and trajectory_data.imu_bias is not None:
         with PlotContext(os.path.join(output_folder, "imu_bias"), subplot_cols=2) as pc:
-            plot_imu_bias(pc, eval_data)
+            plot_imu_bias(pc, trajectory_data, name)
 
     with PlotContext(os.path.join(output_folder, "xy_plot")) as pc:
-        plot_trajectory(pc, [eval_data])
+        plot_trajectory(pc, [trajectory_data], [name], use_aligned=False)
+
+    with PlotContext(os.path.join(output_folder, "xy_plot_aligned")) as pc:
+        plot_trajectory(pc, [trajectory_data], [name], use_aligned=True)
 
     # with PlotContext(None) as pc:
     with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors"), subplot_cols=2) as pc:
-        plot_rpg_error_arrays(pc, [eval_data], realtive_to_trav_dist=True)
+        plot_rpg_error_arrays(pc, [trajectory_data], [name], realtive_to_trav_dist=True)
 
 
-def create_summary_info(summary: EvaluationDataSummary):
+def create_summary_info(summary: EvaluationDataSummary, output_folder):
     summary.trajectory_summary_table = create_absolute_trajectory_result_table(summary)
 
+    table = create_trajectory_result_table_wrt_traveled_dist(summary)
+    with pd.ExcelWriter(os.path.join(output_folder, "trajectory_tracking_summary.xlsx")) as writer:
+        table.to_excel(writer)
 
-def plot_trajectory(pc: PlotContext, trajectories: Collection[EvaluationData]):
+
+def plot_trajectory(pc: PlotContext, trajectories: Collection[TrajectoryData], labels, use_aligned=True):
     traj_by_label = dict()
 
     if len(trajectories) <= 0:
@@ -338,12 +357,14 @@ def plot_trajectory(pc: PlotContext, trajectories: Collection[EvaluationData]):
 
     first = True
 
-    for t in trajectories:
-        if t.trajectory_data is not None:
-            if first:
-                first = False
-                traj_by_label[F"{t.name} reference"] = t.trajectory_data.traj_gt_synced
-            traj_by_label[F"{t.name} estimate"] = t.trajectory_data.traj_est_synced
+    for i, t in enumerate(trajectories):
+        if first:
+            first = False
+            traj_by_label[F"{labels[i]} reference"] = t.traj_gt_synced
+        if use_aligned:
+            traj_by_label[F"{labels[i]} estimate"] = t.traj_est_aligned
+        else:
+            traj_by_label[F"{labels[i]} estimate"] = t.traj_est_synced
 
     plot.trajectories(pc.figure, traj_by_label, plot.PlotMode.xy)
 

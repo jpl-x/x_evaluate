@@ -2,7 +2,7 @@ import numpy as np
 import tqdm
 
 
-def back_project_features(K, features, depths, poses, is_distance_from_z_0_plane=False):
+def back_project_features(K, features, depths, poses, is_distance_from_z_0_plane=True):
     assert len(features.shape) == 3
     assert features.shape[1] == 1
     assert features.shape[2] == 2

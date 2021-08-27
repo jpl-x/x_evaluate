@@ -215,10 +215,19 @@ def main():
     # selected_indices = [1]
     # matches = [matches[i] for i in selected_indices]
 
-    esim_csvs = ["/tmp/esim_spline_dump.csv"]
+    # esim_csvs = ["/storage/data/projects/nasa-eve/eklt/src/rpg_esim/event_camera_simulator/esim_ros/cfg/traj"
+    #              "/neuro_bem_esim.csv",  # "/storage/data/projects/nasa-eve/eklt/src/rpg_esim/event_camera_simulator"
+    #                                      # "/esim_ros/cfg/traj/neuro_bem_esim_eight.slow",
+    #              "/tmp/esim_spline_dump.csv",
+    #              "/storage/data/projects/nasa-eve/friedrich_python_helpers/trajectory_gen/test.csv"]
+
+    esim_matcher = os.path.join("/storage/data/projects/nasa-eve/eklt/src/rpg_esim/event_camera_simulator/esim_ros"
+                                "/cfg/traj/vmax/", "*.csv")
+    esim_matches = glob.glob(esim_matcher)
+    esim_matches.sort()
 
     with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
-        v = EvoTrajectoryVisualizer(pc, esim_csvs, read_esim_trajectory_csv,
+        v = EvoTrajectoryVisualizer(pc, esim_matches, read_esim_trajectory_csv,
         # v = EvoTrajectoryVisualizer(pc, matches, read_neurobem_trajectory,
                                     special_key_actions={
                                         'enter': lambda t: convert_to_esim_trajectory(args.output, t),

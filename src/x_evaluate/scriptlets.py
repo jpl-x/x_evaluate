@@ -1,6 +1,7 @@
 import copy
 import os
 import pickle
+from pathlib import Path
 
 import git
 import yaml
@@ -195,3 +196,16 @@ def write_evaluation_pickle(summary: EvaluationDataSummary, output_folder, filen
     full_name = os.path.join(output_folder, filename)
     with open(full_name, 'wb') as f:
         pickle.dump(summary, f, pickle.HIGHEST_PROTOCOL)
+
+
+def find_evaluation_files_recursively(root_folder):
+    # matches = glob.glob(os.path.join(root_folder, "*/evaluation.pickle"))
+    # matches.sort()
+    evaluation_files = []
+    # for f in matches:
+    #     if os.path.isdir(f) and os.path.isfile(os.path.join(f, "evaluation.pickle")):
+    #         evaluation_files.append(f)
+    for path in Path(root_folder).rglob('evaluation.pickle'):
+        evaluation_files.append(str(path))
+    evaluation_files.sort()
+    return evaluation_files

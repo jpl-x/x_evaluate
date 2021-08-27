@@ -66,7 +66,7 @@ datasets:
 # #     eklt_harris_k: 0
 # #     eklt_harris_quality_level: 0.3
 # #     eklt_tracking_quality: 0.7
-#
+
 
  - name: Boxes 6DOF
    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_6dof.bag
@@ -221,68 +221,68 @@ datasets:
      v: [-0.006540214923432048, 0.011206995969221352, -0.0028955488827940184]
      q: [-0.4946479556120538, 0.5096776166433423, -0.48814562570621595, 0.507213934356564]  # [w,x,y,z]
 
+###
+### - name: Circle High Velocity
+###   rosbag: ${XVIO_DATASET_DIR}/circle_high_vel_restamped.bag
+###   events_topic:
+###   image_topic: /camera/image_raw
+###   pose_topic: /tf
+###   imu_topic: /fcu/imu
+###   params: ${X_EVALUATE_SRC_ROOT}/params.yaml
+###
 ##
-## - name: Circle High Velocity
-##   rosbag: ${XVIO_DATASET_DIR}/circle_high_vel_restamped.bag
-##   events_topic:
-##   image_topic: /camera/image_raw
-##   pose_topic: /tf
-##   imu_topic: /fcu/imu
-##   params: ${X_EVALUATE_SRC_ROOT}/params.yaml
+## # ROTATION (diverging <-> non observable depth):
+#
+## - name: Boxes Rotation
+##    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_rotation.bag
+##    events_topic: /dvs/events
+##    image_topic: /dvs/image_raw
+##    pose_topic: /optitrack/davis
+##    imu_topic: /dvs/imu
+##    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
+##    override_params:
+##      # initial state computed from topic /optitrack/davis over 100ms:
+##      p: [0.30291768098742905, 1.430519451034191, 1.3521637770392119]
+##      v: [-0.003301541735693611, 0.005962067389282077, -0.010828869392393976]
+##      q: [0.013829174831521022, -0.03468748297254869, 0.8955545300641503, -0.4433820205309269]  # [w,x,y,z]
 ##
-#
-# # ROTATION (diverging <-> non observable depth):
-
-# - name: Boxes Rotation
-#    rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/boxes_rotation.bag
-#    events_topic: /dvs/events
-#    image_topic: /dvs/image_raw
-#    pose_topic: /optitrack/davis
-#    imu_topic: /dvs/imu
-#    params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
-#    override_params:
-#      # initial state computed from topic /optitrack/davis over 100ms:
-#      p: [0.30291768098742905, 1.430519451034191, 1.3521637770392119]
-#      v: [-0.003301541735693611, 0.005962067389282077, -0.010828869392393976]
-#      q: [0.013829174831521022, -0.03468748297254869, 0.8955545300641503, -0.4433820205309269]  # [w,x,y,z]
-#
-#
-# - name: Dynamic Rotation
-#   rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/dynamic_rotation.bag
-#   events_topic: /dvs/events
-#   image_topic: /dvs/image_raw
-#   pose_topic: /optitrack/davis
-#   imu_topic: /dvs/imu
-#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
-#   override_params:
-#     # initial state computed from topic /optitrack/davis over 100ms:
-#     p: [1.6859278477713469, -1.4658295591389563, 1.298812520634158]
-#     v: [0.0026893406797981628, 0.010057065949884923, -0.007002804190208332]
-#     q: [0.346405045682845, -0.5720589852495133, 0.6355752910378475, -0.3857409897106071]  # [w,x,y,z]
-#
-#
-# - name: Shapes Rotation
-#   rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/shapes_rotation.bag
-#   events_topic: /dvs/events
-#   image_topic: /dvs/image_raw
-#   pose_topic: /optitrack/davis
-#   imu_topic: /dvs/imu
-#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
-#   override_params:
-#     # initial state computed from topic /optitrack/davis over 100ms:
-#     p: [4.461422921154449, 1.5512600588125605, 1.4175439815328836]
-#     v: [0.007208901640846718, 0.009767413656861793, 0.008575371720832243]
-#     q: [-0.4775463051309417, 0.5201921377433283, -0.4965123080459334, 0.5048021337561005]  # [w,x,y,z]
-#
-# - name: Poster Rotation
-#   rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/poster_rotation.bag
-#   events_topic: /dvs/events
-#   image_topic: /dvs/image_raw
-#   pose_topic: /optitrack/davis
-#   imu_topic: /dvs/imu
-#   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
-#   override_params:
-#     # initial state computed from topic /optitrack/davis over 100ms:
-#     p: [4.526394089455742, -0.5973192737165077, 1.4715116414139455]
-#     v: [0.003121604446743642, 0.005615239263361253, -0.010553776392296934]
-#     q: [-0.4840108206676073, 0.4998577950717239, -0.5032014415263013, 0.5125075798742454]  # [w,x,y,z]
+##
+## - name: Dynamic Rotation
+##   rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/dynamic_rotation.bag
+##   events_topic: /dvs/events
+##   image_topic: /dvs/image_raw
+##   pose_topic: /optitrack/davis
+##   imu_topic: /dvs/imu
+##   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
+##   override_params:
+##     # initial state computed from topic /optitrack/davis over 100ms:
+##     p: [1.6859278477713469, -1.4658295591389563, 1.298812520634158]
+##     v: [0.0026893406797981628, 0.010057065949884923, -0.007002804190208332]
+##     q: [0.346405045682845, -0.5720589852495133, 0.6355752910378475, -0.3857409897106071]  # [w,x,y,z]
+##
+##
+## - name: Shapes Rotation
+##   rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/shapes_rotation.bag
+##   events_topic: /dvs/events
+##   image_topic: /dvs/image_raw
+##   pose_topic: /optitrack/davis
+##   imu_topic: /dvs/imu
+##   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
+##   override_params:
+##     # initial state computed from topic /optitrack/davis over 100ms:
+##     p: [4.461422921154449, 1.5512600588125605, 1.4175439815328836]
+##     v: [0.007208901640846718, 0.009767413656861793, 0.008575371720832243]
+##     q: [-0.4775463051309417, 0.5201921377433283, -0.4965123080459334, 0.5048021337561005]  # [w,x,y,z]
+##
+## - name: Poster Rotation
+##   rosbag: ${XVIO_DATASET_DIR}/rpg_davis_data/poster_rotation.bag
+##   events_topic: /dvs/events
+##   image_topic: /dvs/image_raw
+##   pose_topic: /optitrack/davis
+##   imu_topic: /dvs/imu
+##   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
+##   override_params:
+##     # initial state computed from topic /optitrack/davis over 100ms:
+##     p: [4.526394089455742, -0.5973192737165077, 1.4715116414139455]
+##     v: [0.003121604446743642, 0.005615239263361253, -0.010553776392296934]
+##     q: [-0.4840108206676073, 0.4998577950717239, -0.5032014415263013, 0.5125075798742454]  # [w,x,y,z]

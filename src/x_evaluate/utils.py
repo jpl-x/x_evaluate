@@ -21,7 +21,7 @@ class ArgparseKeyValueAction(argparse.Action):
             getattr(namespace, self.dest)[key] = value
 
 
-def str_to_likely_type(value):
+def str_to_likely_type(value: str):
     try:
         value = int(value)
     except ValueError:
@@ -32,6 +32,12 @@ def str_to_likely_type(value):
                 value = distutils.util.strtobool(value) == 1
             except ValueError:
                 pass
+                # try to parse array
+                if value.startswith('[') and value.endswith(']'):
+                    try:
+                        value = eval(value)
+                    except:
+                        pass
     return value
 
 

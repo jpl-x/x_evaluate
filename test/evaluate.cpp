@@ -155,6 +155,8 @@ using PoseCsv = x::CsvWriter<std::string,
                              double, double, double, double>;
 using ImuBiasCsv = x::CsvWriter<double,
                              double, double, double,
+                             double, double, double,
+                             double, double, double,
                              double, double, double>;
 
 using GTCsv = x::CsvWriter<double,
@@ -168,9 +170,24 @@ void addPose(PoseCsv& csv, const std::string& update_modality, const x::State& s
 }
 
 void addImuBias(ImuBiasCsv& csv, const std::string& update_modality, const x::State& s) {
+  // THIS CURRENTLY LEADS TO A SEGMENTATION FAULT ON poster_translation after 50% for some mysterious reason
+//  const x::Matrix& imu_bias_cov = s.getDynamicCovariance().bottomRightCorner<6, 6>();
+//  const double& sigma_w_x = imu_bias_cov(0, 0);
+//  const double& sigma_w_y = imu_bias_cov(1, 1);
+//  const double& sigma_w_z = imu_bias_cov(2, 2);
+//  const double& sigma_a_x = imu_bias_cov(3, 3);
+//  const double& sigma_a_y = imu_bias_cov(4, 4);
+//  const double& sigma_a_z = imu_bias_cov(5, 5);
+  const double sigma_w_x = 0.0;
+  const double sigma_w_y = 0.0;
+  const double sigma_w_z = 0.0;
+  const double sigma_a_x = 0.0;
+  const double sigma_a_y = 0.0;
+  const double sigma_a_z = 0.0;
   csv.addRow(s.getTime(),
              s.getAccelerometerBias().x(), s.getAccelerometerBias().y(), s.getAccelerometerBias().z(),
-             s.getGyroscopeBias().x(), s.getGyroscopeBias().y(), s.getGyroscopeBias().z());
+             s.getGyroscopeBias().x(), s.getGyroscopeBias().y(), s.getGyroscopeBias().z(),
+             sigma_w_x, sigma_w_y, sigma_w_z, sigma_a_x, sigma_a_y, sigma_a_z);
 }
 
 char* get_time_string_in_utc() {
@@ -185,7 +202,8 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
   PoseCsv pose_csv(output_path / "pose.csv", {"update_modality", "t",
                                               "estimated_p_x", "estimated_p_y", "estimated_p_z",
                                               "estimated_q_x", "estimated_q_y", "estimated_q_z", "estimated_q_w"});
-  ImuBiasCsv imu_bias_csv(output_path / "imu_bias.csv", {"t", "b_a_x", "b_a_y", "b_a_z", "b_w_x", "b_w_y", "b_w_z"});
+  ImuBiasCsv imu_bias_csv(output_path / "imu_bias.csv", {"t", "b_a_x", "b_a_y", "b_a_z", "b_w_x", "b_w_y", "b_w_z",
+                                                         "sigma_b_a_x", "sigma_b_a_y", "sigma_b_a_z", "sigma_b_w_x", "sigma_b_w_y", "sigma_b_w_z"});
 
 
   std::unique_ptr<GTCsv> gt_csv(nullptr);

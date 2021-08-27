@@ -1,0 +1,243 @@
+
+common_params:
+  eklt_bootstrap: "klt"
+
+datasets:
+  -
+    name: Mars Straight Vmax 3.2 Offset 2.5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_straight_vmax_3.2_offset_2.5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_straight_vmax_3.2_offset_2.5.bag):
+      p: [7.317714106629776, 5.512650121338403, 1.1262565405648701]
+      v: [-0.05123640358737308, -0.039339975112420586, 0.011171206117664105]
+      q: [-0.010533999210678562, 0.9988817895148666, -0.04476474431774899, 0.010969188774639057] #[w,x,y,z]
+
+  -
+    name: Mars Eight Vmax 3.5 Offset 2.5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_eight_vmax_3.5_offset_2.5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_eight_vmax_3.5_offset_2.5.bag):
+      p: [10.994449705408107, 0.18724018264473732, 2.111145698215429]
+      v: [-0.011735287342839303, 0.3472602830418499, 0.0031941966751740684]
+      q: [0.018528162464070377, 0.9993790854097812, 0.029895168293731608, 0.002104698055214345] #[w,x,y,z]
+
+  -
+    name: Mars Circle Vmax 7.2 Offset 2.5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_circle_vmax_7.2_offset_2.5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_circle_vmax_7.2_offset_2.5.bag):
+      p: [3.5147880132979887, 4.978085656521602, 2.045779057135709]
+      v: [0.022770507239752977, -0.0032844212295826576, 0.016577470675016262]
+      q: [-0.006191246309381402, 0.40862051528749677, 0.9126821175933926, -0.0015149853326468015] #[w,x,y,z]
+
+  -
+    name: Mars Vertical Circle Vmax 2.4 Offset 2.5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_vcircle_vmax_2.4_offset_2.5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_vcircle_vmax_2.4_offset_2.5.bag):
+      p: [-0.005916771272094978, 1.6482523347598448, 1.3140179403853145]
+      v: [-0.01238327713483487, 0.058888453811912295, 0.30397815908870224]
+      q: [-0.004683078465210785, 0.9997036980131201, 0.023685901638295245, 0.003092413064573078] #[w,x,y,z]
+  
+  -
+    name: Mars Straight Vmax 3.2 Offset 5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_straight_vmax_3.2_offset_5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms: 
+      p: [7.317714106629776, 5.512650121338403, 1.1262565405648701]
+      v: [-0.051218481981579723, -0.03932556829574063, 0.011163632303875709]
+      q: [-0.010533999210678562, 0.9988817895148666, -0.04476474431774899, 0.010969188774639057] #[w,x,y,z] 
+
+  -
+    name: Mars Eight Vmax 3.5 Offset 5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_eight_vmax_3.5_offset_5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_eight_vmax_3.5_offset_5.bag): 
+      p: [10.99445962631948, 0.18691028951676839, 2.1111428696187264]
+      v: [-0.011383376567710064, 0.3370533848496756, 0.0030986835929276545]
+      q: [0.018529089607734604, 0.9993790898382872, 0.029894473927320094, 0.002104295823816461] #[w,x,y,z] 
+
+  -
+    name: Mars Circle Vmax 7.2 Offset 5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_circle_vmax_7.2_offset_5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_circle_vmax_7.2_offset_5.bag): 
+      p: [3.51477876774549, 4.978086958072064, 2.0457749339622104]
+      v: [0.022583657071855456, -0.003258100258625273, 0.01643757988911453]
+      q: [-0.006107590651112141, 0.4085915630275694, 0.9126956875433704, -0.0014879176256199214] #[w,x,y,z] 
+
+  -
+    name: Mars Vertical Circle Vmax 2.4 Offset 5
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_vcircle_vmax_2.4_offset_5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_vcircle_vmax_2.4_offset_5.bag): 
+      p: [-0.005906384787194073, 1.6481933858348943, 1.3137280858238607]
+      v: [-0.012003252709816713, 0.05717518597076091, 0.29499260405858646]
+      q: [-0.004683702128348797, 0.9997037420268035, 0.023683985842174692, 0.0030919130982360807] #[w,x,y,z] 
+  
+  -
+    name: Mars Straight Vmax 3.2 Offset 10
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_straight_vmax_3.2_offset_10.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_straight_vmax_3.2_offset_10.bag): 
+      p: [7.317749582523188, 5.512676822971506, 1.1262519571470693]
+      v: [-0.049846407517518634, -0.03827694310628435, 0.010888442393166263]
+      q: [-0.010478164465752315, 0.9988830720313372, -0.04476475997824426, 0.010905628948258736] #[w,x,y,z] 
+
+  -
+    name: Mars Eight Vmax 3.5 Offset 10
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_eight_vmax_3.5_offset_10.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_eight_vmax_3.5_offset_10.bag): 
+      p: [10.99445962631948, 0.18691028951676839, 2.1111428696187264]
+      v: [-0.011383376567710064, 0.3370533848496756, 0.0030986835929276545]
+      q: [0.018529089607734604, 0.9993790898382872, 0.029894473927320094, 0.002104295823816461] #[w,x,y,z] 
+
+
+  -
+    name: Mars Circle Vmax 7.2 Offset 10
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_circle_vmax_7.2_offset_10.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_circle_vmax_7.2_offset_10.bag): 
+      p: [3.51477876774549, 4.978086958072064, 2.0457749339622104]
+      v: [0.022585832327429924, -0.003258428398239606, 0.01643929384150251]
+      q: [-0.006107590651112141, 0.4085915630275694, 0.9126956875433704, -0.0014879176256199214] #[w,x,y,z] 
+
+  -
+    name: Mars Vertical Circle Vmax 2.4 Offset 10
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_vcircle_vmax_2.4_offset_10.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from topic /cam0/pose over 100ms (neuro_bem_esim_vcircle_vmax_2.4_offset_10.bag): 
+      p: [-0.005906384787194073, 1.6481933858348943, 1.3137280858238607]
+      v: [-0.012003252709816713, 0.05717518597076091, 0.29499260405858646]
+      q: [-0.004683702128348797, 0.9997037420268035, 0.023683985842174692, 0.0030919130982360807] #[w,x,y,z] 
+
+#   -
+#     name: Australia Eight Slow
+#     rosbag: ${XVIO_DATASET_DIR}/sim/australia_eight_slow.bag
+#     events_topic: /cam0/events
+#     image_topic: /cam0/image_raw
+#     pose_topic: /cam0/pose
+#     imu_topic: /imu
+#     depth_map_topic: /cam0/depthmap
+#     camera_info_topic: /cam0/camera_info
+#     params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+#     from: 8.0
+#     override_params:
+#       p: [ 8.498597482809036, 0.0965527638343036, 2.0613580545690224 ]
+#       v: [ -0.004073881656054954, 0.21968794563084545, 0.0025364501633223947 ]
+#       q: [ -0.0215322415482229, 0.9993530396014848, -0.028551865421958932, -0.0038282886657833607 ] #[w,x,y,z]
+# #      p: [ 8.47628360040561, 0.08329430661289504, 2.058282636745696 ]
+# #      v: [ -0.008635134031048715, -0.182714761839111, 0.003382519570185002 ]
+# #      q: [ 0.009243850378989182, 0.9996789745627429, -0.02358976441448531, -0.00014853357456964957 ]
+
+
+
+
+#  -
+#    name: Australia 01
+#    rosbag: ${XVIO_DATASET_DIR}/sim/australia_02_circle_slow.bag
+#    events_topic: /cam0/events
+#    image_topic: /cam0/image_raw
+#    pose_topic: /cam0/pose
+#    imu_topic: /imu
+#    depth_map_topic: /cam0/depthmap
+#    camera_info_topic: /cam0/camera_info
+#    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+
