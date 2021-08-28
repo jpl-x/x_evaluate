@@ -444,7 +444,7 @@ then
      XVIO --name "XVIO baseline"
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-non-max-supp/001-non-max-supp-false --frontend \
-     XVIO --name "XVIO non_max_supp=1" --overrides non_max_supp=False
+     XVIO --name "XVIO non_max_supp=0" --overrides non_max_supp=False
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-non-max-supp/002-non-max-supp-true --frontend \
      XVIO --name "XVIO non_max_supp=1" --overrides non_max_supp=True
@@ -816,7 +816,7 @@ then
      
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-sigma-img/007-sigma-8.86-f --frontend \
      XVIO --name "XVIO sigma_img=8.86/f" --overrides sigma_img=0.04297354180455127
-     
+
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-sigma-img/008-sigma-10-f --frontend \
      XVIO --name "XVIO sigma_img=10/f" --overrides sigma_img=0.04850286885389534
 

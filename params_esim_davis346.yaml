@@ -58,8 +58,6 @@ sigma_img: 0.04297354180455127
 # IMU #
 #######
 
-## calculated from Kalibr output
-
 # n_a:  0.0083  # Accel noise spectral density [m/s^2/sqrt(Hz)]
 # n_ba: 0.00083 # Accel bias random walk [m/s^3/sqrt(Hz)]
 # n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
@@ -94,8 +92,8 @@ w_s: [0.0, 0.0, 1.0] # [x,y,z]
 
 fast_detection_delta: 10
 non_max_supp: True
-block_half_length: 12
-margin: 12
+block_half_length: 18
+margin: 18
 n_feat_min: 500
 # RANSAC: 8 / LMEDS: 4 (see OpenCV doc)
 outlier_method: 8

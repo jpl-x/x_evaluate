@@ -145,6 +145,38 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
         ax.set_yscale('log')
 
 
+def time_series_plot_with_ref(pc: PlotContext, time, data, data_ref, labels, title="", ylabel=None,
+                              use_log=False, xlabel=None, subplot_arg=None):
+    ax = pc.get_axis(subplot_arg)
+    for i in range(len(data)):
+
+        # this causes issues, quick fix:
+        label = labels[i]
+        if label.startswith('_'):
+            label = label[1:]
+
+        if isinstance(time, list):
+            t = time[i]
+        else:
+            t = time
+
+        ax.plot(t, data[i], label=label, color=DEFAULT_COLORS[i])
+        ax.plot(t, data_ref[i], label=F"{label} ref", color=DEFAULT_COLORS[i], linestyle="--")
+
+    ax.legend()
+    ax.set_title(title)
+    if not xlabel:
+        xlabel = "Time [s]"
+    ax.set_xlabel(xlabel)
+
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+
+    if use_log:
+        ax.set_yscale('log')
+
+
+
 def bubble_plot(pc: PlotContext, xy_data, labels, y_resolution=0.1, x_resolution=0.1, title=None, ylabel=None,
                 xlabel=None, use_log=False):
     ax = pc.get_axis()
@@ -409,17 +441,29 @@ def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None
     ax.fill_between(t, stats['q75'], stats['max'], alpha=0.1, lw=0, facecolor=color)
 
 
-def plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label):
+def plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label, ref_trajectory=None):
     traj_by_label = {
-        str(os.path.basename(label)): trajectory
+        str(label): trajectory
     }
-    plot.trajectories(plot_context.figure, traj_by_label, plot.PlotMode.xyz, subplot_arg=211)
-    time_series_plot(plot_context, trajectory.timestamps, trajectory.positions_xyz.T,
-                     ["x", "y", "z"], subplot_arg=223)
+
     rotations = R.from_quat(trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
     euler_angles = np.rad2deg(rotations.as_euler("ZYX")).T
     # euler_angles[2, :] = np.fmod(euler_angles[2, :] + 360, 360)
-    time_series_plot(plot_context, trajectory.timestamps, euler_angles,
-                     ["euler_z", "euler_y", "euler_x"], subplot_arg=224)
     # plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xy, subplot_arg=121)
     # plot.trajectories(self._pc.figure, traj_by_label, plot.PlotMode.xz, subplot_arg=122)
+
+    if ref_trajectory is not None:
+        rotations_ref = R.from_quat(ref_trajectory.orientations_quat_wxyz[:, [1, 2, 3, 0]])
+        euler_angles_ref = np.rad2deg(rotations_ref.as_euler("ZYX")).T
+        time_series_plot_with_ref(plot_context, trajectory.timestamps, trajectory.positions_xyz.T,
+                                  ref_trajectory.positions_xyz.T, ["x", "y", "z"], subplot_arg=223)
+        time_series_plot_with_ref(plot_context, trajectory.timestamps, euler_angles, euler_angles_ref,
+                                  ["euler_z", "euler_y", "euler_x"], subplot_arg=224)
+        traj_by_label[F"{label} ref"] = ref_trajectory
+    else:
+        time_series_plot(plot_context, trajectory.timestamps, trajectory.positions_xyz.T,
+                         ["x", "y", "z"], subplot_arg=223)
+        time_series_plot(plot_context, trajectory.timestamps, euler_angles,
+                         ["euler_z", "euler_y", "euler_x"], subplot_arg=224)
+
+    plot.trajectories(plot_context.figure, traj_by_label, plot.PlotMode.xyz, subplot_arg=211)

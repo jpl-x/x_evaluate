@@ -53,7 +53,7 @@ class EvoTrajectoryVisualizer:
         label = self._files[self._current_idx]
         trajectory = self._current_trajectory
         plot_context = self._pc
-        plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label)
+        plot_evo_trajectory_with_euler_angles(plot_context, trajectory, os.path.basename(label))
 
         stats = trajectory.get_statistics()
 

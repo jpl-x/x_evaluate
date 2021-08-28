@@ -8,7 +8,7 @@ from evo.core.metrics import APE, RPE, PoseRelation
 from x_evaluate.rpg_trajectory_evaluation import get_split_distances_on_equal_parts
 from x_evaluate.utils import convert_to_evo_trajectory, rms, merge_tables, n_to_grid_size, get_nans_in_trajectory
 from x_evaluate.plots import boxplot, time_series_plot, PlotType, PlotContext, boxplot_compare, barplot_compare, \
-    DEFAULT_COLORS, align_yaxis
+    DEFAULT_COLORS, align_yaxis, plot_evo_trajectory_with_euler_angles
 from evo.core import sync
 from evo.core import metrics
 from evo.tools import plot
@@ -336,7 +336,12 @@ def plot_trajectory_plots(trajectory_data: TrajectoryData, name, output_folder):
     with PlotContext(os.path.join(output_folder, "xy_plot_aligned")) as pc:
         plot_trajectory(pc, [trajectory_data], [name], use_aligned=True)
 
-    # with PlotContext(None) as pc:
+    with PlotContext(os.path.join(output_folder, "trajectory_plot"), subplot_rows=3, subplot_cols=3) as pc:
+        plot_trajectory_with_gt_and_euler_angles(pc, trajectory_data, name, use_aligned=False)
+
+    with PlotContext(os.path.join(output_folder, "trajectory_plot_aligned"), subplot_rows=3, subplot_cols=3) as pc:
+        plot_trajectory_with_gt_and_euler_angles(pc, trajectory_data, name, use_aligned=True)
+
     with PlotContext(os.path.join(output_folder, "rpg_subtrajectory_errors"), subplot_cols=2) as pc:
         plot_rpg_error_arrays(pc, [trajectory_data], [name], realtive_to_trav_dist=True)
 
@@ -367,6 +372,13 @@ def plot_trajectory(pc: PlotContext, trajectories: Collection[TrajectoryData], l
             traj_by_label[F"{labels[i]} estimate"] = t.traj_est_synced
 
     plot.trajectories(pc.figure, traj_by_label, plot.PlotMode.xy)
+
+
+def plot_trajectory_with_gt_and_euler_angles(pc: PlotContext, trajectory: TrajectoryData, label, use_aligned=True):
+    if use_aligned:
+        plot_evo_trajectory_with_euler_angles(pc, trajectory.traj_est_aligned, label, trajectory.traj_gt_synced)
+    else:
+        plot_evo_trajectory_with_euler_angles(pc, trajectory.traj_est_synced, label, trajectory.traj_gt_synced)
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
