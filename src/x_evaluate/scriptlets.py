@@ -72,6 +72,16 @@ def get_param_if_exists(dataset, key):
     return None
 
 
+class ProgressInfoLog:
+    def __init__(self, total):
+        self.current = 0
+        self.total = total
+
+    def print_operation(self, info: str):
+        self.current += 1
+        print(F"[{self.current}/{self.total}] {info}")
+
+
 def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file, cmdline_override_params,
                     frontend: FrontEnd, skip_feature_tracking) -> EvaluationData:
 
@@ -90,17 +100,27 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     df_groundtruth, df_poses, df_realtime, df_features,\
     df_resources, df_xvio_tracks, df_imu_bias = read_output_files(output_folder, gt_available)
 
+    total_operations = 2 + int(df_groundtruth is not None) \
+                         + int(frontend == FrontEnd.EKLT) \
+                         + int(not skip_feature_tracking)
+
+    info_log = ProgressInfoLog(total=total_operations)
+
     if df_groundtruth is not None:
+        info_log.print_operation("Evaluating trajectory")
         d.trajectory_data = te.evaluate_trajectory(df_poses, df_groundtruth, df_imu_bias)
 
+    info_log.print_operation("Evaluating computational performance")
     d.performance_data = pe.evaluate_computational_performance(df_realtime, df_resources)
 
     df_eklt_tracks = None
 
     if frontend == FrontEnd.EKLT:
         df_events, df_optimize, df_eklt_tracks = read_eklt_output_files(output_folder)
+        info_log.print_operation("Evaluating EKLT performance")
         d.eklt_performance_data = pe.evaluate_ektl_performance(d.performance_data, df_events, df_optimize)
 
+        info_log.print_operation("Evaluating EKLT features")
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, df_eklt_tracks)
 
         # track_file = os.path.join(output_folder, "eklt_tracks.txt")
@@ -110,9 +130,11 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
         # d.feature_data.eklt_tracks_error = error_data
         # d.feature_data.eklt_tracking_evaluation_config = tracker_config
     else:
+        info_log.print_operation("Evaluating features")
         d.feature_data = fe.evaluate_feature_tracking(d.performance_data, df_features, None)
 
     if not skip_feature_tracking:
+        info_log.print_operation("Evaluating backend feature tracks")
         track_file = os.path.join(output_folder, "xvio_tracks.txt")
         convert_xvio_to_rpg_tracks(df_xvio_tracks, track_file)
         gt_tracks, error_data, tracker_config = call_rpg_feature_tracking_evaluation(dataset, track_file)
