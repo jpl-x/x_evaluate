@@ -8,16 +8,16 @@ SCRIPT_PATH="$( cd -- "$(dirname "$SCRIPT_PATH/../test/evaluate.py")" >/dev/null
 
 CONFIGURATION="evaluate_sim.yaml --skip_feature_tracking"
 
-COMPARISONS_ONLY=0
+COMPARISONS_ONLY=1
 EXPLORE_BASELINES=0
-EXPLORE_XVIO_PATCH_SIZE=1
+EXPLORE_XVIO_PATCH_SIZE=0
 EXPLORE_XVIO_IMU_OFFSET=0
 EXPLORE_XVIO_MSCKF_BASELINE=0
 EXPLORE_XVIO_RHO_0=0
 EXPLORE_XVIO_FAST_DETECTION_DELTA=0
 EXPLORE_XVIO_NON_MAX_SUPP=0
 EXPLORE_XVIO_N_FEAT_MIN=0
-EXPLORE_XVIO_OUTLIER_METHOD=0
+EXPLORE_XVIO_OUTLIER_METHOD=1
 EXPLORE_XVIO_TILING=0
 EXPLORE_XVIO_N_POSES_MAX=0
 EXPLORE_XVIO_N_SLAM_FEATURES_MAX=0
@@ -28,7 +28,7 @@ EXPLORE_XVIO_INITIAL_SIGMA_P=0
 EXPLORE_XVIO_INITIAL_SIGMA_V=0
 EXPLORE_XVIO_INITIAL_SIGMA_THETA=0
 EXPLORE_XVIO_INITIAL_SIGMA_BW=0
-EXPLORE_XVIO_INITIAL_SIGMA_BA=0
+EXPLORE_XVIO_INITIAL_SIGMA_BA=1
 EXPLORE_EKLT_PATCH_SIZE=0
 EXPLORE_EKLT_IMU_OFFSET=0
 EXPLORE_EKLT_OUTLIER_REMOVAL=0
@@ -551,52 +551,52 @@ then
      XVIO --name "XVIO RANSAC px=0.85" --overrides outlier_method=8 outlier_param1=0.85 outlier_param2=0.99
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/017-ransac-px-0.05-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.05" --overrides outlier_method=8 outlier_param1=0.05 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.05 p=0.95" --overrides outlier_method=8 outlier_param1=0.05 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/018-ransac-px-0.1-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.1" --overrides outlier_method=8 outlier_param1=0.1 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.1 p=0.95" --overrides outlier_method=8 outlier_param1=0.1 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/019-ransac-px-0.15-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.15" --overrides outlier_method=8 outlier_param1=0.15 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.15 p=0.95" --overrides outlier_method=8 outlier_param1=0.15 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/020-ransac-px-0.2-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.2" --overrides outlier_method=8 outlier_param1=0.2 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.2 p=0.95" --overrides outlier_method=8 outlier_param1=0.2 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/021-ransac-px-0.25-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.25" --overrides outlier_method=8 outlier_param1=0.25 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.25 p=0.95" --overrides outlier_method=8 outlier_param1=0.25 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/022-ransac-px-0.35-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.35" --overrides outlier_method=8 outlier_param1=0.35 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.35 p=0.95" --overrides outlier_method=8 outlier_param1=0.35 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/023-ransac-px-0.4-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.4" --overrides outlier_method=8 outlier_param1=0.4 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.4 p=0.95" --overrides outlier_method=8 outlier_param1=0.4 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/024-ransac-px-0.45-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.45" --overrides outlier_method=8 outlier_param1=0.45 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.45 p=0.95" --overrides outlier_method=8 outlier_param1=0.45 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/025-ransac-px-0.5-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.5" --overrides outlier_method=8 outlier_param1=0.5 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.5 p=0.95" --overrides outlier_method=8 outlier_param1=0.5 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/026-ransac-px-0.55-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.55" --overrides outlier_method=8 outlier_param1=0.55 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.55 p=0.95" --overrides outlier_method=8 outlier_param1=0.55 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/027-ransac-px-0.6-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.6" --overrides outlier_method=8 outlier_param1=0.6 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.6 p=0.95" --overrides outlier_method=8 outlier_param1=0.6 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/028-ransac-px-0.65-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.65" --overrides outlier_method=8 outlier_param1=0.65 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.65 p=0.95" --overrides outlier_method=8 outlier_param1=0.65 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/029-ransac-px-0.7-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.7" --overrides outlier_method=8 outlier_param1=0.7 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.7 p=0.95" --overrides outlier_method=8 outlier_param1=0.7 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/030-ransac-px-0.75-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.75" --overrides outlier_method=8 outlier_param1=0.75 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.75 p=0.95" --overrides outlier_method=8 outlier_param1=0.75 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/031-ransac-px-0.8-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.8" --overrides outlier_method=8 outlier_param1=0.8 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.8 p=0.95" --overrides outlier_method=8 outlier_param1=0.8 outlier_param2=0.95
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/032-ransac-px-0.85-p-0.95 --frontend \
-     XVIO --name "XVIO RANSAC px=0.85" --overrides outlier_method=8 outlier_param1=0.85 outlier_param2=0.95
+     XVIO --name "XVIO RANSAC px=0.85 p=0.95" --overrides outlier_method=8 outlier_param1=0.85 outlier_param2=0.95
     
 
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-outlier-method/001-ransac-px-0.575-p-0.98 --frontend \
@@ -1281,31 +1281,31 @@ then
      XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.0,0.0,0.0]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/042-sigma-dba-0.0001 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.0001,0.0001,0.0001]
+     XVIO --name "XVIO sigma_dba 0.0001" --overrides sigma_dba=[0.0001,0.0001,0.0001]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/043-sigma-dba-0.001 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.001,0.001,0.001]
+     XVIO --name "XVIO sigma_dba 0.001" --overrides sigma_dba=[0.001,0.001,0.001]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/044-sigma-dba-0.01 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.01,0.01,0.01]
+     XVIO --name "XVIO sigma_dba 0.01" --overrides sigma_dba=[0.01,0.01,0.01]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/045-sigma-dba-0.05 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.05,0.05,0.05]
+     XVIO --name "XVIO sigma_dba 0.05" --overrides sigma_dba=[0.05,0.05,0.05]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/046-sigma-dba-0.2 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.2,0.2,0.2]
+     XVIO --name "XVIO sigma_dba 0.2" --overrides sigma_dba=[0.2,0.2,0.2]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/047-sigma-dba-0.45 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.45,0.45,0.45]
+     XVIO --name "XVIO sigma_dba 0.45" --overrides sigma_dba=[0.45,0.45,0.45]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/048-sigma-dba-0.6 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[0.6,0.6,0.6]
+     XVIO --name "XVIO sigma_dba 0.6" --overrides sigma_dba=[0.6,0.6,0.6]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/049-sigma-dba-1.2 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[1.2,1.2,1.2]
+     XVIO --name "XVIO sigma_dba 1.2" --overrides sigma_dba=[1.2,1.2,1.2]
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-initial-stds-dba/050-sigma-dba-3.0 --frontend \
-     XVIO --name "XVIO sigma_dba 0.0" --overrides sigma_dba=[3.0,3.0,3.0]
+     XVIO --name "XVIO sigma_dba 3.0" --overrides sigma_dba=[3.0,3.0,3.0]
 
   fi
 

@@ -136,22 +136,11 @@ def plot_performance_plots(eval_data: EvaluationData, output_folder):
         with PlotContext(os.path.join(output_folder, "optimizations_per_second")) as pc:
             plot_optimizations_per_second(pc, eval_data)
         with PlotContext(os.path.join(output_folder, "optimization_iterations")) as pc:
-            plot_optimization_iterations(pc, [eval_data], os.path.join(output_folder, "optimization_iterations"))
+            plot_optimization_iterations(pc, [eval_data.eklt_performance_data], [eval_data.name])
 
 
-def plot_optimization_iterations(pc: PlotContext, evaluations: Collection[EvaluationData], labels=None):
-    auto_labels = []
-    data = []
-    for d in evaluations:
-        if d.eklt_performance_data is not None:
-            data.append(d.eklt_performance_data.optimization_iterations)
-            auto_labels.append(d.name)
-
-    if len(auto_labels) <= 0:
-        return
-
-    if labels is None:
-        labels = auto_labels
+def plot_optimization_iterations(pc: PlotContext, evaluations: List[EKLTPerformanceData], labels):
+    data = [e.optimization_iterations for e in evaluations]
 
     boxplot_from_summary(pc, data, labels, "Optimization iterations")
 
@@ -197,8 +186,12 @@ def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData
 
 
 def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
-    with PlotContext(os.path.join(output_folder, "optimization_iterations")) as pc:
-        plot_optimization_iterations(pc, summary.data.values())
+    eklt_performance_data = [e.eklt_performance_data for e in summary.data.values() if e.eklt_performance_data is not None]
+    eklt_names = [e.name for e in summary.data.values() if e.eklt_performance_data is not None]
+
+    if len(eklt_performance_data) > 0:
+        with PlotContext(os.path.join(output_folder, "optimization_iterations")) as pc:
+            plot_optimization_iterations(pc, eklt_performance_data, eklt_names)
 
 
 def print_realtime_factor_summary(eval_data_summary: EvaluationDataSummary):

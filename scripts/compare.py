@@ -1,20 +1,59 @@
 import argparse
 import os
+import sys
 
 import numpy as np
 import pandas as pd
 from typing import Dict
 
+import tqdm
+
 from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, \
     create_parameter_changes_table
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
-from x_evaluate.plots import PlotContext, PlotType
+from x_evaluate.plots import PlotType
+from x_evaluate.plots import PlotContext as ActualPlotContext
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
 from x_evaluate.scriptlets import read_evaluation_pickle, find_evaluation_files_recursively
 
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
+
+
+# enables a dummy run, counting how often a PlotContext is called, then enabling to visualize a progress bar
+class ProgressPlotContextManager:
+    def __init__(self):
+        self.count = 0
+        self.dummy_plot_context = self.create_plot_context(True)
+        self.actual_plot_context = self.create_plot_context(False)
+        self.pb = None
+
+    def init_progress_bar(self):
+        self.pb = tqdm.tqdm(total=self.count)
+
+    def create_plot_context(self, for_counting: bool):
+        manager = self
+
+        class ProgressBarPlotContext(ActualPlotContext):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+
+            def __enter__(self):
+                if for_counting:
+                    manager.count += 1
+                    return None
+                return super().__enter__()
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                if for_counting:
+                    return True
+                manager.pb.update(1)
+                if manager.pb.n == manager.count:
+                    manager.pb.close()
+                return super().__exit__(exc_type, exc_val, exc_tb)
+
+        return ProgressBarPlotContext
 
 
 def main():
@@ -34,12 +73,13 @@ def main():
         input_folders = find_evaluation_files_recursively(root_folder)
         input_folders = [os.path.dirname(f) for f in input_folders]
 
-    if args.output_folder is None:
+    output_folder = args.output_folder
+    if output_folder is None:
         print(F"Using '{input_folders[0]}' as output_folder")
-        args.output_folder = input_folders[0]
+        output_folder = input_folders[0]
 
-    if not os.path.exists(args.output_folder):
-        os.makedirs(args.output_folder)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
     summaries: Dict[str, EvaluationDataSummary] = {}
 
@@ -73,28 +113,44 @@ def main():
 
     print(F"Comparing {', '.join(summaries.keys())} on following datasets: {', '.join(common_datasets)}")
     print(F"Overall the following parameters change (excluding initial filter states): {changing_parameters}")
+    print()
+    print("[1/2] Creating excel result tables")
 
+    # the mixed error table is also dropped as plot later
+    table_mixed_errors = create_excel_result_tables(common_datasets, output_folder, summaries)
+
+    manager = ProgressPlotContextManager()
+
+    # dry run with dummy plot context
+    compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summaries, names, output_folder, summaries,
+            table_mixed_errors, manager.dummy_plot_context)
+
+    print()
+    print(F"[2/2] Creating {manager.count} comparison plots")
+    print()
+
+    manager.init_progress_bar()
+
+    # actual run with displaying progress
+    compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summaries, names, output_folder, summaries,
+            table_mixed_errors, manager.actual_plot_context)
+
+
+def create_excel_result_tables(common_datasets, output_folder, summaries):
     ############################################# FIRST DUMP RESULT TABLES #############################################
-
     table_mixed_errors = te.compare_trajectory_performance_wrt_traveled_dist(list(summaries.values()))
     table_completion_rate = te.compare_trajectory_completion_rates(list(summaries.values()))
     table_pos_errors = table_mixed_errors.xs('Mean Position Error [%]', axis=1, level=1, drop_level=True)
     completion_rate = table_completion_rate.xs('Completion rate [%]', axis=1, level=1, drop_level=True)
     table_rot_errors = table_mixed_errors.xs('Mean Rotation error [deg/m]', axis=1, level=1, drop_level=True)
     parameter_changes_table = create_parameter_changes_table(list(summaries.values()), common_datasets)
-
     # print(table_mixed_errors.to_latex())
-
     completion_rate = pd.DataFrame(completion_rate.min(axis=0), columns=["Worst completion rate [%]"]).T
-
     additional_top_rows = pd.concat((completion_rate, parameter_changes_table))
-
     table_pos_errors = pd.concat((additional_top_rows, table_pos_errors))
     table_rot_errors = pd.concat((additional_top_rows, table_rot_errors))
-
     table_pos_errors = pd.concat((completion_rate, table_pos_errors))
-
-    with pd.ExcelWriter(os.path.join(args.output_folder, "result_tables.xlsx")) as writer:
+    with pd.ExcelWriter(os.path.join(output_folder, "result_tables.xlsx")) as writer:
         pos_sheet = 'Pos errors w.r.t. traveled dist'
         table_pos_errors.to_excel(writer, sheet_name=pos_sheet, startrow=1)
         writer.sheets[pos_sheet].cell(row=1, column=1).value = 'Translation error w.r.t. traveled distance [%]'
@@ -104,69 +160,65 @@ def main():
         table_mixed_errors.to_excel(writer, sheet_name='Errors w.r.t. traveled dist')
         parameter_changes_table.to_excel(writer, sheet_name='Parameter changes')
         table_completion_rate.to_excel(writer, sheet_name='Completion rate')
+    return table_mixed_errors
+
+
+def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summaries, names, output_folder, summaries,
+            table_mixed_errors, PlotContext):
 
     ########################################### CREATE ALL COMPARISON PLOTS ############################################
-
     scaled_width_datasets = max(10 * len(common_datasets) / 6, 10)
     scaled_with_runs = max(10 * len(summaries) / 6, 10)
-
     #   - [x] Overview plot of ATEs
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_ate_wrt_traveled_dist"),
-                     base_width_inch=scaled_with_runs*1.5) as pc:
+    with PlotContext(os.path.join(output_folder, F"compare_all_ate_wrt_traveled_dist"),
+                     base_width_inch=scaled_with_runs * 1.5) as pc:
         te.plot_trajectory_comparison_overview(pc, table_mixed_errors)
-
     #   - [x] Overview plot of ATEs
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_ate_wrt_traveled_dist_log"),
-                     base_width_inch=scaled_with_runs*1.5) as pc:
+    with PlotContext(os.path.join(output_folder, F"compare_all_ate_wrt_traveled_dist_log"),
+                     base_width_inch=scaled_with_runs * 1.5) as pc:
         te.plot_trajectory_comparison_overview(pc, table_mixed_errors, use_log=True)
-
     #   - [x] Overall time
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_processing_times"),
+    with PlotContext(os.path.join(output_folder, F"compare_all_processing_times"),
                      base_width_inch=scaled_width_datasets) as pc:
         pe.plot_processing_times(pc, summaries, common_datasets)
-
     #   - [x] CPU usage
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_cpu_usage"),
+    with PlotContext(os.path.join(output_folder, F"compare_all_cpu_usage"),
                      base_width_inch=scaled_width_datasets) as pc:
         pe.plot_cpu_usage_boxplot_comparison(pc, summaries, common_datasets)
-
     #   - [x] Memory usage
-    with PlotContext(os.path.join(args.output_folder, F"compare_all_memory_usage"),
+    with PlotContext(os.path.join(output_folder, F"compare_all_memory_usage"),
                      base_width_inch=scaled_width_datasets) as pc:
         pe.plot_memory_usage_boxplot_comparison(pc, summaries, common_datasets)
-
     if len(feature_tracking_summaries) > 0:
         #   - [x] Pixel tracking accuracy
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_tracking")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_all_feature_tracking")) as pc:
             fe.plot_xvio_feature_tracking_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
         #   - [x] Feature update interval
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_feature_update_intervals")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_all_feature_update_intervals")) as pc:
             fe.plot_xvio_feature_update_interval_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
         #   - [x] Backend feature age boxplot
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_all_backend_feature_age")) as pc:
             fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
         #   - [x] Backend feature age boxplot
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_backend_feature_age_log")) as pc:
-            fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets, use_log=True)
-
+        with PlotContext(os.path.join(output_folder, F"compare_all_backend_feature_age_log")) as pc:
+            fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets,
+                                                           use_log=True)
     if len(eklt_summaries) > 0:
         #   - [x] Optimization iterations
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_optimization_iterations")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_all_eklt_optimization_iterations")) as pc:
             pe.plot_optimization_iterations_comparison(pc, eklt_summaries, common_datasets)
 
         #   - [x] Feature age
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_ages")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_all_eklt_feature_ages")) as pc:
             fe.plot_eklt_feature_age_comparison(pc, eklt_summaries, common_datasets)
 
         #   - [x] Feature update rate
-        with PlotContext(os.path.join(args.output_folder, F"compare_all_eklt_feature_update_interval")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_all_eklt_feature_update_interval")) as pc:
             fe.plot_eklt_feature_update_interval_comparison_boxplot(pc, eklt_summaries, common_datasets)
-
     ########################################## PER-DATASET COMPARISON PLOTS ############################################
-
     for dataset in common_datasets:
         d_id = name_to_identifier(dataset)
 
@@ -190,27 +242,26 @@ def main():
                              if s.data[dataset].trajectory_data is not None]
 
         if len(eklt_evaluations) > 0:
-
             #   - [x] Time / event
-            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_event_processing_times_{d_id}"),
+            with PlotContext(os.path.join(output_folder, F"compare_eklt_event_processing_times_{d_id}"),
                              subplot_rows=len(eklt_evaluations), base_height_inch=3) as pc:
                 pc.figure.suptitle(F"Event processing times on '{dataset}'")
                 pe.plot_event_processing_times(pc, eklt_evaluations, eklt_names)
 
             #   - [x] Events / s
-            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_events_per_second_{d_id}")) as pc:
+            with PlotContext(os.path.join(output_folder, F"compare_eklt_events_per_second_{d_id}")) as pc:
                 pe.plot_events_per_seconds_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
             #   - [x] Optimizations / s
-            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_optimizations_per_second_{d_id}")) as pc:
+            with PlotContext(os.path.join(output_folder, F"compare_eklt_optimizations_per_second_{d_id}")) as pc:
                 pe.plot_optimizations_per_seconds_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
             #   - [x] Number of tracked features
-            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_num_features_{d_id}")) as pc:
+            with PlotContext(os.path.join(output_folder, F"compare_eklt_num_features_{d_id}")) as pc:
                 fe.plot_eklt_num_features_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
             #   - [x] Pixel change histograms
-            with PlotContext(os.path.join(args.output_folder, F"compare_eklt_feature_pos_changes_{d_id}"),
+            with PlotContext(os.path.join(output_folder, F"compare_eklt_feature_pos_changes_{d_id}"),
                              subplot_rows=eklt_rows, subplot_cols=eklt_cols) as pc:
                 fe.plot_eklt_all_feature_pos_changes(pc, eklt_evaluations, eklt_names)
             #
@@ -219,69 +270,69 @@ def main():
             #     fe.plot_eklt_feature_tracking_comparison(pc, eklt_evaluations, eklt_names, dataset)
 
         #   - [x] CPU usage
-        with PlotContext(os.path.join(args.output_folder, F"compare_cpu_usage_in_time_{d_id}")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_cpu_usage_in_time_{d_id}")) as pc:
             pe.plot_cpu_usage_in_time_comparison(pc, evaluations, names, dataset)
 
         #   - [x] Memory usage
-        with PlotContext(os.path.join(args.output_folder, F"compare_memory_usage_in_time_{d_id}")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_memory_usage_in_time_{d_id}")) as pc:
             pe.plot_memory_usage_in_time_comparison(pc, evaluations, names, dataset)
 
         if len(feature_tracking_evaluations) > 0:
             #   - [x] Pixel tracking accuracy
-            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_{d_id}")) as pc:
+            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_tracking_{d_id}")) as pc:
                 fe.plot_xvio_feature_tracking_comparison(pc, feature_tracking_evaluations, names, dataset)
 
             #   - [x] Pixel tracking accuracy
-            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
+            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
                 fe.plot_backend_feature_age_comparison(pc, feature_tracking_evaluations, names, dataset)
 
             #   - [x] Pixel tracking accuracy
-            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}")) as\
+            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}")) as \
                     pc:
                 fe.plot_xvio_feature_tracking_zero_aligned_comparison(pc, feature_tracking_evaluations, names, dataset)
 
             #   - [x] Pixel change histograms
-            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_pos_changes_{d_id}"),
+            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_pos_changes_{d_id}"),
                              subplot_rows=rows, subplot_cols=cols) as pc:
                 fe.plot_xvio_all_feature_pos_changes(pc, feature_tracking_evaluations, names)
 
             #   - [x] Pixel change histograms
-            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_optical_flows_{d_id}"),
+            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_optical_flows_{d_id}"),
                              subplot_rows=rows, subplot_cols=cols) as pc:
                 fe.plot_xvio_all_feature_optical_flows(pc, feature_tracking_evaluations, names)
 
             #   - [x] Feature update interval
-            with PlotContext(os.path.join(args.output_folder, F"compare_backend_feature_update_interval_{d_id}")) as pc:
+            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_update_interval_{d_id}")) as pc:
                 fe.plot_xvio_feature_update_interval_in_time(pc, feature_tracking_evaluations, names, dataset)
 
         #   - [x] Error in time
-        with PlotContext(os.path.join(args.output_folder, F"compare_ape_in_time_{d_id}"), subplot_cols=2,
+        with PlotContext(os.path.join(output_folder, F"compare_ape_in_time_{d_id}"), subplot_cols=2,
                          base_width_inch=scaled_with_runs) as pc:
             pc.figure.suptitle(F"APE comparison on '{dataset}'")
             te.plot_ape_error_comparison(pc, evaluations, PlotType.TIME_SERIES, names)
 
         #   - [x] Error in time
-        with PlotContext(os.path.join(args.output_folder, F"compare_ape_boxplot_{d_id}"), subplot_cols=2,
+        with PlotContext(os.path.join(output_folder, F"compare_ape_boxplot_{d_id}"), subplot_cols=2,
                          base_width_inch=scaled_with_runs) as pc:
             pc.figure.suptitle(F"APE comparison on '{dataset}'")
             te.plot_ape_error_comparison(pc, evaluations, PlotType.BOXPLOT, names)
 
         #   - [x] Error in time
-        with PlotContext(os.path.join(args.output_folder, F"compare_ape_log_in_time_{d_id}"), subplot_cols=2) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_ape_log_in_time_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"APE comparison on '{dataset}' in log scale")
             te.plot_ape_error_comparison(pc, evaluations, PlotType.TIME_SERIES, names, use_log=True)
 
         #   - [x] Error in time
-        with PlotContext(os.path.join(args.output_folder, F"compare_ape_log_boxplot_{d_id}"), subplot_cols=2) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_ape_log_boxplot_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"APE comparison on '{dataset}' in log scale")
             te.plot_ape_error_comparison(pc, evaluations, PlotType.BOXPLOT, names, use_log=True)
 
         #   - [x] Realtime factor
-        with PlotContext(os.path.join(args.output_folder, F"compare_rt_factor_{d_id}")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_rt_factor_{d_id}")) as pc:
             pe.plot_realtime_factor(pc, evaluations, names, title=F"Realtime factor on '{dataset}'")
 
         #   - [x] Realtime factor
-        with PlotContext(os.path.join(args.output_folder, F"compare_rt_factor_log_{d_id}")) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_rt_factor_log_{d_id}")) as pc:
             pe.plot_realtime_factor(pc, evaluations, names, use_log=True,
                                     title=F"Realtime factor on '{dataset}' in log scale")
 
@@ -291,40 +342,41 @@ def main():
         #         pe.plot_realtime_factor(pc, [s.data[dataset]], [k])
 
         #   - [x] Boxplots
-        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_{d_id}"), subplot_cols=2) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
             te.plot_rpg_error_arrays(pc, trajectories_data, names)
 
-        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_{d_id}"), subplot_cols=2) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_percent_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
             te.plot_rpg_error_arrays(pc, trajectories_data, names, realtive_to_trav_dist=True)
 
         #   - [x] Boxplots
-        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_log_{d_id}"), subplot_cols=2) as pc:
+        with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_log_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
             te.plot_rpg_error_arrays(pc, trajectories_data, names, use_log=True)
 
-        with PlotContext(os.path.join(args.output_folder, F"compare_rpg_errors_percent_log_{d_id}"), subplot_cols=2) as\
+        with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_percent_log_{d_id}"), subplot_cols=2) as \
                 pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}' in log scale")
             te.plot_rpg_error_arrays(pc, trajectories_data, names, use_log=True, realtive_to_trav_dist=True)
 
         #   - [x] SLAM / MSCKF / Opp number of features
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_num_features_{d_id}"),
+        with PlotContext(os.path.join(output_folder, F"compare_backend_num_features_{d_id}"),
                          subplot_cols=2, subplot_rows=2) as pc:
             fe.plot_xvio_num_features(pc, evaluations, names, title=F"Number of features in backend on '{dataset}'")
 
         #   - [x] SLAM / MSCKF / Opp number of features
-        with PlotContext(os.path.join(args.output_folder, F"compare_backend_num_features_boxplot_{d_id}"),
-                         base_width_inch=scaled_width_datasets*0.6) as pc:
-            fe.plot_num_features_boxplot_comparison(pc, evaluations, names, title=F"Number of features in backend on '{dataset}'")
+        with PlotContext(os.path.join(output_folder, F"compare_backend_num_features_boxplot_{d_id}"),
+                         base_width_inch=scaled_width_datasets * 0.6) as pc:
+            fe.plot_num_features_boxplot_comparison(pc, evaluations, names,
+                                                    title=F"Number of features in backend on '{dataset}'")
 
         has_imu_bias = [hasattr(s.data[dataset].trajectory_data, 'imu_bias') and s.data[
             dataset].trajectory_data.imu_bias is not None for s in summaries.values()]
         has_imu_bias = np.all(has_imu_bias)
 
         if has_imu_bias:
-            with PlotContext(os.path.join(args.output_folder, F"compare_imu_bias_{d_id}"), subplot_rows=rows,
+            with PlotContext(os.path.join(output_folder, F"compare_imu_bias_{d_id}"), subplot_rows=rows,
                              subplot_cols=cols) as pc:
                 for k, s in summaries.items():
                     te.plot_imu_bias_in_one(pc, s.data[dataset], s.name)

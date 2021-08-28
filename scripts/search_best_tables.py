@@ -59,8 +59,17 @@ def main():
         stats = {
             "max": lambda p: p.max(),
             "mean": lambda p: p.mean(),
-            "median": lambda p: p.median()
+            "median": lambda p: p.median(),
+            "median+max": lambda p: p.median() + 0.25*p.max(),
         }
+
+        if dataset == Dataset.RPG_DAVIS:
+            def get_uslam_compare_func(uslam_results):
+                def better_than_uslam(p):
+                    return len(uslam_results) - np.count_nonzero(p <= uslam_results)
+                return better_than_uslam
+            stats['uslam_global'] = get_uslam_compare_func([0.68, 1.12, 0.76, 0.63, 1.01, 1.48, 0.59, 0.24, 1.07, 1.36])
+            stats['uslam_best'] = get_uslam_compare_func([0.30, 0.27, 0.19, 0.18, 0.37, 0.31, 0.28, 0.12, 0.10, 0.26])
 
         best_stats = {k: np.inf for k in stats.keys()}
         best_stats_keys = {k: None for k in stats.keys()}
