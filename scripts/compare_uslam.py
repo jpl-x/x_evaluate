@@ -8,6 +8,7 @@ from typing import Dict
 from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, \
     create_parameter_changes_table
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
+import x_evaluate.plots
 from x_evaluate.plots import PlotContext, PlotType
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
 from x_evaluate.scriptlets import read_evaluation_pickle, find_evaluation_files_recursively
@@ -20,16 +21,20 @@ import x_evaluate.tracking_evaluation as fe
 def main():
     parser = argparse.ArgumentParser(description='Comparison script for USLAM evaluation.pickle files')
     parser.add_argument('--input_folder', type=str, required=True)
+    parser.add_argument('--output_folder', type=str, required=True)
+    parser.add_argument('--use_paper_style_plots', action='store_true', default=False)
+    parser.add_argument('--custom_rpe_distances', nargs='+', default=None, type=float)
 
     args = parser.parse_args()
+
+    x_evaluate.plots.use_paper_style_plots = args.use_paper_style_plots
 
     root_folder = args.input_folder
     input_folders = find_evaluation_files_recursively(root_folder)
 
     input_folders = [os.path.dirname(f) for f in input_folders]
 
-    # same folder for now
-    output_folder = args.input_folder
+    output_folder = args.output_folder
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -120,6 +125,16 @@ def main():
             pc.figure.suptitle(F"APE comparison on '{dataset}' in log scale")
             te.plot_ape_error_comparison(pc, evaluations, PlotType.BOXPLOT, names, use_log=True)
 
+        if args.custom_rpe_distances is not None:
+            with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_custom_{d_id}"), subplot_cols=2) as pc:
+                pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
+                te.plot_rpg_error_arrays(pc, trajectories_data, names, desired_distances=args.custom_rpe_distances)
+
+            with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_custom_percent_{d_id}"), subplot_cols=2)\
+                    as pc:
+                pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
+                te.plot_rpg_error_arrays(pc, trajectories_data, names, realtive_to_trav_dist=True,
+                                         desired_distances=args.custom_rpe_distances)
 
         #   - [x] Boxplots
         with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_{d_id}"), subplot_cols=2) as pc:

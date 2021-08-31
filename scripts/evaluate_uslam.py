@@ -21,10 +21,10 @@ def main():
 
     args = parser.parse_args()
 
-    must_datasets = ["Boxes 6DOF", "Boxes Translation", "Dynamic 6DOF", "Dynamic Translation", "HDR Boxes",
+    datasets = ["Boxes 6DOF", "Boxes Translation", "Dynamic 6DOF", "Dynamic Translation", "HDR Boxes",
                      "HDR Poster", "Poster 6DOF", "Poster Translation", "Shapes 6DOF", "Shapes Translation"]
 
-    must_datasets = [x.lower().replace(' ', '_') for x in must_datasets]
+    must_datasets = [x.lower().replace(' ', '_') for x in datasets]
     print(must_datasets)
 
     # output_folders = [os.path.join(args.uslam_folder, "run_ijrr_" + x) for x in must_datasets]
@@ -89,7 +89,7 @@ def main():
 
             plot_trajectory_plots(d.trajectory_data, "USLAM", sequence_folder)
 
-            s.data[must_datasets[i]] = d
+            s.data[datasets[i]] = d
 
         plot_summary_plots(s, output_folder)
         create_summary_info(s, output_folder)

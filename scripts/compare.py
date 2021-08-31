@@ -11,6 +11,7 @@ import tqdm
 from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, \
     create_parameter_changes_table
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
+import x_evaluate.plots
 from x_evaluate.plots import PlotType
 from x_evaluate.plots import PlotContext as ActualPlotContext
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
@@ -61,8 +62,12 @@ def main():
     parser.add_argument('--input_folder', type=str, required=True)
     parser.add_argument('--sub_folders', type=str)
     parser.add_argument('--output_folder', type=str)
+    parser.add_argument('--use_paper_style_plots', action='store_true', default=False)
+    parser.add_argument('--custom_rpe_distances', nargs='+', default=None, type=float)
 
     args = parser.parse_args()
+
+    x_evaluate.plots.use_paper_style_plots = args.use_paper_style_plots
 
     input_folders = []
     if args.sub_folders is not None:
@@ -72,6 +77,9 @@ def main():
         root_folder = args.input_folder
         input_folders = find_evaluation_files_recursively(root_folder)
         input_folders = [os.path.dirname(f) for f in input_folders]
+
+    # hack to remove uslam
+    input_folders = [f for f in input_folders if 'uslam' not in f]
 
     output_folder = args.output_folder
     if output_folder is None:
@@ -123,7 +131,7 @@ def main():
 
     # dry run with dummy plot context
     compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summaries, names, output_folder, summaries,
-            table_mixed_errors, manager.dummy_plot_context)
+            args.custom_rpe_distances, table_mixed_errors, manager.dummy_plot_context)
 
     print()
     print(F"[2/2] Creating {manager.count} comparison plots")
@@ -133,7 +141,7 @@ def main():
 
     # actual run with displaying progress
     compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summaries, names, output_folder, summaries,
-            table_mixed_errors, manager.actual_plot_context)
+            args.custom_rpe_distances,table_mixed_errors, manager.actual_plot_context)
 
 
 def create_excel_result_tables(common_datasets, output_folder, summaries):
@@ -164,7 +172,7 @@ def create_excel_result_tables(common_datasets, output_folder, summaries):
 
 
 def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summaries, names, output_folder, summaries,
-            table_mixed_errors, PlotContext):
+            custom_rpe_distances, table_mixed_errors, PlotContext):
 
     ########################################### CREATE ALL COMPARISON PLOTS ############################################
     scaled_width_datasets = max(10 * len(common_datasets) / 6, 10)
@@ -349,6 +357,17 @@ def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summar
         with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_percent_{d_id}"), subplot_cols=2) as pc:
             pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
             te.plot_rpg_error_arrays(pc, trajectories_data, names, realtive_to_trav_dist=True)
+
+        if custom_rpe_distances is not None:
+            with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_custom_{d_id}"), subplot_cols=2) as pc:
+                pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
+                te.plot_rpg_error_arrays(pc, trajectories_data, names, desired_distances=custom_rpe_distances)
+
+            with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_custom_percent_{d_id}"), subplot_cols=2)\
+                    as pc:
+                pc.figure.suptitle(F"Relative pose errors for all pairs at different distances on '{dataset}'")
+                te.plot_rpg_error_arrays(pc, trajectories_data, names, realtive_to_trav_dist=True,
+                                         desired_distances=custom_rpe_distances)
 
         #   - [x] Boxplots
         with PlotContext(os.path.join(output_folder, F"compare_rpg_errors_log_{d_id}"), subplot_cols=2) as pc:

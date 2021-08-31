@@ -46,19 +46,9 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame, df
     split_distances = get_split_distances_on_equal_parts(d.traj_gt, num_parts=5)
     # split_distances = np.hstack((split_distances, get_split_distances_equispaced(d.traj_gt, step_size=10)))
 
-    for s in split_distances:
-        try:
-            m_t = RPE(PoseRelation.translation_part, s, metrics.Unit.meters, all_pairs=True)
-            m_r = RPE(PoseRelation.rotation_angle_deg, s, metrics.Unit.meters, all_pairs=True)
-            m_t.process_data((d.traj_gt_synced, d.traj_est_aligned))
-            m_r.process_data((d.traj_gt_synced, d.traj_est_aligned))
-
-            d.rpe_error_t[s] = m_t.get_result().np_arrays['error_array']
-            d.rpe_error_r[s] = m_r.get_result().np_arrays['error_array']
-
-        except FilterException:
-            d.rpe_error_t[s] = np.ndarray([])
-            d.rpe_error_r[s] = np.ndarray([])
+    d.rpe_error_r, d.rpe_error_t = calculate_rpe_errors_for_pairs_at_different_distances(split_distances,
+                                                                                         d.traj_gt_synced,
+                                                                                         d.traj_est_aligned)
 
     for m in METRICS:
         m.process_data((d.traj_gt_synced, d.traj_est_aligned))
@@ -66,6 +56,26 @@ def evaluate_trajectory(df_poses: pd.DataFrame, df_groundtruth: pd.DataFrame, df
         d.ate_errors[str(m)] = result.np_arrays['error_array']
 
     return d
+
+
+def calculate_rpe_errors_for_pairs_at_different_distances(distances, trajectory_1, trajectory_2):
+    translational_errors = {}
+    rotational_errors = {}
+    for d in distances:
+        try:
+            m_t = RPE(PoseRelation.translation_part, d, metrics.Unit.meters, all_pairs=True)
+            m_r = RPE(PoseRelation.rotation_angle_deg, d, metrics.Unit.meters, all_pairs=True)
+
+            m_t.process_data((trajectory_1, trajectory_2))
+            m_r.process_data((trajectory_1, trajectory_2))
+
+            translational_errors[d] = m_t.get_result().np_arrays['error_array']
+            rotational_errors[d] = m_r.get_result().np_arrays['error_array']
+
+        except FilterException:
+            translational_errors[d] = np.ndarray([])
+            rotational_errors[d] = np.ndarray([])
+    return translational_errors, rotational_errors
 
 
 def get_relative_errors_wrt_traveled_dist(s: EvaluationDataSummary):
@@ -136,19 +146,19 @@ def compare_trajectory_completion_rates(summaries: List[EvaluationDataSummary]) 
 
 
 def plot_trajectory_comparison_overview(pc: PlotContext, summary_table: pd.DataFrame, use_log=False):
-    pos_label = 'Mean Position Error [%]'
-    rot_label = 'Mean Rotation error [deg/m]'
-    pos_table = summary_table.xs(pos_label, axis=1, level=1, drop_level=True)
-    rot_table = summary_table.xs(rot_label, axis=1, level=1, drop_level=True)
+    pose_column = 'Mean Position Error [%]'
+    rot_column = 'Mean Rotation error [deg/m]'
+    pos_table = summary_table.xs(pose_column, axis=1, level=1, drop_level=True)
+    rot_table = summary_table.xs(rot_column, axis=1, level=1, drop_level=True)
 
     ax = pc.get_axis()
     ax.set_title("Average absolute pose errors normalized by traveled distance")
     ax.set_xlabel(pos_table.columns.name)
-    ax.set_ylabel(F"Errors w.r.t traveled distance [%, deg/m]")
+    ax.set_ylabel(F"Errors w.r.t traveled distance [\\%, deg/m]")
     if use_log:
         ax.set_yscale('log')
     evaluation_run_names = pos_table.columns.values
-    labels = [pos_label, rot_label]
+    labels = ['Mean Position Error [\\%]', 'Mean Rotation error [deg/m]']
     # do boxplots
 
     data = []
@@ -213,21 +223,39 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     return np.hstack(tuple(arrays))
 
 
-def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[TrajectoryData], labels, use_log=False,
-                          realtive_to_trav_dist=False):
+def plot_rpg_error_arrays(pc: PlotContext, trajectories: List[TrajectoryData], labels, use_log=False,
+                          realtive_to_trav_dist=False, desired_distances=None):
     errors_rot_deg = []
     errors_trans_m = []
-    gt_trajectory = None
+    if len(trajectories) < 1:
+        return
+    gt_trajectory = trajectories[0].traj_gt
+
+    distances = []
+    if desired_distances is None:
+        distances = get_split_distances_on_equal_parts(gt_trajectory, 5)
+    else:
+        distances = np.array(desired_distances)
+
     for t in trajectories:
         errors_rot_deg.append(t.rpe_error_r)
         errors_trans_m.append(t.rpe_error_t)
-        if gt_trajectory is None:
-            gt_trajectory = t.traj_gt
 
-    if len(errors_rot_deg) <= 0:
+        missing_distances = [d for d in distances if d not in t.rpe_error_t.keys() or d not in t.rpe_error_r.keys()]
+
+        if len(missing_distances) > 0:
+            print(F"WARNING: For the following pose-pair distances the RPE error is missing: {missing_distances}")
+            print("          Please use 'customize_rpe_error_arrays' script to calculate them")
+
+    is_degenerate = (len(errors_rot_deg) <= 0) or (len(errors_trans_m) <= 0)
+    # this happens e.g. on calibration, where there are no pairs over 10m and you ask for 10, 20, 30, 40
+    is_degenerate = is_degenerate or np.any([np.all([np.size(e_m[d]) <= 1 for d in distances]) for e_m in
+                                            errors_trans_m])
+    is_degenerate = is_degenerate or np.any([np.all([np.size(e_rot[d]) <= 1 for d in distances]) for e_rot in
+                                             errors_rot_deg])
+
+    if is_degenerate:
         return
-
-    distances = get_split_distances_on_equal_parts(gt_trajectory, 5)
 
     if realtive_to_trav_dist:
         data_trans_m = [[e[k]/(0.01*k) for k in distances] for e in errors_trans_m]
@@ -237,12 +265,12 @@ def plot_rpg_error_arrays(pc: PlotContext, trajectories: Collection[TrajectoryDa
     ax = pc.get_axis()
     ax.set_xlabel("Distance traveled [m]")
     if realtive_to_trav_dist:
-        ax.set_ylabel(F"Translation error [%]")
+        ax.set_ylabel(F"Translation error [\\%]")
     else:
         ax.set_ylabel(F"Translation error [m]")
     if use_log:
         ax.set_yscale('log')
-    boxplot_compare(ax, distances, data_trans_m, labels, showfliers=False)
+    boxplot_compare(ax, distances, data_trans_m, labels, showfliers=False, legend=False)  # legend only on rotation plot
 
     ax = pc.get_axis()
 
@@ -297,8 +325,8 @@ def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
     t = df['t'].to_numpy()
     t = t - t[0]
 
-    labels = ["b_a_x", "b_a_y", "b_a_z"] + ["b_w_x", "b_w_y", "b_w_z"]
-    data = list(df[labels].to_numpy().T)
+    labels = ["$b_{a_x}$", "$b_{a_y}$", "$b_{a_z}$", "$b_{w_x}$", "$b_{w_y}$", "$b_{w_z}$"]
+    data = list(df[["b_a_x", "b_a_y", "b_a_z", "b_w_x", "b_w_y", "b_w_z"]].to_numpy().T)
 
     ax = pc.get_axis()
     ax_right = ax.twinx()
@@ -319,9 +347,9 @@ def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
     # https://stackoverflow.com/a/5487005
     ax_right.legend(lines, labels)
     ax.set_title(F"Gyroscope and accelerometer bias on '{eval_data.name}' ({eval_name})")
-    ax.set_xlabel("Time [s]")
-    ax.set_ylabel("m/s^2")
-    ax_right.set_ylabel("rad/s")
+    ax.set_xlabel("$t [s]$")
+    ax.set_ylabel("$m/s^2$")
+    ax_right.set_ylabel("$rad/s$")
 
 
 def plot_trajectory_plots(trajectory_data: TrajectoryData, name, output_folder):

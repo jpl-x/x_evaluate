@@ -32,14 +32,14 @@ def main():
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
 
-        pe.plot_performance_plots(evaluation, output_folder)
-        te.plot_trajectory_plots(evaluation.trajectory_data, evaluation.name, output_folder)
-        fe.plot_feature_plots(evaluation, output_folder)
-
         params_yaml_file = os.path.join(output_folder, "params.yaml")
         if not os.path.exists(params_yaml_file):
             with open(params_yaml_file, 'w') as tmp_yaml_file:
                 yaml.dump(evaluation.params, tmp_yaml_file)
+
+        pe.plot_performance_plots(evaluation, output_folder)
+        te.plot_trajectory_plots(evaluation.trajectory_data, evaluation.name, output_folder)
+        fe.plot_feature_plots(evaluation, output_folder)
 
         i += 1
 

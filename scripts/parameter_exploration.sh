@@ -121,7 +121,6 @@ fi
 
 
 
-
 if [ $EXPLORE_XVIO_PATCH_SIZE -gt 0 ]
 then
   echo
@@ -837,8 +836,8 @@ then
   if [ $COMPARISONS_ONLY -lt 1 ]
   then
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/000-baseline --frontend \
-     XVIO --name "XVIO baseline"
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/000-baseline --frontend \
+    #  XVIO --name "XVIO baseline"
 
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-opt-w-opt --frontend \
     #  XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
@@ -891,38 +890,38 @@ then
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
     #  XVIO --name "XVIO IMU noise a 0.00425, w 0.00025" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.00025 n_bw=0.000025
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-0.01 --frontend \
-     XVIO --name "XVIO IMU noise a 0.01" --overrides n_a=8.3e-05 n_ba=8.3e-06
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-0.01 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.01" --overrides n_a=8.3e-05 n_ba=8.3e-06
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.02 --frontend \
-     XVIO --name "XVIO IMU noise a 0.02" --overrides n_a=0.000166 n_ba=1.66e-05
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.02 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.02" --overrides n_a=0.000166 n_ba=1.66e-05
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.03 --frontend \
-     XVIO --name "XVIO IMU noise a 0.03" --overrides n_a=0.000249 n_ba=2.49e-05
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.03 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.03" --overrides n_a=0.000249 n_ba=2.49e-05
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.05 --frontend \
-     XVIO --name "XVIO IMU noise a 0.05" --overrides n_a=0.000415 n_ba=4.1500000000000006e-05
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.05 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.05" --overrides n_a=0.000415 n_ba=4.1500000000000006e-05
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-0.1 --frontend \
-     XVIO --name "XVIO IMU noise a 0.1" --overrides n_a=0.00083 n_ba=8.300000000000001e-05
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-0.1 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.1" --overrides n_a=0.00083 n_ba=8.300000000000001e-05
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-0.17 --frontend \
-     XVIO --name "XVIO IMU noise a 0.17" --overrides n_a=0.0014110000000000001 n_ba=0.00014110000000000001
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-0.17 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.17" --overrides n_a=0.0014110000000000001 n_ba=0.00014110000000000001
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-0.3 --frontend \
-     XVIO --name "XVIO IMU noise a 0.3" --overrides n_a=0.00249 n_ba=0.000249
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-0.3 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.3" --overrides n_a=0.00249 n_ba=0.000249
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.52 --frontend \
-     XVIO --name "XVIO IMU noise a 0.52" --overrides n_a=0.004316 n_ba=0.00043160000000000003
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.52 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.52" --overrides n_a=0.004316 n_ba=0.00043160000000000003
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.92 --frontend \
-     XVIO --name "XVIO IMU noise a 0.92" --overrides n_a=0.007636 n_ba=0.0007636
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.92 --frontend \
+    #  XVIO --name "XVIO IMU noise a 0.92" --overrides n_a=0.007636 n_ba=0.0007636
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-1.62 --frontend \
-     XVIO --name "XVIO IMU noise a 1.62" --overrides n_a=0.013446000000000001 n_ba=0.0013446
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-1.62 --frontend \
+    #  XVIO --name "XVIO IMU noise a 1.62" --overrides n_a=0.013446000000000001 n_ba=0.0013446
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-2.84 --frontend \
-     XVIO --name "XVIO IMU noise a 2.84" --overrides n_a=0.023572 n_ba=0.0023572
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-2.84 --frontend \
+    #  XVIO --name "XVIO IMU noise a 2.84" --overrides n_a=0.023572 n_ba=0.0023572
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/012-imu-noise-a-5.0 --frontend \
      XVIO --name "XVIO IMU noise a 5.0" --overrides n_a=0.0415 n_ba=0.00415

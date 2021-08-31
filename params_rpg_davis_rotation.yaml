@@ -54,15 +54,15 @@ sigma_img: 0.02541924711215672 # sqrt(0.00012922762474977756 * 5.0)
 #######
 
 ## Optimized for RPG Davis Data
-n_a:  0.004316  # Accel noise spectral density [m/s^2/sqrt(Hz)]
-n_ba: 0.0004316 # Accel bias random walk [m/s^3/sqrt(Hz)]
-n_w:  0.0002  # Gyro noise spectral density [rad/s/sqrt(Hz)]
-n_bw: 0.00002 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+#n_a:  0.004316  # Accel noise spectral density [m/s^2/sqrt(Hz)]
+#n_ba: 0.0004316 # Accel bias random walk [m/s^3/sqrt(Hz)]
+#n_w:  0.0002  # Gyro noise spectral density [rad/s/sqrt(Hz)]
+#n_bw: 0.00002 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
-#n_a: 0.004316
-#n_ba: 0.0004316
-#n_w: 0.000225
-#n_bw: 0.0000225
+n_a: 0.004316
+n_ba: 0.0004316
+n_w: 0.000225
+n_bw: 0.0000225
 
 # Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
 a_m_max: 88.29 # 9g should be enough https://www.youtube.com/watch?v=_0nbRYIBVDQ
@@ -113,7 +113,7 @@ max_feat_per_tile: 10000
 eklt_batch_size: 500
 eklt_update_every_n_events: 20
 eklt_displacement_px: 0.6
-eklt_patch_size: 19
+eklt_patch_size: 17
 eklt_max_num_iterations: 25
 eklt_tracking_quality: 0.6
 eklt_bootstrap: "klt"
@@ -125,8 +125,8 @@ eklt_display_feature_id: false
 eklt_display_feature_patches: false
 eklt_arrow_length: 5
 
-eklt_max_corners: 60
-eklt_min_corners: 45
+eklt_max_corners: 100
+eklt_min_corners: 60
 eklt_log_eps: 0.01
 eklt_use_linlog_scale: false
 
@@ -146,9 +146,9 @@ eklt_ekf_update_every_n: 2200
 eklt_ekf_update_strategy: every-n-events
 eklt_ekf_update_timestamp: patches-maximum
 eklt_harris_block_size: 3
-eklt_detection_min_distance: 9  # 10
-eklt_harris_k: 0.04  # 0.04
-eklt_harris_quality_level: 0.3 # 0.01
+eklt_detection_min_distance: 8  # 10
+eklt_harris_k: 0
+eklt_harris_quality_level: 0.15 # 0.01
 
 #########
 # HASTE #
@@ -164,17 +164,17 @@ haste_bootstrap_with_unit_length_of: true
 haste_enable_outlier_removal: true
 haste_outlier_method: 8
 haste_outlier_param1: 1.3
-haste_outlier_param2: 0.95
+haste_outlier_param2: 0.98
 
 haste_ekf_feature_interpolation: nearest-neighbor
 haste_ekf_feature_extrapolation_limit: -1.0
-haste_ekf_update_every_n: 3200
+haste_ekf_update_every_n: 9200
 haste_ekf_update_strategy: every-n-events
 haste_ekf_update_timestamp: patches-maximum
 haste_harris_block_size: 3
 haste_detection_min_distance: 8
-haste_harris_k: 0
-haste_harris_quality_level: 0.3
+haste_harris_k: 0.1
+haste_harris_quality_level: 0.01
 
 ##############
 # SLAM-MSCKF #

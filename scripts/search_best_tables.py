@@ -25,8 +25,8 @@ def main():
     matches.sort()
 
     for input_file in matches:
-        # if 'sim' not in input_file:
-        #     continue
+        if 'davis' not in input_file:
+            continue
 
         print(F"######################################################################################################")
         print(F"# Scanning {input_file} #")
@@ -77,32 +77,45 @@ def main():
         }
 
         if dataset == Dataset.RPG_DAVIS:
-            def get_uslam_compare_func(uslam_results):
+            def get_direct_comparison(results):
                 def better_than_uslam(p):
-                    return len(uslam_results) - np.count_nonzero(p <= uslam_results)
+                    return len(results) - np.count_nonzero(p <= results)
 
                 return better_than_uslam
 
-            stats['uslam_global'] = get_uslam_compare_func([0.68, 1.12, 0.76, 0.63, 1.01, 1.48, 0.59, 0.24, 1.07, 1.36])
-            stats['uslam_best'] = get_uslam_compare_func([0.30, 0.27, 0.19, 0.18, 0.37, 0.31, 0.28, 0.12, 0.10, 0.26])
+            stats['uslam_global'] = get_direct_comparison([0.68, 1.12, 0.76, 0.63, 1.01, 1.48, 0.59, 0.24, 1.07, 1.36])
+            stats['uslam_best'] = get_direct_comparison([0.30, 0.27, 0.19, 0.18, 0.37, 0.31, 0.28, 0.12, 0.10, 0.26])
+            # stats['best_global'] = get_direct_comparison([0.68, 0.21, 0.54, 0.45, 0.36, 0.26, 0.33, 0.13, 0.54, 0.39])
 
-        best_stats = {k: np.inf for k in stats.keys()}
-        best_stats_keys = {k: None for k in stats.keys()}
+            # best out of all except XVIO
+            stats['best_global'] = get_direct_comparison([0.68, 0.59, 0.54, 0.45, 0.46, 0.26, 0.33, 0.21, 0.54, 0.39])
 
-        best_per_sequence = pd.DataFrame.from_dict({"Sequence": sequences,
-                                                    "Mean Position Error [%]": [np.inf] * len(sequences),
-                                                    "Mean Rotation error [deg/m]": [np.inf] * len(sequences),
-                                                    "Completion rate [%]": [0] * len(sequences),
-                                                    "File": [""] * len(sequences)})
+            # best out of all except EKLT
+            # stats['best_global'] = get_direct_comparison([0.68, 0.21, 0.54, 0.63, 0.36, 0.66, 0.59, 0.13, 1.07, 0.54])
 
-        best_per_sequence = best_per_sequence.set_index("Sequence")
+        best_per_sequence_tables = {s: pd.DataFrame(columns=["Mean Position Error [%]", "Mean Rotation error [deg/m]",
+                                                             "Completion rate [%]", "File"]) for s in sequences}
+        best_overall_stats_table = pd.DataFrame(columns=(list(stats.keys()) + ["File"]))
 
-        pos_error_values = {}
-        rot_error_values = {}
+        #
+        #
+        # best_stats = {k: np.inf for k in stats.keys()}
+        # best_stats_keys = {k: None for k in stats.keys()}
+        #
+        # best_per_sequence = pd.DataFrame.from_dict({"Sequence": sequences,
+        #                                             "Mean Position Error [%]": [np.inf] * len(sequences),
+        #                                             "Mean Rotation error [deg/m]": [np.inf] * len(sequences),
+        #                                             "Completion rate [%]": [0] * len(sequences),
+        #                                             "File": [""] * len(sequences)})
+        #
+        # best_per_sequence = best_per_sequence.set_index("Sequence")
+        #
+        # pos_error_values = {}
+        # rot_error_values = {}
 
-        for s in sequences:
-            pos_error_values[s] = []
-            rot_error_values[s] = []
+        # for s in sequences:
+        #     pos_error_values[s] = []
+        #     rot_error_values[s] = []
 
         for k, v in tables.items():
             table = v.droplevel(0, axis=1)
@@ -113,52 +126,75 @@ def main():
             # only process if GT trajectory length is within 1m of expected length
             if np.all(np.abs(table["GT trajectory length [m]"].to_numpy() - expected_lengths) <= 1) \
                     and table["Completion rate [%]"].min() > 99:
-                for stat, func in stats.items():
-                    if func(table["Mean Position Error [%]"]) < best_stats[stat]:
-                        best_stats[stat] = func(table["Mean Position Error [%]"])
-                        best_stats_keys[stat] = k
+                new_row = [func(table["Mean Position Error [%]"]) for func in stats.values()]
+                new_row += [k]
+                best_overall_stats_table.loc[len(best_overall_stats_table)] = new_row
 
             for i, s in enumerate(sequences):
                 if np.abs(expected_lengths[i] - table.loc[s, "GT trajectory length [m]"]) > 1 \
                         or table.loc[s, "Completion rate [%]"] < 99:
                     continue
 
-                if best_per_sequence.loc[s, "Mean Position Error [%]"] > table.loc[s, "Mean Position Error [%]"]:
-                    best_per_sequence.loc[s, "Mean Position Error [%]"] = table.loc[s, "Mean Position Error [%]"]
-                    best_per_sequence.loc[s, "Mean Rotation error [deg/m]"] = table.loc[
-                        s, "Mean Rotation error [deg/m]"]
-                    best_per_sequence.loc[s, "Completion rate [%]"] = table.loc[s, "Completion rate [%]"]
-                    best_per_sequence.loc[s, "File"] = k
+                best_per_sequence_tables[s].loc[len(best_per_sequence_tables[s])] = \
+                    list(table.loc[s, ["Mean Position Error [%]", "Mean Rotation error [deg/m]",
+                                       "Completion rate [%]"]]) + [k]
 
-            # print(k)
+        # os.path.dirname(k)[26:]
+
+        # pd.set_option('max_columns', None)
+        # pd.set_option("max_colwidth", None)
+        pd.options.display.max_colwidth = None
+        pd.options.display.width = 0
+
+        top_n = 3
 
         print("BEST PER SEQUENCE:")
-        print(best_per_sequence[["Mean Position Error [%]", "Mean Rotation error [deg/m]"]])
+        for s, t in best_per_sequence_tables.items():
+            print(F"Top {top_n} for {s}")
+            top = t.sort_values('Mean Position Error [%]').iloc[:top_n]
+            top['Folder'] = top['File'].apply(lambda file: os.path.dirname(file)[26:])
+            print(top[['Mean Position Error [%]', 'Mean Rotation error [deg/m]', 'Folder']])
+
+        for s in stats.keys():
+            print(F"\nTop {top_n} tables for {s}")
+            top = best_overall_stats_table.sort_values(s).iloc[:top_n]
+            top['Folder'] = top['File'].apply(lambda file: os.path.dirname(file)[26:])
+            for index, row in top.iterrows():
+                other_stats = {stat: row[stat] for stat in set(stats.keys()).difference({s})}
+                print(F"\n{s} (={row[s]} table {row['Folder']}:   {other_stats}")
+                table = tables[row['File']]
+                if isinstance(table.columns, pd.MultiIndex):
+                    table = table.droplevel(0, axis=1)
+                print(table.loc[sequences, ["Mean Position Error [%]", "Mean Rotation error [deg/m]"]])
+
+        # print(best_overall_stats_table)
+        # print(best_per_sequence[["Mean Position Error [%]", "Mean Rotation error [deg/m]"]])
 
         # for s in sequences:
         #     index = np.argmin(pos_error_values[s])
         #     print(F"{s}: {pos_error_values[s][index]}  {rot_error_values[s][index]} from '{list(tables.keys())[index]}'")
 
-        for stat, table_key in best_stats_keys.items():
-            print(F"\nBest {stat} (={best_stats[stat]} table {table_key}:")
-            table = tables[table_key]
-            if isinstance(table.columns, pd.MultiIndex):
-                table = tables[table_key].droplevel(0, axis=1)
-            print(table[["Mean Position Error [%]", "Mean Rotation error [deg/m]"]])
-
-        output_filename = os.path.join(os.path.dirname(input_file), os.path.basename(input_file)[:-7] + "-result.xlsx")
-        with pd.ExcelWriter(output_filename) as writer:
-            best_per_sequence.to_excel(writer)
-
-        paths_best_per_seq = [os.path.normpath(os.path.join(x, "../../")) for x in best_per_sequence['File'].values]
-        paths_best_overall = [os.path.normpath(os.path.join(x, "../../")) for x in best_stats_keys.values()]
-
-        paths = list(set(paths_best_per_seq).union(set(paths_best_overall)))
-        paths.sort()
-
-        print()
-        print("The following directories contain some best run: ")
-        print(paths)
+        # for stat, table_key in best_stats_keys.items():
+        #     print(F"\nBest {stat} (={best_stats[stat]} table {table_key}:")
+        #     table = tables[table_key]
+        #     if isinstance(table.columns, pd.MultiIndex):
+        #         table = tables[table_key].droplevel(0, axis=1)
+        #     # print(table[["Mean Position Error [%]", "Mean Rotation error [deg/m]", "GT trajectory length [m]"]])
+        #     print(table[["Mean Position Error [%]", "Mean Rotation error [deg/m]"]])
+        #
+        # output_filename = os.path.join(os.path.dirname(input_file), os.path.basename(input_file)[:-7] + "-result.xlsx")
+        # with pd.ExcelWriter(output_filename) as writer:
+        #     best_per_sequence.to_excel(writer)
+        #
+        # paths_best_per_seq = [os.path.normpath(os.path.join(x, "../../")) for x in best_per_sequence['File'].values]
+        # paths_best_overall = [os.path.normpath(os.path.join(x, "../../")) for x in best_stats_keys.values()]
+        #
+        # paths = list(set(paths_best_per_seq).union(set(paths_best_overall)))
+        # paths.sort()
+        #
+        # print()
+        # print("The following directories contain some best run: ")
+        # print(paths)
 
 
 if __name__ == '__main__':

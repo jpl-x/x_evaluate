@@ -4,7 +4,7 @@ setup(
     name='x-evaluate',
     version='1.0.0',
     scripts=['test/evaluate.py'],
-    packages=['x_evaluate'],
+    packages=['x_evaluate', 'x_evaluate.rpg_tracking_analysis'],
     package_dir={'x_evaluate': 'src/x_evaluate'},
     install_requires=['numpy>=1.19.2',
                       'matplotlib>=3.3.4',

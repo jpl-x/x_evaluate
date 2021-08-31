@@ -5,6 +5,7 @@ import numpy as np
 from evo.tools import plot
 from matplotlib import pyplot as plt
 from scipy.spatial.transform import Rotation as R
+import matplotlib.font_manager
 
 from x_evaluate.evaluation_data import DistributionSummary
 
@@ -21,6 +22,9 @@ class PlotType(Enum):
     TIME_SERIES = 2
 
 
+use_paper_style_plots = False
+
+
 class PlotContext:
     figure: plt.Figure
     axis: List[plt.Axes]
@@ -34,9 +38,44 @@ class PlotContext:
         self.height_inch = base_height_inch * subplot_rows
         self.axis = []
 
+        if use_paper_style_plots:
+            # one column in paper = 3.5in
+            self.width_inch = 7
+            self.height_inch = 3
+            self.FORMATS = [".pdf"]
+
     def __enter__(self):
-        # plt.rc('text', usetex=True)
-        # plt.rc('axes', linewidth=3)
+        if use_paper_style_plots:
+            plt.rcParams.update({
+                "text.usetex": True,
+                "font.family": "sans-serif",
+                "font.sans-serif": ["Helvetica"],
+                "axes.facecolor": "white",
+                "axes.edgecolor": "#666666",
+                'axes.linewidth': 0.8,
+                'grid.color': "#888888",
+                'grid.linewidth': 0.4,
+                'xtick.color': "#444444",
+                'ytick.color': "#444444",
+                'xtick.bottom': True,
+                'ytick.left': True,
+                'xtick.major.size': 5,
+                'xtick.minor.size': 3,
+                'ytick.major.size': 5,
+                'ytick.minor.size': 3,
+            })
+
+            # plt.rcParams['xtick.color'] = '.15'
+            # plt.rcParams['ytick.color'] = '.15'
+            # plt.rcParams['ytick.major.width'] = 1.25
+            # plt.rcParams['ytick.minor.width'] = 1.0
+            # plt.rcParams['xtick.major.width'] = 1.25
+            # plt.rcParams['ytick.major.width'] = 1.25
+            # plt.rcParams['xtick.major.size'] = 6.0
+            # plt.rcParams['xtick.minor.size'] = 4.0
+            # plt.rcParams['ytick.major.size'] = 6.0
+            # plt.rcParams['ytick.minor.size'] = 4.0
+
         self.figure = plt.figure()
         self.subplot_idx = 0
         self.figure.set_size_inches(self.width_inch, self.height_inch)
@@ -52,6 +91,12 @@ class PlotContext:
         return ax
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        # no titles in paper figures, since they have captions
+        if use_paper_style_plots:
+            self.figure.suptitle(None)
+            for a in self.axis:
+                a.set_title(None)
+
         self.figure.tight_layout()
         if self.filename is None:
             self.figure.show()
@@ -319,7 +364,7 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
         props = {
             'color': colors[idx],
             'linestyle': '-',
-            'lw': 2
+            'lw': 1.5
         }
         flier_props = {
             'markeredgecolor': colors[idx],
@@ -328,7 +373,7 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
             'facecolor': mcolors.to_rgba(colors[idx], 0.3),
             'edgecolor': colors[idx],
             'linestyle': '-',
-            'lw': 2
+            'lw': 1.5
         }
         if isinstance(d[0], dict):
             bp = ax.bxp(d, positions=positions, widths=widths, patch_artist=True, capprops=props, meanprops=props,
@@ -346,6 +391,7 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
     ax.set_xticks(np.arange(n_xlabel))
     ax.set_xticklabels(x_tick_labels)
     ax.set_xlim(-.6, n_xlabel-.4)
+    ax.xaxis.grid(b=None)
     if legend:
         # ax.legend(leg_handles, leg_labels, bbox_to_anchor=(
             # 1.05, 1), loc=2, borderaxespad=0.)
@@ -379,7 +425,7 @@ def draw_lines_on_top_of_comparison_plots(ax: plt.Axes, data, num_comparisons):
         ax.plot(x, d, color="black", linestyle="--", linewidth=1)
 
 
-def evenly_distribute_plot_positions(idx, num_slots, num_entries, space_btw_groups=0.5, rel_space_btw_entries=0.15):
+def evenly_distribute_plot_positions(idx, num_slots, num_entries, space_btw_groups=0.3, rel_space_btw_entries=0.2):
     width = (1 - space_btw_groups) / (num_entries + (num_entries - 1) * rel_space_btw_entries)
     # width = 1 / (1.5 * num_entries + 1.5)
     widths = [width] * num_slots
