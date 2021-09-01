@@ -177,6 +177,8 @@ def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData
     t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
     ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--", color="black")
     ax.legend()
+    ax.set_ylabel("Realtime factor")
+    ax.set_xlabel("t [s]")
     if title:
         ax.set_title(title)
     else:

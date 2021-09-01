@@ -31,12 +31,21 @@ def main():
     parser.add_argument('--output_folder', type=str, required=True)
     parser.add_argument('--frontend', type=FrontEnd, choices=list(FrontEnd), required=True)
     parser.add_argument('--overrides', nargs='*', action=ArgparseKeyValueAction)
+    parser.add_argument('--dump_input_frames', help="Whether to dump input frames to disk.", action="store_true",
+                        default=False)
+    parser.add_argument('--dump_debug_frames', help="Whether to dump debug frames to disk.", action="store_true",
+                        default=False)
 
     args = parser.parse_args()
 
     cmdline_override_params = dict()
     if args.overrides is not None:
         cmdline_override_params = args.overrides
+
+    if args.dump_debug_frames:
+        cmdline_override_params['eklt_display_features'] = True
+        cmdline_override_params['eklt_display_feature_id'] = False
+        cmdline_override_params['eklt_display_feature_patches'] = True
 
     if len(args.evaluate) == 0:
         try:
@@ -91,7 +100,8 @@ def main():
             output_folder = os.path.join(args.output_folder, output_folder)
 
             d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config,
-                                cmdline_override_params, args.frontend, args.skip_feature_tracking)
+                                cmdline_override_params, args.frontend, args.skip_feature_tracking,
+                                args.dump_input_frames, args.dump_debug_frames)
 
             pe.plot_performance_plots(d, output_folder)
             te.plot_trajectory_plots(d.trajectory_data, d.name, output_folder)

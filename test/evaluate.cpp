@@ -126,6 +126,8 @@ DEFINE_string(params_file, "", "filename of the params.yaml to use");
 DEFINE_string(output_folder, "", "folder where to write output files, is created if not existent");
 DEFINE_double(from, std::numeric_limits<double>::min(), "skip messages with timestamp lower than --form");
 DEFINE_double(to, std::numeric_limits<double>::max(), "skip messages with timestamp bigger than --to");
+DEFINE_bool(dump_input_frames, false, "Whether to log input frames to disk");
+DEFINE_bool(dump_debug_frames, false, "Whether to log debug frames to disk");
 
 
 static bool validateFrontend(const char* flagname, const std::string& value) {
@@ -453,8 +455,8 @@ int main(int argc, char **argv) {
   fs::create_directories(output_path);
   fs::copy(FLAGS_params_file, output_path / "params.yaml", fs::copy_options::overwrite_existing);
 
-
-  x::XVioPerformanceLoggerPtr xvio_logger = std::make_shared<x::XVioPerformanceLogger>(output_path);
+  x::XVioPerformanceLoggerPtr xvio_logger =
+    std::make_shared<x::XVioPerformanceLogger>(output_path, FLAGS_dump_input_frames, FLAGS_dump_debug_frames);
 
 
   switch(frontends[FLAGS_frontend]) {

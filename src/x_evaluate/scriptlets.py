@@ -14,7 +14,7 @@ from x_evaluate.utils import read_output_files, read_eklt_output_files, DynamicA
 
 
 def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, events_topic, output_folder, params_file,
-                     frontend, from_t=None, to_t=None):
+                     frontend, from_t=None, to_t=None, dump_input_frames=False, dump_debug_frames=False):
     if pose_topic is None:
         pose_topic = "\"\""
     if events_topic is None:
@@ -36,6 +36,13 @@ def run_evaluate_cpp(executable, rosbag, image_topic, pose_topic, imu_topic, eve
 
     if to_t:
         command += F" --to {to_t}"
+
+    if dump_input_frames:
+        command += F" --dump_input_frames"
+
+    if dump_debug_frames:
+        command += F" --dump_debug_frames"
+
     # when running from console this was necessary
     command = command.replace('\n', ' ')
     print(F"Running {command}")
@@ -83,7 +90,8 @@ class ProgressInfoLog:
 
 
 def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file, cmdline_override_params,
-                    frontend: FrontEnd, skip_feature_tracking) -> EvaluationData:
+                    frontend: FrontEnd, skip_feature_tracking, dump_input_frames=False, dump_debug_frames=False) -> \
+        EvaluationData:
 
     d = EvaluationData()
     d.name = dataset['name']
@@ -91,7 +99,8 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     d.params = create_temporary_params_yaml(dataset, yaml_file['common_params'], tmp_yaml_filename, cmdline_override_params)
     d.command = run_evaluate_cpp(executable, dataset['rosbag'], dataset['image_topic'], dataset['pose_topic'],
                                  dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
-                                 frontend, get_param_if_exists(dataset, 'from'), get_param_if_exists(dataset, 'to'))
+                                 frontend, get_param_if_exists(dataset, 'from'), get_param_if_exists(dataset, 'to'),
+                                 dump_input_frames, dump_debug_frames)
 
     print(F"Running dataset completed, analyzing outputs now...")
 

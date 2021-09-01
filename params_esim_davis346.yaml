@@ -63,10 +63,16 @@ sigma_img: 0.04297354180455127
 # n_w:  0.0013  # Gyro noise spectral density [rad/s/sqrt(Hz)]
 # n_bw: 0.00013 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
 
-n_a:  0.00186  # Accel noise spectral density [m/s^2/sqrt(Hz)]
-n_ba: 0.000433 # Accel bias random walk [m/s^3/sqrt(Hz)]
-n_w:  0.000186  # Gyro noise spectral density [rad/s/sqrt(Hz)]
-n_bw: 0.0000266 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+#n_a:  0.00186  # Accel noise spectral density [m/s^2/sqrt(Hz)]
+#n_ba: 0.000433 # Accel bias random walk [m/s^3/sqrt(Hz)]
+#n_w:  0.000186  # Gyro noise spectral density [rad/s/sqrt(Hz)]
+#n_bw: 0.0000266 # Gyro bias random walk [rad/s^2/sqrt(Hz)]
+
+n_a: 0.004316
+n_ba: 0.0004316
+n_w: 0.000676
+n_bw: 6.76e-05
+
 
 # Max specific force norm threshold, after which accelerometer readings are detected as spikes. [m/s^2]
 a_m_max: 88.29 # 9g should be enough https://www.youtube.com/watch?v=_0nbRYIBVDQ

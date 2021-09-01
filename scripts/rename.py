@@ -16,6 +16,17 @@ def main():
 
     print(F"Reading {args.input}")
     s = read_evaluation_pickle(output_root, filename)
+
+    # Naming quick fix for Ultimate SLAM
+    rpg_davis_data = ["Boxes 6DOF", "Boxes Translation", "Dynamic 6DOF", "Dynamic Translation", "HDR Boxes",
+                      "HDR Poster", "Poster 6DOF", "Poster Translation", "Shapes 6DOF", "Shapes Translation"]
+    small_cap_mapping = {x.lower().replace(' ', '_'): x for x in rpg_davis_data}
+    keys = list(s.data.keys()).copy()
+    for k in keys:
+        if k in small_cap_mapping.keys():
+            print(F"Renaming dataset '{k}' --> {small_cap_mapping[k]}")
+            s.data[small_cap_mapping[k]] = s.data.pop(k)
+
     print(F"Renaming '{s.name}' to '{args.new_name}'")
     s.name = args.new_name
     print("Writing evaluation pickle")

@@ -81,33 +81,43 @@ def calculate_rpe_errors_for_pairs_at_different_distances(distances, trajectory_
 def get_relative_errors_wrt_traveled_dist(s: EvaluationDataSummary):
     pos_errors = dict()
     rot_errors = dict()
+    yaw_errors = dict()
     for k, d in s.data.items():
         if d.trajectory_data is None:
             continue
         position_metric = metrics.APE(metrics.PoseRelation.translation_part)
         orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
+        # yaw_metric = metrics.APE(metrics.PoseRelation.yaw_rotation_deg)
+        # orientation_metric = metrics.APE(metrics.PoseRelation.z)
+
+        # yaw_metric.process_data((d.trajectory_data.traj_gt_synced, d.trajectory_data.traj_est_aligned))
+        # result = yaw_metric.get_result()
 
         pos_error = np.mean(d.trajectory_data.ate_errors[str(position_metric)]) / d.trajectory_data.traj_gt.distances[-1]
         deg_error = np.mean(d.trajectory_data.ate_errors[str(orientation_metric)]) / d.trajectory_data.traj_gt.distances[-1]
+        # yaw_error = np.mean(result.np_arrays['error_array']) / d.trajectory_data.traj_gt.distances[-1]
 
         pos_error = np.round(np.mean(pos_error*100), 2)  # in percent
         deg_error = np.round(np.mean(deg_error), 2)
+        # yaw_error = np.round(np.mean(yaw_error), 2)
         pos_errors[k] = pos_error
         rot_errors[k] = deg_error
+        yaw_errors[k] = -1.0
 
-    return pos_errors, rot_errors
+    return pos_errors, rot_errors, yaw_errors
 
 
 def create_trajectory_result_table_wrt_traveled_dist(s: EvaluationDataSummary):
-    pos_errors, rot_errors = get_relative_errors_wrt_traveled_dist(s)
+    pos_errors, rot_errors, yaw_errors = get_relative_errors_wrt_traveled_dist(s)
 
-    data = np.empty((len(pos_errors), 2), dtype=np.float)
+    data = np.empty((len(pos_errors), 3), dtype=np.float)
     i = 0
     for k, v in pos_errors.items():
-        data[i, :] = [v, rot_errors[k]]
+        data[i, :] = [v, rot_errors[k], yaw_errors[k]]
         i += 1
 
-    index_columns = [(s.name, "Mean Position Error [%]"), (s.name, "Mean Rotation error [deg/m]")]
+    index_columns = [(s.name, "Mean Position Error [%]"), (s.name, "Mean Rotation error [deg/m]"),
+                     (s.name, "Mean Yaw error [deg/m]")]
     index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
     result_table = pd.DataFrame(data, index=pos_errors.keys(), columns=index)
 
