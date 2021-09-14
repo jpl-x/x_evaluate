@@ -62,9 +62,11 @@ def main():
 
     master_time = image_type_tables[master_folder][master_image_types[master_folder]].index
 
-    master_time = np.arange(np.min(master_time)+0.1, np.max(master_time)-0.1, 0.001)
+    # master_time = np.arange(np.min(master_time)+0.5, np.max(master_time)-0.1, 0.001)
 
-    master_time = master_time[35000:40000]
+    # master_time = master_time[:10000]
+
+    master_time = np.arange(20, 30, 0.001)
 
     for input_folder in input_folders:
 
@@ -90,12 +92,12 @@ def main():
     #
     # test_renderer = RgbFrameRenderer("TEST", file_list, frames_folder)
 
-    render_list = [renderer['eklt']['feature_img'], renderer['eklt']['tracker_img'],
-                   renderer['haste']['feature_img'], BlankRenderer(len(renderer['haste']['feature_img'].file_lists[0]), (240, 180)),
-                   renderer['xvio']['feature_img'], renderer['xvio']['tracker_img']]
+    render_list = [renderer['xvio']['feature_img'], renderer['eklt']['feature_img'], renderer['haste']['feature_img']]
+                   # renderer['haste']['feature_img'], BlankRenderer(len(renderer['haste']['feature_img'].file_lists[0]), (240, 180)),
+                   # renderer['xvio']['feature_img'], renderer['xvio']['tracker_img']]
 
-    dataset_player = DatasetPlayer(render_list, 100, scale=2, grid_size=(2, 3), row_first=False)
-                                   # output_video_file="/tmp/out.avi")
+    dataset_player = DatasetPlayer(render_list, 100, scale=2,  #)
+                                   output_video_file="/tmp/out.avi")
     dataset_player.run()
 
 

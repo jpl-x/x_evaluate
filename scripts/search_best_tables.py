@@ -25,7 +25,7 @@ def main():
     matches.sort()
 
     for input_file in matches:
-        if 'davis' not in input_file:
+        if 'haste-ral' not in input_file:
             continue
 
         print(F"######################################################################################################")
@@ -51,19 +51,36 @@ def main():
                                 "HDR Poster", "Poster 6DOF", "Poster Translation", "Shapes 6DOF", "Shapes Translation"],
             Dataset.RPG_DAVIS_ROTATION: ["Boxes Rotation", "Dynamic Rotation", "Poster Rotation", "Shapes Rotation"],
             Dataset.RPG_FPV: ['Indoor 45 Seq 12', 'Indoor 45 Seq 2'],
-            Dataset.SIM: ["Mars Straight Vmax 3.2 Offset 2.5", "Mars Eight Vmax 3.5 Offset 2.5",
-                          "Mars Circle Vmax 7.2 Offset 2.5", "Mars Vertical Circle Vmax 2.4 Offset 2.5",
-                          "Mars Straight Vmax 3.2 Offset 5", "Mars Eight Vmax 3.5 Offset 5",
-                          "Mars Circle Vmax 7.2 Offset 5", "Mars Vertical Circle Vmax 2.4 Offset 5",
-                          "Mars Straight Vmax 3.2 Offset 10", "Mars Eight Vmax 3.5 Offset 10",
-                          "Mars Circle Vmax 7.2 Offset 10", "Mars Vertical Circle Vmax 2.4 Offset 10"],
+            # Dataset.SIM: ["Mars Straight Vmax 3.2 Offset 2.5", "Mars Eight Vmax 3.5 Offset 2.5",
+            #               "Mars Circle Vmax 7.2 Offset 2.5", "Mars Vertical Circle Vmax 2.4 Offset 2.5",
+            #               "Mars Straight Vmax 3.2 Offset 5", "Mars Eight Vmax 3.5 Offset 5",
+            #               "Mars Circle Vmax 7.2 Offset 5", "Mars Vertical Circle Vmax 2.4 Offset 5",
+            #               "Mars Straight Vmax 3.2 Offset 10", "Mars Eight Vmax 3.5 Offset 10",
+            #               "Mars Circle Vmax 7.2 Offset 10", "Mars Vertical Circle Vmax 2.4 Offset 10"],
+            Dataset.SIM: [
+                          # "Mars Straight Vmax 3.2 Offset 2.5",
+                          # "Mars Vertical Circle Vmax 2.4 Offset 2.5",
+                          # "Mars Circle Vmax 7.2 Offset 2.5",
+                          # "Mars Mellon Vmax 12.4 Offset 10",
+                            "Mars Vertical Circle",
+                            "Mars Circle",
+                            "Mars Mellon",
+                          # "Mars Circle Vmax 7.2 Offset 10",
+                          # "Mars Circle Vmax 16.6 Offset 10"
+            ]
+
+
         }
 
         sequence_lengths = {
             Dataset.RPG_DAVIS: [69.9, 65.2, 39.6, 30.1, 55.1, 55.4, 61.1, 49.3, 47.6, 56.1],
             Dataset.RPG_DAVIS_ROTATION: [14.9, 10.5, 16.9, 15.7],
             Dataset.RPG_FPV: [118.4, 176.2],
-            Dataset.SIM: [8.2, 49.5, 141.3, 30.8, 8.2, 49.5, 141.3, 30.8, 8.2, 49.5, 141.3, 30.8],
+            # Dataset.SIM: [8.2, 49.5, 141.3, 30.8, 141.3, 397.8]
+            # Dataset.SIM: [8.2, 141.3, 30.8, 141.3, 397.8]
+            Dataset.SIM: [30.8, 141.3, 409.3]
+            # Dataset.SIM: [30.8, 141.3]
+            # Dataset.SIM: [8.2, 49.5, 141.3, 30.8, 8.2, 49.5, 141.3, 30.8, 8.2, 49.5, 141.3, 30.8],
         }
 
         sequences = dataset_sequences[dataset]
@@ -146,7 +163,7 @@ def main():
         pd.options.display.max_colwidth = None
         pd.options.display.width = 0
 
-        top_n = 3
+        top_n = 7
 
         print("BEST PER SEQUENCE:")
         for s, t in best_per_sequence_tables.items():

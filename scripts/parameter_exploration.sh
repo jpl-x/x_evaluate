@@ -8,7 +8,7 @@ SCRIPT_PATH="$( cd -- "$(dirname "$SCRIPT_PATH/../test/evaluate.py")" >/dev/null
 
 CONFIGURATION="evaluate_sim.yaml --skip_feature_tracking"
 
-COMPARISONS_ONLY=1
+COMPARISONS_ONLY=0
 EXPLORE_BASELINES=0
 EXPLORE_XVIO_PATCH_SIZE=0
 EXPLORE_XVIO_IMU_OFFSET=0
@@ -17,7 +17,7 @@ EXPLORE_XVIO_RHO_0=0
 EXPLORE_XVIO_FAST_DETECTION_DELTA=0
 EXPLORE_XVIO_NON_MAX_SUPP=0
 EXPLORE_XVIO_N_FEAT_MIN=0
-EXPLORE_XVIO_OUTLIER_METHOD=1
+EXPLORE_XVIO_OUTLIER_METHOD=0
 EXPLORE_XVIO_TILING=0
 EXPLORE_XVIO_N_POSES_MAX=0
 EXPLORE_XVIO_N_SLAM_FEATURES_MAX=0
@@ -28,7 +28,7 @@ EXPLORE_XVIO_INITIAL_SIGMA_P=0
 EXPLORE_XVIO_INITIAL_SIGMA_V=0
 EXPLORE_XVIO_INITIAL_SIGMA_THETA=0
 EXPLORE_XVIO_INITIAL_SIGMA_BW=0
-EXPLORE_XVIO_INITIAL_SIGMA_BA=1
+EXPLORE_XVIO_INITIAL_SIGMA_BA=0
 EXPLORE_EKLT_PATCH_SIZE=0
 EXPLORE_EKLT_IMU_OFFSET=0
 EXPLORE_EKLT_OUTLIER_REMOVAL=0
@@ -48,12 +48,16 @@ EXPLORE_HASTE_TYPE=0
 EXPLORE_HASTE_HARRIS_K=0
 EXPLORE_HASTE_HARRIS_QL=0
 EXPLORE_HASTE_OUTLIER_METHOD=0
+EXPLORE_HASTE_OUTLIER_METHOD_95=0
+EXPLORE_HASTE_OUTLIER_METHOD_98=0
+EXPLORE_HASTE_OUTLIER_METHOD_99=0
 EXPLORE_HASTE_OUTLIER_METHOD_EVRY_MSG=0
 EXPLORE_HASTE_DIFF_HASTE_OUTLIER_METHOD=0
 EXPLORE_HASTE_INTERPOLATION_TIMESTAMP=0
 EXPLORE_HASTE_FEATURE_INTERPOLATION=0
 EXPLORE_HASTE_UPDATE_STRATEGY_N_MSEC=0
 EXPLORE_HASTE_UPDATE_STRATEGY_N_EVENTS=0
+EXPLORE_HASTE_BEST=1
 
 
 
@@ -104,15 +108,52 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/000-xvio-baseline --frontend \
      XVIO --name "XVIO"
 
+    cleanup $1/$DATE-baselines/000-xvio-baseline
+
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/001-eklt-baseline --frontend \
      EKLT --name "EKLT"
+
+    cleanup $1/$DATE-baselines/001-eklt-baseline
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/002-haste-baseline --frontend \
      HASTE --name "HASTE"
 
+    cleanup $1/$DATE-baselines/002-haste-baseline
+
   fi
 
   python ../scripts/compare.py --input_folder $1/$DATE-baselines/ --output_folder $1/$DATE-baselines/results
+
+fi
+
+
+if [ $EXPLORE_HASTE_BEST -gt 0 ]
+then
+  echo
+  echo "Running HASTE best guesses"
+  echo
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-best/001-haste-guess --frontend \
+     HASTE --name "HASTE Best 01" --overrides haste_harris_k=0 haste_outlier_method=8 haste_outlier_param1=0.4 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-best/001-haste-guess
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-best/002-haste-guess --frontend \
+     HASTE --name "HASTE Best 02" --overrides haste_detection_min_distance=40 haste_harris_k=0
+
+    cleanup $1/$DATE-haste-best/002-haste-guess
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-best/003-haste-guess --frontend \
+     HASTE --name "HASTE Best 03" --overrides haste_outlier_param1=0.3 haste_outlier_param2=0.95 haste_detection_min_distance=40 haste_harris_k=0
+
+    cleanup $1/$DATE-haste-best/003-haste-guess
+
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-best/ --output_folder $1/$DATE-haste-best/results
 
 fi
 
@@ -836,92 +877,92 @@ then
   if [ $COMPARISONS_ONLY -lt 1 ]
   then
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/000-baseline --frontend \
-    #  XVIO --name "XVIO baseline"
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/000-baseline --frontend \
+     XVIO --name "XVIO baseline"
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-opt-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-opt-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a opt, w opt" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.003-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.003, w opt" --overrides n_a=0.003 n_ba=0.0003 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.003-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.003, w opt" --overrides n_a=0.003 n_ba=0.0003 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.004-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w opt" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.004-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w opt" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.005-w-opt --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.005, w opt" --overrides n_a=0.005 n_ba=0.0005 n_w=0.00013 n_bw=0.000013
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.005-w-opt --frontend \
+     XVIO --name "XVIO IMU noise a 0.005, w opt" --overrides n_a=0.005 n_ba=0.0005 n_w=0.00013 n_bw=0.000013
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-opt-w-0.0001 --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w 0.0001" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0001 n_bw=0.00001
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-opt-w-0.0001 --frontend \
+     XVIO --name "XVIO IMU noise a opt, w 0.0001" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0001 n_bw=0.00001
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-opt-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w 0.0002" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-opt-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a opt, w 0.0002" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-opt-w-0.0003 --frontend \
-    #  XVIO --name "XVIO IMU noise a opt, w 0.0003" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0003 n_bw=0.00003
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-opt-w-0.0003 --frontend \
+     XVIO --name "XVIO IMU noise a opt, w 0.0003" --overrides n_a=0.004316 n_ba=0.0004316 n_w=0.0003 n_bw=0.00003
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.004-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.0002" --overrides n_a=0.004 n_ba=0.0004 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.004-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.0002" --overrides n_a=0.004 n_ba=0.0004 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.0035-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.0035, w 0.0002" --overrides n_a=0.0035 n_ba=0.00035 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.0035-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.0035, w 0.0002" --overrides n_a=0.0035 n_ba=0.00035 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-0.00375-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.00375, w 0.0002" --overrides n_a=0.00375 n_ba=0.000375 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-0.00375-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.00375, w 0.0002" --overrides n_a=0.00375 n_ba=0.000375 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-0.00425-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.00425, w 0.0002" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-0.00425-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.00425, w 0.0002" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/012-imu-noise-a-0.0045-w-0.0002 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.0045, w 0.0002" --overrides n_a=0.0045 n_ba=0.00045 n_w=0.0002 n_bw=0.00002
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/012-imu-noise-a-0.0045-w-0.0002 --frontend \
+     XVIO --name "XVIO IMU noise a 0.0045, w 0.0002" --overrides n_a=0.0045 n_ba=0.00045 n_w=0.0002 n_bw=0.00002
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/013-imu-noise-a-0.004-w-0.00015 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.00015" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00015 n_bw=0.000015
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/013-imu-noise-a-0.004-w-0.00015 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.00015" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00015 n_bw=0.000015
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/014-imu-noise-a-0.004-w-0.000175 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.000175" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000175 n_bw=0.0000175
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/014-imu-noise-a-0.004-w-0.000175 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.000175" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000175 n_bw=0.0000175
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/015-imu-noise-a-0.004-w-0.000225 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.000225" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000225 n_bw=0.0000225
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/015-imu-noise-a-0.004-w-0.000225 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.000225" --overrides n_a=0.004 n_ba=0.0004 n_w=0.000225 n_bw=0.0000225
      
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.004, w 0.00025" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00025 n_bw=0.000025
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
+     XVIO --name "XVIO IMU noise a 0.004, w 0.00025" --overrides n_a=0.004 n_ba=0.0004 n_w=0.00025 n_bw=0.000025
      
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.00425, w 0.00025" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.00025 n_bw=0.000025
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/016-imu-noise-a-0.004-w-0.00025 --frontend \
+     XVIO --name "XVIO IMU noise a 0.00425, w 0.00025" --overrides n_a=0.00425 n_ba=0.000425 n_w=0.00025 n_bw=0.000025
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-0.01 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.01" --overrides n_a=8.3e-05 n_ba=8.3e-06
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/001-imu-noise-a-0.01 --frontend \
+     XVIO --name "XVIO IMU noise a 0.01" --overrides n_a=8.3e-05 n_ba=8.3e-06
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.02 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.02" --overrides n_a=0.000166 n_ba=1.66e-05
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/002-imu-noise-a-0.02 --frontend \
+     XVIO --name "XVIO IMU noise a 0.02" --overrides n_a=0.000166 n_ba=1.66e-05
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.03 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.03" --overrides n_a=0.000249 n_ba=2.49e-05
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/003-imu-noise-a-0.03 --frontend \
+     XVIO --name "XVIO IMU noise a 0.03" --overrides n_a=0.000249 n_ba=2.49e-05
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.05 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.05" --overrides n_a=0.000415 n_ba=4.1500000000000006e-05
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/004-imu-noise-a-0.05 --frontend \
+     XVIO --name "XVIO IMU noise a 0.05" --overrides n_a=0.000415 n_ba=4.1500000000000006e-05
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-0.1 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.1" --overrides n_a=0.00083 n_ba=8.300000000000001e-05
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/005-imu-noise-a-0.1 --frontend \
+     XVIO --name "XVIO IMU noise a 0.1" --overrides n_a=0.00083 n_ba=8.300000000000001e-05
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-0.17 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.17" --overrides n_a=0.0014110000000000001 n_ba=0.00014110000000000001
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/006-imu-noise-a-0.17 --frontend \
+     XVIO --name "XVIO IMU noise a 0.17" --overrides n_a=0.0014110000000000001 n_ba=0.00014110000000000001
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-0.3 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.3" --overrides n_a=0.00249 n_ba=0.000249
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/007-imu-noise-a-0.3 --frontend \
+     XVIO --name "XVIO IMU noise a 0.3" --overrides n_a=0.00249 n_ba=0.000249
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.52 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.52" --overrides n_a=0.004316 n_ba=0.00043160000000000003
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/008-imu-noise-a-0.52 --frontend \
+     XVIO --name "XVIO IMU noise a 0.52" --overrides n_a=0.004316 n_ba=0.00043160000000000003
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.92 --frontend \
-    #  XVIO --name "XVIO IMU noise a 0.92" --overrides n_a=0.007636 n_ba=0.0007636
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/009-imu-noise-a-0.92 --frontend \
+     XVIO --name "XVIO IMU noise a 0.92" --overrides n_a=0.007636 n_ba=0.0007636
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-1.62 --frontend \
-    #  XVIO --name "XVIO IMU noise a 1.62" --overrides n_a=0.013446000000000001 n_ba=0.0013446
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/010-imu-noise-a-1.62 --frontend \
+     XVIO --name "XVIO IMU noise a 1.62" --overrides n_a=0.013446000000000001 n_ba=0.0013446
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-2.84 --frontend \
-    #  XVIO --name "XVIO IMU noise a 2.84" --overrides n_a=0.023572 n_ba=0.0023572
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/011-imu-noise-a-2.84 --frontend \
+     XVIO --name "XVIO IMU noise a 2.84" --overrides n_a=0.023572 n_ba=0.0023572
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-noise/012-imu-noise-a-5.0 --frontend \
      XVIO --name "XVIO IMU noise a 5.0" --overrides n_a=0.0415 n_ba=0.00415
@@ -1610,35 +1651,53 @@ then
 
      # cleanup $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_tracking_quality=0.4
+      python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
+        --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_tracking_quality=0.4
 
-     # cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
+      cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
+
+      python evaluate.py --configuration $CONFIGURATION --output_folder
+      $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.45 \
+        --frontend EKLT --name "EKLT tracking-q=0.45" --overrides eklt_tracking_quality=0.45
+
+      cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.45
 
      python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5 \
        --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_tracking_quality=0.5
 
      cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5
 
+     python evaluate.py --configuration $CONFIGURATION --output_folder
+     $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.55 \
+       --frontend EKLT --name "EKLT tracking-q=0.55" --overrides eklt_tracking_quality=0.55
+
+     cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.55
+
      python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6 \
        --frontend EKLT --name "EKLT tracking-q=0.6" --overrides eklt_tracking_quality=0.6
 
      cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6
+
+     python evaluate.py --configuration $CONFIGURATION --output_folder
+     $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.65 \
+       --frontend EKLT --name "EKLT tracking-q=0.65" --overrides eklt_tracking_quality=0.65
+
+     cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.65
 
      python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7 \
        --frontend EKLT --name "EKLT tracking-q=0.7" --overrides eklt_tracking_quality=0.7
 
      cleanup $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7
 
-     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8 \
-       --frontend EKLT --name "EKLT tracking-q=0.8" --overrides eklt_tracking_quality=0.8
-
-     cleanup $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8
-
-     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.9 \
-       --frontend EKLT --name "EKLT tracking-q=0.9" --overrides eklt_tracking_quality=0.9
-
-     cleanup $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.9
+#     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8 \
+#       --frontend EKLT --name "EKLT tracking-q=0.8" --overrides eklt_tracking_quality=0.8
+#
+#     cleanup $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8
+#
+#     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.9 \
+#       --frontend EKLT --name "EKLT tracking-q=0.9" --overrides eklt_tracking_quality=0.9
+#
+#     cleanup $1/$DATE-eklt-tracking-quality/015-eklt-tracking-q-0.9
 
 #    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.16 \
 #      --frontend EKLT --name "EKLT tracking-q=0.16" --overrides eklt_tracking_quality=0.16
@@ -2283,25 +2342,25 @@ then
 
     cleanup $1/$DATE-haste-outlier-method/009-ransac-px-2.0
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/010-ransac-px-1.0 --frontend \
-    #  HASTE --name "HASTE RANSAC px=1.0" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.95
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/010-ransac-px-1.0 --frontend \
+     HASTE --name "HASTE RANSAC px=1.0" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.95
 
-    # cleanup $1/$DATE-haste-outlier-method/010-ransac-px-1.0
+    cleanup $1/$DATE-haste-outlier-method/010-ransac-px-1.0
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/011-ransac-px-1.1 --frontend \
-    #  HASTE --name "HASTE RANSAC px=1.1" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.95
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/011-ransac-px-1.1 --frontend \
+     HASTE --name "HASTE RANSAC px=1.1" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.95
 
-    # cleanup $1/$DATE-haste-outlier-method/011-ransac-px-1.1
+    cleanup $1/$DATE-haste-outlier-method/011-ransac-px-1.1
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/012-ransac-px-1.2 --frontend \
-    #  HASTE --name "HASTE RANSAC px=1.2" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.95
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/012-ransac-px-1.2 --frontend \
+     HASTE --name "HASTE RANSAC px=1.2" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.95
 
-    # cleanup $1/$DATE-haste-outlier-method/012-ransac-px-1.2
+    cleanup $1/$DATE-haste-outlier-method/012-ransac-px-1.2
 
-    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/013-ransac-px-1.3 --frontend \
-    #  HASTE --name "HASTE RANSAC px=1.3" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/013-ransac-px-1.3 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95
 
-    # cleanup $1/$DATE-haste-outlier-method/013-ransac-px-1.3
+    cleanup $1/$DATE-haste-outlier-method/013-ransac-px-1.3
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method/014-ransac-p-0.8 --frontend \
      HASTE --name "HASTE RANSAC px=1.3 p=0.8" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.8
@@ -2340,8 +2399,357 @@ then
 fi
 
 
+if [ $EXPLORE_HASTE_OUTLIER_METHOD_95 -gt 0 ]
+then
+  echo
+  echo "Performing HASTE outlier_method exploration 0.95"
+  echo
 
 
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-95/000-xvio-baseline
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/001-haste-baseline --frontend \
+     HASTE --name "HASTE baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-95/001-haste-baseline
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/002-ransax-px-0.1 --frontend \
+     HASTE --name "HASTE RANSAC px=0.1 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.1 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/002-ransax-px-0.1
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/003-ransax-px-0.2 --frontend \
+     HASTE --name "HASTE RANSAC px=0.2 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.2 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/003-ransax-px-0.2
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/004-ransax-px-0.3 --frontend \
+     HASTE --name "HASTE RANSAC px=0.3 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.3 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/004-ransax-px-0.3
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/005-ransax-px-0.4 --frontend \
+     HASTE --name "HASTE RANSAC px=0.4 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.4 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/005-ransax-px-0.4
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/006-ransax-px-0.5 --frontend \
+     HASTE --name "HASTE RANSAC px=0.5 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.5 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/006-ransax-px-0.5
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/007-ransax-px-0.6 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/007-ransax-px-0.6
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/008-ransax-px-0.7 --frontend \
+     HASTE --name "HASTE RANSAC px=0.7 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.7 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/008-ransax-px-0.7
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/009-ransax-px-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=0.8 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.8 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/009-ransax-px-0.8
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/010-ransax-px-0.9 --frontend \
+     HASTE --name "HASTE RANSAC px=0.9 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=0.9 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/010-ransax-px-0.9
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/011-ransax-px-1.0 --frontend \
+     HASTE --name "HASTE RANSAC px=1.0 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/011-ransax-px-1.0
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/012-ransax-px-1.1 --frontend \
+     HASTE --name "HASTE RANSAC px=1.1 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/012-ransax-px-1.1
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/013-ransax-px-1.2 --frontend \
+     HASTE --name "HASTE RANSAC px=1.2 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/013-ransax-px-1.2
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/014-ransax-px-1.3 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/014-ransax-px-1.3
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/015-ransax-px-1.4 --frontend \
+     HASTE --name "HASTE RANSAC px=1.4 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.4 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/015-ransax-px-1.4
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/016-ransax-px-1.5 --frontend \
+     HASTE --name "HASTE RANSAC px=1.5 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.5 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/016-ransax-px-1.5
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/017-ransax-px-1.6 --frontend \
+     HASTE --name "HASTE RANSAC px=1.6 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.6 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/017-ransax-px-1.6
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/018-ransax-px-1.7 --frontend \
+     HASTE --name "HASTE RANSAC px=1.7 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.7 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/018-ransax-px-1.7
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-95/019-ransax-px-1.8 --frontend \
+     HASTE --name "HASTE RANSAC px=1.8 p=0.95" --overrides haste_outlier_method=8 haste_outlier_param1=1.8 haste_outlier_param2=0.95
+
+    cleanup $1/$DATE-haste-outlier-method-95/019-ransax-px-1.8
+    
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-95/ --output_folder $1/$DATE-haste-outlier-method-95/results
+
+fi
+
+
+
+if [ $EXPLORE_HASTE_OUTLIER_METHOD_98 -gt 0 ]
+then
+  echo
+  echo "Performing HASTE outlier_method exploration 0.98"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-98/000-xvio-baseline
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/001-haste-baseline --frontend \
+     HASTE --name "HASTE baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-98/001-haste-baseline
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/002-ransax-px-0.1 --frontend \
+     HASTE --name "HASTE RANSAC px=0.1 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.1 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/002-ransax-px-0.1
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/003-ransax-px-0.2 --frontend \
+     HASTE --name "HASTE RANSAC px=0.2 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.2 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/003-ransax-px-0.2
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/004-ransax-px-0.3 --frontend \
+     HASTE --name "HASTE RANSAC px=0.3 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.3 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/004-ransax-px-0.3
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/005-ransax-px-0.4 --frontend \
+     HASTE --name "HASTE RANSAC px=0.4 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.4 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/005-ransax-px-0.4
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/006-ransax-px-0.5 --frontend \
+     HASTE --name "HASTE RANSAC px=0.5 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.5 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/006-ransax-px-0.5
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/007-ransax-px-0.6 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/007-ransax-px-0.6
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/008-ransax-px-0.7 --frontend \
+     HASTE --name "HASTE RANSAC px=0.7 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.7 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/008-ransax-px-0.7
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/009-ransax-px-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=0.8 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.8 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/009-ransax-px-0.8
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/010-ransax-px-0.9 --frontend \
+     HASTE --name "HASTE RANSAC px=0.9 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=0.9 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/010-ransax-px-0.9
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/011-ransax-px-1.0 --frontend \
+     HASTE --name "HASTE RANSAC px=1.0 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/011-ransax-px-1.0
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/012-ransax-px-1.1 --frontend \
+     HASTE --name "HASTE RANSAC px=1.1 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/012-ransax-px-1.1
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/013-ransax-px-1.2 --frontend \
+     HASTE --name "HASTE RANSAC px=1.2 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/013-ransax-px-1.2
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/014-ransax-px-1.3 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/014-ransax-px-1.3
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/015-ransax-px-1.4 --frontend \
+     HASTE --name "HASTE RANSAC px=1.4 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.4 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/015-ransax-px-1.4
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/016-ransax-px-1.5 --frontend \
+     HASTE --name "HASTE RANSAC px=1.5 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.5 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/016-ransax-px-1.5
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/017-ransax-px-1.6 --frontend \
+     HASTE --name "HASTE RANSAC px=1.6 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.6 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/017-ransax-px-1.6
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/018-ransax-px-1.7 --frontend \
+     HASTE --name "HASTE RANSAC px=1.7 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.7 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/018-ransax-px-1.7
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-98/019-ransax-px-1.8 --frontend \
+     HASTE --name "HASTE RANSAC px=1.8 p=0.98" --overrides haste_outlier_method=8 haste_outlier_param1=1.8 haste_outlier_param2=0.98
+
+    cleanup $1/$DATE-haste-outlier-method-98/019-ransax-px-1.8
+    
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-98/ --output_folder $1/$DATE-haste-outlier-method-98/results
+
+fi
+
+
+
+if [ $EXPLORE_HASTE_OUTLIER_METHOD_99 -gt 0 ]
+then
+  echo
+  echo "Performing HASTE outlier_method exploration 0.99"
+  echo
+
+
+  if [ $COMPARISONS_ONLY -lt 1 ]
+  then
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/000-xvio-baseline --frontend \
+     XVIO --name "XVIO baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-99/000-xvio-baseline
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/001-haste-baseline --frontend \
+     HASTE --name "HASTE baseline"
+
+    cleanup $1/$DATE-haste-outlier-method-99/001-haste-baseline
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/002-ransax-px-0.1 --frontend \
+     HASTE --name "HASTE RANSAC px=0.1 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.1 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/002-ransax-px-0.1
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/003-ransax-px-0.2 --frontend \
+     HASTE --name "HASTE RANSAC px=0.2 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.2 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/003-ransax-px-0.2
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/004-ransax-px-0.3 --frontend \
+     HASTE --name "HASTE RANSAC px=0.3 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.3 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/004-ransax-px-0.3
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/005-ransax-px-0.4 --frontend \
+     HASTE --name "HASTE RANSAC px=0.4 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.4 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/005-ransax-px-0.4
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/006-ransax-px-0.5 --frontend \
+     HASTE --name "HASTE RANSAC px=0.5 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.5 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/006-ransax-px-0.5
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/007-ransax-px-0.6 --frontend \
+     HASTE --name "HASTE RANSAC px=0.6 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.6 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/007-ransax-px-0.6
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/008-ransax-px-0.7 --frontend \
+     HASTE --name "HASTE RANSAC px=0.7 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.7 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/008-ransax-px-0.7
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/009-ransax-px-0.8 --frontend \
+     HASTE --name "HASTE RANSAC px=0.8 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.8 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/009-ransax-px-0.8
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/010-ransax-px-0.9 --frontend \
+     HASTE --name "HASTE RANSAC px=0.9 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=0.9 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/010-ransax-px-0.9
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/011-ransax-px-1.0 --frontend \
+     HASTE --name "HASTE RANSAC px=1.0 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.0 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/011-ransax-px-1.0
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/012-ransax-px-1.1 --frontend \
+     HASTE --name "HASTE RANSAC px=1.1 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.1 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/012-ransax-px-1.1
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/013-ransax-px-1.2 --frontend \
+     HASTE --name "HASTE RANSAC px=1.2 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.2 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/013-ransax-px-1.2
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/014-ransax-px-1.3 --frontend \
+     HASTE --name "HASTE RANSAC px=1.3 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.3 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/014-ransax-px-1.3
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/015-ransax-px-1.4 --frontend \
+     HASTE --name "HASTE RANSAC px=1.4 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.4 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/015-ransax-px-1.4
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/016-ransax-px-1.5 --frontend \
+     HASTE --name "HASTE RANSAC px=1.5 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.5 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/016-ransax-px-1.5
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/017-ransax-px-1.6 --frontend \
+     HASTE --name "HASTE RANSAC px=1.6 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.6 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/017-ransax-px-1.6
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/018-ransax-px-1.7 --frontend \
+     HASTE --name "HASTE RANSAC px=1.7 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.7 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/018-ransax-px-1.7
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-haste-outlier-method-99/019-ransax-px-1.8 --frontend \
+     HASTE --name "HASTE RANSAC px=1.8 p=0.99" --overrides haste_outlier_method=8 haste_outlier_param1=1.8 haste_outlier_param2=0.99
+
+    cleanup $1/$DATE-haste-outlier-method-99/019-ransax-px-1.8
+    
+  fi
+
+  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-99/ --output_folder $1/$DATE-haste-outlier-method-99/results
+
+fi
 
 
 

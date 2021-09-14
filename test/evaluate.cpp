@@ -271,10 +271,12 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
     auto start = profiler::now();
 
     if (m.getTopic() == FLAGS_imu_topic) {
-      EASY_BLOCK("IMU Message", profiler::colors::Red);
       process_type = "IMU";
       auto msg = m.instantiate<sensor_msgs::Imu>();
       ++counter_imu;
+
+      // count what would end up in ros callback
+      EASY_BLOCK("IMU Message");
 
       auto a_m = msgVector3ToEigen(msg->linear_acceleration);
       auto w_m = msgVector3ToEigen(msg->angular_velocity);
@@ -283,11 +285,11 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       EASY_END_BLOCK;
 
     } else if (m.getTopic() == FLAGS_image_topic) {
-      EASY_BLOCK("Image Message", profiler::colors::Green);
       process_type = "Image";
       auto msg = m.instantiate<sensor_msgs::Image>();
       ++counter_image;
 
+      EASY_BLOCK("Image Message");
       x::TiledImage image;
       if (!msgToTiledImage(params, msg, image))
         continue;
@@ -296,11 +298,11 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       EASY_END_BLOCK;
 
     } else if (vio.doesProcessEvents() && !FLAGS_events_topic.empty() && m.getTopic() == FLAGS_events_topic) {
-      EASY_BLOCK("Events Message", profiler::colors::Blue);
       process_type = "Events";
       auto msg = m.instantiate<dvs_msgs::EventArray>();
       ++counter_events;
 
+      EASY_BLOCK("Events Message");
       x::EventArray::Ptr x_events = msgToEvents(msg);
 
       x::TiledImage tracker_img, feature_img;
@@ -342,9 +344,9 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       x::DebugMemoryMonitor::instance().flush_all();
     }
 
-    // profile 1s only to avoid huge files that are not handleable anymore
-    if (m.getTime().toSec() - t_0 > 1.0)
-      EASY_PROFILER_DISABLE;
+//    // profile 1s only to avoid huge files that are not handleable anymore
+//    if (m.getTime().toSec() - t_0 > 1.0)
+//      EASY_PROFILER_DISABLE;
 
     if (calculation_time - last_rusage_check >= 1000000) {
       last_rusage_check = calculation_time;

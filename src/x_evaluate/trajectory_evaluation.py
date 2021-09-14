@@ -88,7 +88,6 @@ def get_relative_errors_wrt_traveled_dist(s: EvaluationDataSummary):
         position_metric = metrics.APE(metrics.PoseRelation.translation_part)
         orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
         # yaw_metric = metrics.APE(metrics.PoseRelation.yaw_rotation_deg)
-        # orientation_metric = metrics.APE(metrics.PoseRelation.z)
 
         # yaw_metric.process_data((d.trajectory_data.traj_gt_synced, d.trajectory_data.traj_est_aligned))
         # result = yaw_metric.get_result()
@@ -102,6 +101,7 @@ def get_relative_errors_wrt_traveled_dist(s: EvaluationDataSummary):
         # yaw_error = np.round(np.mean(yaw_error), 2)
         pos_errors[k] = pos_error
         rot_errors[k] = deg_error
+        # yaw_errors[k] = yaw_error
         yaw_errors[k] = -1.0
 
     return pos_errors, rot_errors, yaw_errors

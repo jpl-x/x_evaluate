@@ -90,8 +90,8 @@ class ProgressInfoLog:
 
 
 def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_file, cmdline_override_params,
-                    frontend: FrontEnd, skip_feature_tracking, dump_input_frames=False, dump_debug_frames=False) -> \
-        EvaluationData:
+                    frontend: FrontEnd, skip_feature_tracking, skip_analysis, dump_input_frames=False,
+                    dump_debug_frames=False) -> EvaluationData:
 
     d = EvaluationData()
     d.name = dataset['name']
@@ -101,6 +101,9 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
                                  dataset['imu_topic'], dataset['events_topic'], output_folder, tmp_yaml_filename,
                                  frontend, get_param_if_exists(dataset, 'from'), get_param_if_exists(dataset, 'to'),
                                  dump_input_frames, dump_debug_frames)
+
+    if skip_analysis:
+        return d
 
     print(F"Running dataset completed, analyzing outputs now...")
 
@@ -240,3 +243,14 @@ def find_evaluation_files_recursively(root_folder):
         evaluation_files.append(str(path))
     evaluation_files.sort()
     return evaluation_files
+
+
+def cache(cache_file, create_function):
+    if os.path.exists(cache_file):
+        with open(cache_file, 'rb') as f:
+            output = pickle.load(f)
+    else:
+        output = create_function()
+        with open(cache_file, 'wb') as f:
+            pickle.dump(output, f, pickle.HIGHEST_PROTOCOL)
+    return output

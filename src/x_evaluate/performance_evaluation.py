@@ -172,7 +172,7 @@ def plot_realtime_factor(pc: PlotContext, evaluations: Collection[EvaluationData
             # this causes issues, quick fix:
             if label.startswith('_'):
                 label = label[1:]
-        ax.plot(t_targets, d.performance_data.rt_factors, label=label, color=DEFAULT_COLORS[i])
+        ax.plot(t_targets, d.performance_data.rt_factors, label=label, color=DEFAULT_COLORS[i+1])
 
     t_targets = np.arange(0.0, max_length) * RT_FACTOR_RESOLUTION
     ax.plot(t_targets, np.ones_like(t_targets), label="boundary", linestyle="--", color="black")
@@ -277,7 +277,7 @@ def plot_event_processing_times(pc: PlotContext, eklt_evaluations: List[Evaluati
             ax = share_axis
         else:
             ax = pc.get_axis(sharex=share_axis)
-        hist_from_bin_values(ax, e.eklt_performance_data.event_processing_times.bins_log,
+        hist_from_bin_values(ax, e.eklt_performance_data.event_processing_times.bins_log.bins_log,
                              e.eklt_performance_data.event_processing_times.hist_log, "Time / event [s]", True, True)
 
         ax.set_title(names[idx])

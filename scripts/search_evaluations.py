@@ -35,6 +35,15 @@ def main():
                      "Mars Straight Vmax 3.2 Offset 10", "Mars Eight Vmax 3.5 Offset 10",
                      "Mars Circle Vmax 7.2 Offset 10", "Mars Vertical Circle Vmax 2.4 Offset 10"}
 
+    # must_datasets = {"Mars Straight Vmax 3.2 Offset 2.5", "Mars Eight Vmax 3.5 Offset 2.5", "Mars Circle Vmax 7.2 Offset 2.5", "Mars Vertical Circle Vmax 2.4 Offset 2.5", "Mars Circle Vmax 7.2 Offset 10", "Mars Circle Vmax 16.6 Offset 10"}
+    must_datasets = {"Mars Straight Vmax 3.2 Offset 2.5", "Mars Circle Vmax 7.2 Offset 2.5", "Mars Vertical Circle Vmax 2.4 Offset 2.5", "Mars Circle Vmax 7.2 Offset 10", "Mars Circle Vmax 16.6 Offset 10"}
+
+    must_datasets = {
+        "Mars Vertical Circle Vmax 2.4 Offset 2.5",
+        "Mars Circle Vmax 7.2 Offset 2.5",
+        "Mars Mellon Vmax 12.4 Offset 10",
+    }
+
     eklt_tables = {}
     haste_tables = {}
     xvio_tables = {}
@@ -43,7 +52,7 @@ def main():
         # if "eklt" not in f:
         #     # print(F"Skipping {f}")
         #     continue
-        # print(F"Reading {f}")
+        print(F"Reading {f}")
         s = read_evaluation_pickle(os.path.dirname(f), os.path.basename(f))
         # print(s.data.keys())
 
@@ -67,6 +76,14 @@ def main():
                         pickle.dump(xvio_tables, file, pickle.HIGHEST_PROTOCOL)
                 # print(F"Got table and saved it for {s.frontend}")
                 # print(table)
+            # else:
+            #     print("Datasets do not match:")
+            #     a = list(s.data.keys())
+            #     b = list(must_datasets)
+            #     a.sort()
+            #     b.sort()
+            #     print(a)
+            #     print(b)
         except:
             # print(F"Warning: {f} FAILED")
             pass

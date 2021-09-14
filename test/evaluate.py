@@ -27,7 +27,8 @@ def main():
     parser.add_argument('--configuration', type=str, default="", help="YAML file specifying what to run")
     parser.add_argument('--name', type=str, help="optional name, if not the output folder name is used")
     parser.add_argument('--dataset_dir', type=str, default="", help="substitutes XVIO_DATASET_DIR in yaml file")
-    parser.add_argument('--skip_feature_tracking', help="Whether to do a 3d plot.", action="store_true",  default=False)
+    parser.add_argument('--skip_feature_tracking', action="store_true",  default=False)
+    parser.add_argument('--skip_analysis', action="store_true",  default=False)
     parser.add_argument('--output_folder', type=str, required=True)
     parser.add_argument('--frontend', type=FrontEnd, choices=list(FrontEnd), required=True)
     parser.add_argument('--overrides', nargs='*', action=ArgparseKeyValueAction)
@@ -100,22 +101,23 @@ def main():
             output_folder = os.path.join(args.output_folder, output_folder)
 
             d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config,
-                                cmdline_override_params, args.frontend, args.skip_feature_tracking,
+                                cmdline_override_params, args.frontend, args.skip_feature_tracking, args.skip_analysis,
                                 args.dump_input_frames, args.dump_debug_frames)
 
-            pe.plot_performance_plots(d, output_folder)
-            te.plot_trajectory_plots(d.trajectory_data, d.name, output_folder)
-            fe.plot_feature_plots(d, output_folder)
+            if not args.skip_analysis:
+                pe.plot_performance_plots(d, output_folder)
+                te.plot_trajectory_plots(d.trajectory_data, d.name, output_folder)
+                fe.plot_feature_plots(d, output_folder)
+                print(F"Analysis of output {i + 1} of {n} completed")
 
             summary.data[dataset['name']] = d
 
-            print(F"Analysis of output {i+1} of {n} completed")
-
-        te.plot_summary_plots(summary, args.output_folder)
-        te.create_summary_info(summary, args.output_folder)
-        pe.plot_summary_plots(summary, args.output_folder)
-        pe.print_realtime_factor_summary(summary)
-        fe.plot_summary_plots(summary, args.output_folder)
+        if not args.skip_analysis:
+            te.plot_summary_plots(summary, args.output_folder)
+            te.create_summary_info(summary, args.output_folder)
+            pe.plot_summary_plots(summary, args.output_folder)
+            pe.print_realtime_factor_summary(summary)
+            fe.plot_summary_plots(summary, args.output_folder)
 
         x_evaluate_root = os.environ['X_EVALUATE_SRC_ROOT']
         x_root = os.path.normpath(os.path.join(x_evaluate_root, "../x"))

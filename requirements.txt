@@ -7,6 +7,8 @@ gitpython
 pycryptodomex
 gnupg
 tqdm
-evo>=1.13.5 --no-binary evo
 scipy>=1.6.2
 klampt>=0.8.7
+evo>=1.13.5
+pygame>=2.0.1
+unrealcv>=0.3.10

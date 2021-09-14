@@ -206,14 +206,14 @@ def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summar
         with PlotContext(os.path.join(output_folder, F"compare_all_feature_update_intervals")) as pc:
             fe.plot_xvio_feature_update_interval_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
 
-        #   - [x] Backend feature age boxplot
-        with PlotContext(os.path.join(output_folder, F"compare_all_backend_feature_age")) as pc:
-            fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
-
-        #   - [x] Backend feature age boxplot
-        with PlotContext(os.path.join(output_folder, F"compare_all_backend_feature_age_log")) as pc:
-            fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets,
-                                                           use_log=True)
+        # #   - [x] Backend feature age boxplot
+        # with PlotContext(os.path.join(output_folder, F"compare_all_backend_feature_age")) as pc:
+        #     fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets)
+        #
+        # #   - [x] Backend feature age boxplot
+        # with PlotContext(os.path.join(output_folder, F"compare_all_backend_feature_age_log")) as pc:
+        #     fe.plot_backend_feature_age_comparison_boxplot(pc, feature_tracking_summaries, common_datasets,
+        #                                                    use_log=True)`
     if len(eklt_summaries) > 0:
         #   - [x] Optimization iterations
         with PlotContext(os.path.join(output_folder, F"compare_all_eklt_optimization_iterations")) as pc:
@@ -250,11 +250,13 @@ def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summar
                              if s.data[dataset].trajectory_data is not None]
 
         if len(eklt_evaluations) > 0:
-            #   - [x] Time / event
-            with PlotContext(os.path.join(output_folder, F"compare_eklt_event_processing_times_{d_id}"),
-                             subplot_rows=len(eklt_evaluations), base_height_inch=3) as pc:
-                pc.figure.suptitle(F"Event processing times on '{dataset}'")
-                pe.plot_event_processing_times(pc, eklt_evaluations, eklt_names)
+            # EDIT: currently failing as DistributionSummary does not set bins_log, apparenty there are some 0s
+            # procesisng times
+            # #   - [x] Time / event
+            # with PlotContext(os.path.join(output_folder, F"compare_eklt_event_processing_times_{d_id}"),
+            #                  subplot_rows=len(eklt_evaluations), base_height_inch=3) as pc:
+            #     pc.figure.suptitle(F"Event processing times on '{dataset}'")
+            #     pe.plot_event_processing_times(pc, eklt_evaluations, eklt_names)
 
             #   - [x] Events / s
             with PlotContext(os.path.join(output_folder, F"compare_eklt_events_per_second_{d_id}")) as pc:
@@ -290,9 +292,9 @@ def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summar
             with PlotContext(os.path.join(output_folder, F"compare_backend_feature_tracking_{d_id}")) as pc:
                 fe.plot_xvio_feature_tracking_comparison(pc, feature_tracking_evaluations, names, dataset)
 
-            #   - [x] Pixel tracking accuracy
-            with PlotContext(os.path.join(output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
-                fe.plot_backend_feature_age_comparison(pc, feature_tracking_evaluations, names, dataset)
+            # #   - [x] Pixel tracking accuracy
+            # with PlotContext(os.path.join(output_folder, F"compare_backend_feature_age_{d_id}")) as pc:
+            #     fe.plot_backend_feature_age_comparison(pc, feature_tracking_evaluations, names, dataset)
 
             #   - [x] Pixel tracking accuracy
             with PlotContext(os.path.join(output_folder, F"compare_backend_feature_tracking_zero_aligned_{d_id}")) as \

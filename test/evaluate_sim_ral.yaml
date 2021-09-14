@@ -1,0 +1,52 @@
+
+common_params:
+  eklt_bootstrap: "klt"
+
+datasets:
+  - name: Mars Vertical Circle
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_vcircle_vmax_2.4_offset_2.5.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from /cam0/pose at 10.000999999s in neuro_bem_esim_vcircle_vmax_2.4_offset_2.5.bag:
+      p: [ -0.0069972414333245615, 1.5892308541504607, 1.1513837585978979 ]
+      v: [ 0.005836730616047017, 0.054023725912278366, 0.05297598693292569 ]
+      q: [ -0.005574070453602605, 0.9997277664218892, 0.022566816247777906, 0.0020153382142657204 ] #[w,x,y,z]
+
+  - name: Mars Circle
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_circle_vmax_7.2_offset_10.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from /cam0/pose at 10.0s in neuro_bem_esim_circle_vmax_7.2_offset_10.bag:
+      p: [ 3.509625004236487, 4.98771195648192, 2.050382598568867 ]
+      v: [ 0.00817558596590592, -0.005691303876924701, -0.003433784376483093 ]
+      q: [ -0.0014086850617686271, 0.4086417379214404, 0.9126879129698076, 0.0032740118751688634 ] #[w,x,y,z]
+
+  - name: Mars Mellon
+    rosbag: ${XVIO_DATASET_DIR}/sim/neuro_bem_esim_mellon_vmax_12.4_offset_10.bag
+    events_topic: /cam0/events
+    image_topic: /cam0/image_raw
+    pose_topic: /cam0/pose
+    imu_topic: /imu
+    depth_map_topic: /cam0/depthmap
+    camera_info_topic: /cam0/camera_info
+    params: ${X_EVALUATE_SRC_ROOT}/params_esim_davis346.yaml
+    from: 10.0
+    override_params:
+      # initial state computed from /cam0/pose at 10.0s in neuro_bem_esim_mellon_vmax_12.4_offset_10.bag:
+      p: [ 2.979753345384094, 4.504408753737893, 3.626556145329341 ]
+      v: [ 0.0620656286043175, 0.008858529848176285, -0.0017457572183846729 ]
+      q: [ 0.0009804549968166192, 0.9992723717439144, 0.03624555703544209, -0.011833231700668188 ] #[w,x,y,z]

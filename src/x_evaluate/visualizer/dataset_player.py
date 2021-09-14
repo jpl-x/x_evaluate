@@ -197,8 +197,8 @@ class DatasetPlayer:
                 base_filename = full_filename.split('/')[-1]
 
                 if self._font is not None:
-                    text = self._font.render('%s [%s]' % (base_filename, r.names[i]), True, (250, 250, 250))
-                    # text = self._font.render('%s' % (r.names[i]), True, (250, 250, 250))
+                    # text = self._font.render('%s [%s]' % (base_filename, r.names[i]), True, (250, 250, 250))
+                    text = self._font.render('%s' % (r.names[i]), True, (250, 250, 250))
                     frame.blit(text, (self._frame_width / 2 - text.get_rect().width / 2, self._frame_height * 0.1))
                 display.blit(frame, (self._frame_width * grid_j, self._frame_height * grid_i))
 

@@ -8,11 +8,9 @@ from scipy.spatial.transform import Rotation as R
 import matplotlib.font_manager
 
 from x_evaluate.evaluation_data import DistributionSummary
-
-import matplotlib.colors as mcolors
-
 from x_evaluate.utils import get_quantized_statistics_along_axis
 
+import matplotlib.colors as mcolors
 DEFAULT_COLORS = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.BASE_COLORS.values()) + \
                  list(mcolors.CSS4_COLORS.values())
 
@@ -40,7 +38,10 @@ class PlotContext:
 
         if use_paper_style_plots:
             # one column in paper = 3.5in
-            self.width_inch = 5
+            # self.width_inch = 5
+            # self.height_inch = 3.8
+            # self.height_inch = 3
+            self.width_inch = 7
             self.height_inch = 3
             self.FORMATS = [".pdf"]
 
@@ -84,7 +85,7 @@ class PlotContext:
     def get_axis(self, subplot_arg=None, **kwargs) -> plt.Axes:
         self.subplot_idx += 1
         if subplot_arg:
-            ax = self.figure.add_subplot(subplot_arg)
+            ax = self.figure.add_subplot(subplot_arg, **kwargs)
         else:
             ax = self.figure.add_subplot(self.subplot_rows, self.subplot_cols, self.subplot_idx, **kwargs)
         self.axis.append(ax)
@@ -352,6 +353,14 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
                     title=None, showfliers=True):
     if colors is None:
         colors = DEFAULT_COLORS
+
+        # hack to get color consistent boxplots with USLAM
+        if len(data) == 4:
+            colors = colors.copy()
+            colors[0] = DEFAULT_COLORS[3]
+            colors[1] = DEFAULT_COLORS[0]
+            colors[2] = DEFAULT_COLORS[1]
+            colors[3] = DEFAULT_COLORS[2]
 
     n_data = len(data)
     n_xlabel = len(x_tick_labels)

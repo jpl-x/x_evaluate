@@ -186,6 +186,7 @@ def merge_tables(tables, column=None):
 
 
 def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.1):
+    # TODO: this code fails if min(x) == max(x)
     buckets = np.arange(np.min(x), np.max(x), resolution)
     bucket_index = np.digitize(x, buckets)
     indices = np.unique(bucket_index)

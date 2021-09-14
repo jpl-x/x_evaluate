@@ -93,9 +93,13 @@ def get_tracking_error_statistics(tracks_error):
 
     def calculate_euclidian_error_for_unique_ids(sliced_errors):
         plot_ids, first_ids = np.unique(sliced_errors[:, 0], return_index=True)
-        sliced_errors = sliced_errors[first_ids, :]
-        euclidean_error = np.linalg.norm(sliced_errors[:, 2:3], axis=1)
-        return euclidean_error
+        per_id_error = sliced_errors[first_ids, 0]
+        for i in range(len(per_id_error)):
+            per_id_error[i] = np.mean(
+                np.linalg.norm(sliced_errors[sliced_errors[:, 0] == per_id_error[i], 2:3], axis=1))
+
+        # euclidean_error = np.linalg.norm(per_id_error[:, 2:3], axis=1)
+        return per_id_error
 
     t_quantized, statistics = get_quantized_statistics_along_axis(t, tracks_error,
                                                                   data_filter=calculate_euclidian_error_for_unique_ids)
@@ -227,6 +231,19 @@ def plot_feature_tracking_comparison_boxplot(pc: PlotContext, summaries: List[Ev
                                              common_datasets, title, feature_data_to_error, feature_data_to_config):
     data = [[np.linalg.norm(feature_data_to_error(s.data[k].feature_data)[:, 2:3], axis=1)
              for k in common_datasets] for s in summaries]
+
+    columns = {}
+    for s in summaries:
+        columns[F"{s.name} mean"] = []
+        columns[F"{s.name} num"] = []
+        for k in common_datasets:
+            tracking_errors = np.linalg.norm(feature_data_to_error(s.data[k].feature_data)[:, 2:3], axis=1)
+            # tracking_errors = tracking_errors[tracking_errors > 1e-3]
+            columns[F"{s.name} mean"].append(np.round(np.mean(tracking_errors), 2))
+            columns[F"{s.name} num"].append(len(np.unique(feature_data_to_error(s.data[k].feature_data)[:, 0])))
+    tracking_error_table = pd.DataFrame(columns, index=common_datasets)
+
+    print(F"This is the tracking table\n\n{tracking_error_table}")
 
     summary_labels = [s.name for s in summaries]
     info_strings = [tracker_config_to_info_string(feature_data_to_config(summaries[0].data[k].feature_data))
@@ -433,7 +450,7 @@ def plot_feature_plots(d: EvaluationData, output_folder):
     with PlotContext(os.path.join(output_folder, "backend_num_features"), subplot_rows=2, subplot_cols=2) as pc:
         plot_xvio_num_features(pc, [d])
 
-    if d.feature_data.df_xvio_tracks is not None:
+    if hasattr(d.feature_data, 'df_xvio_tracks') and d.feature_data.df_xvio_tracks is not None:
         with PlotContext(os.path.join(output_folder, "xvio_feature_pos_changes"), subplot_rows=1, subplot_cols=2) as pc:
             plot_xvio_features_position_changes(pc, d)
 
@@ -454,7 +471,7 @@ def plot_feature_plots(d: EvaluationData, output_folder):
         with PlotContext(os.path.join(output_folder, "eklt_features")) as pc:
             time_series_plot(pc, df['t'], [df['num_features']], ["EKLT features"], "Number of tracked features")
 
-    if d.feature_data.eklt_tracks_error is not None:
+    if hasattr(d.feature_data, 'eklt_tracks_error') and d.feature_data.eklt_tracks_error is not None:
         with PlotContext(os.path.join(output_folder, "eklt_feature_tracking_error ")) as pc:
             plot_tracking_error(pc, d.feature_data.eklt_tracks_error, d.feature_data.eklt_tracking_evaluation_config,
                                 "EKLT feature tracking errors")

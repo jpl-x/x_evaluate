@@ -9,15 +9,17 @@ import numpy as np
 import time
 
 import pandas as pd
+import x_evaluate.plots
 from evo.core.trajectory import PoseTrajectory3D
+from evo.tools import plot
 from klampt.math import se3
 from klampt.model.trajectory import SE3Trajectory, SE3HermiteTrajectory
 from scipy.spatial.transform import Rotation as R
 
-from x_evaluate.plots import PlotContext, plot_evo_trajectory_with_euler_angles
+from x_evaluate.plots import PlotContext, plot_evo_trajectory_with_euler_angles, DEFAULT_COLORS
 import matplotlib.pyplot as plt
 
-from x_evaluate.utils import read_neurobem_trajectory, read_esim_trajectory_csv
+from x_evaluate.utils import read_neurobem_trajectory, read_esim_trajectory_csv, read_x_evaluate_gt_csv
 
 
 class EvoTrajectoryVisualizer:
@@ -53,7 +55,8 @@ class EvoTrajectoryVisualizer:
         label = self._files[self._current_idx]
         trajectory = self._current_trajectory
         plot_context = self._pc
-        plot_evo_trajectory_with_euler_angles(plot_context, trajectory, os.path.basename(label))
+        # plot_evo_trajectory_with_euler_angles(plot_context, trajectory, os.path.basename(label))
+        plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label)
 
         stats = trajectory.get_statistics()
 
@@ -221,20 +224,50 @@ def main():
     #              "/tmp/esim_spline_dump.csv",
     #              "/storage/data/projects/nasa-eve/friedrich_python_helpers/trajectory_gen/test.csv"]
 
-    esim_matcher = os.path.join("/storage/data/projects/nasa-eve/eklt/src/rpg_esim/event_camera_simulator/esim_ros"
-                                "/cfg/traj/vmax/", "*.csv")
-    esim_matches = glob.glob(esim_matcher)
-    esim_matches.sort()
+    # esim_matcher = os.path.join("/storage/data/projects/nasa-eve/eklt/src/rpg_esim/event_camera_simulator/esim_ros"
+    #                             "/cfg/traj/vmax/", "*.csv")
+    # esim_matches = glob.glob(esim_matcher)
+    # esim_matches.sort()
+    gt_matcher = os.path.join("/storage/data/projects/nasa-eve/experiments/sim_uslam/gt/*/gt.csv")
+    gt_matches = glob.glob(gt_matcher)
+    gt_matches.sort()
 
-    with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
-        v = EvoTrajectoryVisualizer(pc, esim_matches, read_esim_trajectory_csv,
-        # v = EvoTrajectoryVisualizer(pc, matches, read_neurobem_trajectory,
-                                    special_key_actions={
-                                        'enter': lambda t: convert_to_esim_trajectory(args.output, t),
-                                        'b': add_bootstrapping_sequence,
-                                        'd': downsample
-                                    })
-        v.plot_current_trajectory()
+    # with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
+    #     v = EvoTrajectoryVisualizer(pc, gt_matches, read_x_evaluate_gt_csv,
+    #     # v = EvoTrajectoryVisualizer(pc, matches, read_neurobem_trajectory,
+    #                                 special_key_actions={
+    #                                     'enter': lambda t: convert_to_esim_trajectory(args.output, t),
+    #                                     'b': add_bootstrapping_sequence,
+    #                                     'd': downsample
+    #                                 })
+    #     v.plot_current_trajectory()
+
+    x_evaluate.plots.use_paper_style_plots = True
+
+    with PlotContext("/home/flo/cloud/school/2020-2021/nasa/figures/for_paper/mellon") as pc:
+        traj = read_x_evaluate_gt_csv(gt_matches[7])
+        # traj_by_label = {
+        #     "Mars Mellon": traj
+        # }
+
+        ax = pc.get_axis(projection="3d")
+        x = traj.positions_xyz[:, 0]
+        y = traj.positions_xyz[:, 1]
+        z = traj.positions_xyz[:, 2]
+        ax.plot(x, y, z, color=DEFAULT_COLORS[
+            0], label="Mars Mellon")
+        ax.set_xlabel("x [m]")
+        ax.set_ylabel("y [m]")
+        ax.set_zlabel("z [m]")
+
+        ax.w_xaxis.pane.fill = False
+        ax.w_yaxis.pane.fill = False
+        ax.w_zaxis.pane.fill = False
+        ax.set_box_aspect((np.ptp(x), np.ptp(y), np.ptp(z)))
+
+        # plot.trajectories(pc.figure, traj_by_label, plot.PlotMode.xyz, subplot_arg=211)
+
+    # plt.show()
 
 
 if __name__ == '__main__':
