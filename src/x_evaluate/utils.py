@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 from typing import Dict
 
@@ -243,3 +244,23 @@ def read_esim_trajectory_csv(csv_filename):
 
     t_xyz_wxyz = df_trajectory[['# timestamp', ' x', ' y', ' z', ' qw', ' qx', ' qy', ' qz']].to_numpy()
     return convert_t_xyz_wxyz_to_evo_trajectory(t_xyz_wxyz)
+
+
+def get_ros_topic_name_from_msg_type(input_bag, msg_type: str):
+    topic_info = input_bag.get_type_and_topic_info()
+    event_topics = [k for k, t in topic_info.topics.items() if t.msg_type == msg_type]
+    if len(event_topics) > 1:
+        logging.warning("multiple event topics found (%s), taking first: '%s'", event_topics, event_topics[0])
+    elif len(event_topics) == 0:
+        raise LookupError("No dvs_msgs/EventArray found in bag")
+    event_topic = event_topics[0]
+    return event_topic
+
+
+def read_all_ros_msgs_from_topic_into_dict(event_topic, input_bag):
+    event_array_messages = {}
+    for topic, msg, t in input_bag.read_messages([event_topic]):
+        if t in event_array_messages:
+            logging.warning("Multiple messages at time %s in topic %s", t, topic)
+        event_array_messages[t.to_sec()] = msg
+    return event_array_messages

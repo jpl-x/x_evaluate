@@ -66,7 +66,7 @@ class EvoTrajectoryVisualizer:
         d = np.round(trajectory.distances[-1], 1)
         hz = np.round(1/np.mean(trajectory.timestamps[1:]-trajectory.timestamps[:-1]) , 1)
         ts = os.path.getmtime(self._files[self._current_idx])
-        plot_context.figure.suptitle(F"[{self._current_idx}/{len(self._files)}] n = {len(trajectory.timestamps)} "
+        plot_context.figure.suptitle(F"[{self._current_idx+1}/{len(self._files)}] n = {len(trajectory.timestamps)} "
                                  F"poses, {hz}Hz, "
                                  F" {d}m,"
                                  F" {t}s, v = {v_avg} m/s (max: {v_max} m/s) [{datetime.fromtimestamp(ts).ctime()}]")

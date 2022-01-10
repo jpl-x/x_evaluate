@@ -1,13 +1,11 @@
 import argparse
-import os
-import sys
 
 import numpy as np
-import rospy
 from matplotlib import pyplot as plt
 
 from rosbag import Bag
 from x_evaluate.plots import PlotContext
+from x_evaluate.utils import get_ros_topic_name_from_msg_type, read_all_ros_msgs_from_topic_into_dict
 
 
 def main():
@@ -18,24 +16,10 @@ def main():
 
     input_bag = Bag(args.input, 'r')
 
-    topic_info = input_bag.get_type_and_topic_info()
+    event_topic = get_ros_topic_name_from_msg_type(input_bag, 'dvs_msgs/EventArray')
+    event_array_messages = read_all_ros_msgs_from_topic_into_dict(event_topic, input_bag)
 
-    event_topics = [k for k, t in topic_info.topics.items() if t.msg_type == 'dvs_msgs/EventArray']
-
-    if len(event_topics) > 1:
-        print(F"WARNING: multiple event topics found ({event_topics}), taking first: '{event_topics[0]}'")
-    elif len(event_topics) == 0:
-        print("No dvs_msgs/EventArray found in bag")
-        sys.exit()
-
-    event_topic = event_topics[0]
-
-    event_array_messages = []
-
-    for topic, msg, t in input_bag.read_messages([event_topic]):
-        event_array_messages.append(msg)
-
-    event_times = np.array([e.ts.to_sec() for ea in event_array_messages for e in ea.events])
+    event_times = np.array([e.ts.to_sec() for ea in event_array_messages.values() for e in ea.events])
 
     start = input_bag.get_start_time()
     end = input_bag.get_end_time()

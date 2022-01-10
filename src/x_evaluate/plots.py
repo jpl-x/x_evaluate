@@ -469,7 +469,8 @@ def plot_moving_boxplot_in_time(pc: PlotContext, t, data, title=None, ylabel=Non
     plot_moving_boxplot_in_time_from_stats(pc, t_quantized, stats, title, ylabel, color)
 
 
-def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None, ylabel=None, color=None, xlabel=None):
+def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None, ylabel=None, color=None,
+                                           xlabel=None, plot_min_max_shade=True):
     if not color:
         color = DEFAULT_COLORS[0]
     ax = pc.get_axis()
@@ -491,9 +492,10 @@ def plot_moving_boxplot_in_time_from_stats(pc: PlotContext, t, stats, title=None
     ax.fill_between(t, stats['q05'], stats['q25'], alpha=0.25, lw=0, facecolor=color)
     ax.fill_between(t, stats['q75'], stats['q95'], alpha=0.25, lw=0, facecolor=color)
 
-    # MIN-MAX
-    ax.fill_between(t, stats['min'], stats['q25'], alpha=0.1, lw=0, facecolor=color)
-    ax.fill_between(t, stats['q75'], stats['max'], alpha=0.1, lw=0, facecolor=color)
+    if plot_min_max_shade:
+        # MIN-MAX
+        ax.fill_between(t, stats['min'], stats['q25'], alpha=0.1, lw=0, facecolor=color)
+        ax.fill_between(t, stats['q75'], stats['max'], alpha=0.1, lw=0, facecolor=color)
 
 
 def plot_evo_trajectory_with_euler_angles(plot_context, trajectory, label, ref_trajectory=None):
