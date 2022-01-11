@@ -2,85 +2,17 @@ import argparse
 import logging
 import os
 
-import evo.core.trajectory
 import numpy as np
-from evo.core.trajectory import calc_angular_speed
-from evo.core.transformations import quaternion_inverse, quaternion_matrix
 from matplotlib import pyplot as plt
-from scipy.spatial.transform import Rotation as R
 
 from rosbag import Bag
-from scipy.linalg import expm
-from scipy.spatial.transform import Slerp
 
-from scripts.visualize_trajectories import EvoTrajectoryVisualizer
-from x_evaluate.math_utils import vec_to_skew_mat, quat_to_rot_vel_mat, quat_left_mat
-from x_evaluate.plots import PlotContext, time_series_plot, align_yaxis, DEFAULT_COLORS, \
+from x_evaluate.math_utils import calculate_velocities
+from x_evaluate.plots import PlotContext, DEFAULT_COLORS, \
     plot_moving_boxplot_in_time_from_stats
 from x_evaluate.scriptlets import cache
 from x_evaluate.utils import get_ros_topic_name_from_msg_type, read_all_ros_msgs_from_topic_into_dict, \
     convert_t_xyz_wxyz_to_evo_trajectory, n_to_grid_size, get_quantized_statistics_along_axis
-
-
-def quaternion_sequence_to_rotational_velocity(t_wxyz):
-    # q_wxyz_from = q_wxyz_from[::5, :]
-    # q_wxyz_to = q_wxyz_to[::5, :]
-    # time_diff = time_diff[::5]
-    q_wxyz_from = t_wxyz[:-1, 1:]
-    q_wxyz_to = t_wxyz[1:, 1:]
-    time_diff = t_wxyz[1:, 0] - t_wxyz[:-1, 0]
-
-    assert np.allclose(np.linalg.norm(q_wxyz_from, axis=1), 1)
-
-    q_wxyz_from_inv = np.apply_along_axis(quaternion_inverse, 1, q_wxyz_from)
-    quat_from_mat = np.apply_along_axis(quat_left_mat, 1, q_wxyz_from_inv)
-
-    # calc_angular_speed()
-
-    # calc_angular_speed()
-    # np.apply_along_axis(calc_angular_speed, 1, q_wxyz_from, q_wxyz_to, t_wxyz[:-1, 0], t_wxyz[1:, 0])
-    q_diff = np.matmul(quat_from_mat, q_wxyz_to[:, :, None]).squeeze(-1)
-    q_dot = q_diff
-    # q_dot = np.empty_like(q_diff)
-    #
-    # for i in range(len(q_dot)):
-    #     theta_half = np.arccos(q_diff[i, 0])
-    #     n = np.array([1, 0, 0])
-    #     if np.abs(np.sin(theta_half)) > 1e-5:
-    #         n = q_diff[i, 1:] / np.sin(theta_half)
-    #
-    #     q_dot[i, :] = theta_half * n
-    #     # s = Slerp([0, time_diff[i]], R.from_quat([[1.0, 0, 0, 0], q_diff[i, :]]))
-    #     # q_dot[i, :] = s(1).as_quat()
-
-    # https://fgiesen.wordpress.com/2012/08/24/quaternion-differentiation/
-
-
-    # expm()
-
-    # q_diff = q_wxyz_to - q_wxyz_from
-    # q_diff[:, 0] /= time_diff
-    # q_diff[:, 1] /= time_diff
-    # q_diff[:, 2] /= time_diff
-    mapping_matrices = np.apply_along_axis(quat_to_rot_vel_mat, 1, q_wxyz_from)
-    omegas = np.matmul(mapping_matrices, q_dot[:, :, None]).squeeze(-1)
-    rot_vel = np.linalg.norm(omegas, axis=1)
-
-    rot_vel = rot_vel / time_diff
-    #
-    # rot_vel = np.empty((len(q_wxyz_from)))
-    # for i, (q1, q2, t1, t2) in enumerate(zip(q_wxyz_from, q_wxyz_to, t_wxyz[:-1, 0], t_wxyz[1:, 0])):
-    #     rot_vel[i] = calc_angular_speed(quaternion_matrix(q1), quaternion_matrix(q2), t1, t2)
-    return rot_vel
-
-
-def calculate_velocity_norm(trajectory: evo.core.trajectory.Trajectory):
-    l2_diff = np.linalg.norm(trajectory.positions_xyz[1:, :] - trajectory.positions_xyz[:-1, :], axis=1)
-    time_diff = trajectory.timestamps[1:] - trajectory.timestamps[:-1]
-    velocity = l2_diff / time_diff
-    t_wxyz = np.hstack((trajectory.timestamps[:, np.newaxis], trajectory.orientations_quat_wxyz))
-    rot_vel = quaternion_sequence_to_rotational_velocity(t_wxyz)
-    return trajectory.timestamps[:-1], velocity, rot_vel
 
 
 def main():
@@ -120,14 +52,17 @@ def main():
     # trajectories = get_trajectories_from_file()
     # imu_measurements = get_imu_measurements_from_file()
 
-    # temporary filter
-    trajectories = {k: v for k, v in trajectories.items() if 'poster_translation' in k}
-    imu_measurements = {k: v for k, v in imu_measurements.items() if 'poster_translation' in k}
-
-    plot_trajectory_dynamics(trajectories, imu_measurements)
-    # plot_trajectory_dynamics({k: v for k, v in trajectories.items() if 'translation' in k})
-    # plot_trajectory_dynamics({k: v for k, v in trajectories.items() if 'rotation' in k})
-    # plot_trajectory_dynamics({k: v for k, v in trajectories.items() if 'hdr' in k})
+    # # temporary filter
+    # trajectories = {k: v for k, v in trajectories.items() if 'poster_translation' in k}
+    # imu_measurements = {k: v for k, v in imu_measurements.items() if 'poster_translation' in k}
+    #
+    # plot_trajectory_dynamics(trajectories, imu_measurements)
+    plot_trajectory_dynamics({k: v for k, v in trajectories.items() if 'translation' in k},
+                             {k: v for k, v in imu_measurements.items() if 'translation' in k})
+    plot_trajectory_dynamics({k: v for k, v in trajectories.items() if 'rotation' in k},
+                             {k: v for k, v in imu_measurements.items() if 'rotation' in k})
+    plot_trajectory_dynamics({k: v for k, v in trajectories.items() if 'hdr' in k},
+                             {k: v for k, v in imu_measurements.items() if 'hdr' in k})
 
     # with PlotContext(subplot_rows=rows, subplot_cols=cols) as pc:
     #
@@ -164,13 +99,13 @@ def main():
         # vels = [v[1] for v in velocities]
         # time_series_plot(pc, times, vels, [os.path.basename(f) for f in trajectories.keys()])
 
-    # plt.show()
-
-    with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
-        def read_from_dict(file: str):
-            return trajectories[file]
-        v = EvoTrajectoryVisualizer(pc, list(trajectories.keys()), read_from_dict)
-        v.plot_current_trajectory()
+    plt.show()
+    #
+    # with PlotContext(subplot_rows=2, subplot_cols=2) as pc:
+    #     def read_from_dict(file: str):
+    #         return trajectories[file]
+    #     v = EvoTrajectoryVisualizer(pc, list(trajectories.keys()), read_from_dict)
+    #     v.plot_current_trajectory()
 
     # event_times = np.array([e.ts.to_sec() for ea in gt_msgs.values() for e in ea.events])
     #
@@ -195,12 +130,12 @@ def main():
 
 def plot_trajectory_dynamics(trajectories, imu_measurements):
     rows, cols = n_to_grid_size(len(trajectories) * 3)
-    velocities = {file: calculate_velocity_norm(t) for file, t in trajectories.items()}
+    velocities = {file: calculate_velocities(t) for file, t in trajectories.items()}
     with PlotContext(subplot_rows=rows, subplot_cols=cols) as pc:
         for file, v in velocities.items():
             t = v[0]
-            lin_vel = v[1]
-            ang_vel = v[2]
+            lin_vel = np.linalg.norm(v[1], axis=1)
+            ang_vel = np.linalg.norm(v[2], axis=1)
 
             imu_data = imu_measurements[file]
             t_imu = imu_data[:, 0]
@@ -259,7 +194,6 @@ def read_imu_measurements_from_file(input, input_bag):
     t_linacc_angvel[:, 6] = [m.angular_velocity.z for m in imu_msgs.values()]
     # trajectory = convert_t_xyz_wxyz_to_evo_trajectory(t_linacc_angvel)
     return t_linacc_angvel
-
 
 
 if __name__ == '__main__':
