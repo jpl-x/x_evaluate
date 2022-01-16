@@ -136,6 +136,8 @@ class EvaluationData:
     feature_data: FeatureTrackingData
     eklt_performance_data: Optional[EKLTPerformanceData]
 
+    df_ekf_updates: Optional[pd.DataFrame]
+
     def __init__(self):
         self.trajectory_data = None
         self.eklt_performance_data = None

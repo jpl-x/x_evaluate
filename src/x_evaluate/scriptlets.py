@@ -114,7 +114,9 @@ def process_dataset(executable, dataset, output_folder, tmp_yaml_filename, yaml_
     gt_available = does_key_exist(dataset, 'pose_topic')
 
     df_groundtruth, df_poses, df_realtime, df_features,\
-    df_resources, df_xvio_tracks, df_imu_bias = read_output_files(output_folder, gt_available)
+    df_resources, df_xvio_tracks, df_imu_bias, df_ekf_updates = read_output_files(output_folder, gt_available)
+
+    d.df_ekf_updates = df_ekf_updates
 
     total_operations = 2 + int(df_groundtruth is not None) \
                          + int(frontend == FrontEnd.EKLT) \

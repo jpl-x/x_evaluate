@@ -131,8 +131,14 @@ def read_output_files(output_folder, gt_available):
     if os.path.exists(imu_bias_filename):
         df_imu_bias = pd.read_csv(imu_bias_filename, delimiter=";")
 
+
+    df_ekf_updates = None
+    ekf_updates_filename = os.path.join(output_folder, "ekf_updates.csv")
+    if os.path.exists(ekf_updates_filename):
+        df_ekf_updates = pd.read_csv(ekf_updates_filename, delimiter=";")
+
     # profiling_json = read_json_file(output_folder)
-    return df_groundtruth, df_poses, df_realtime, df_features, df_resources, df_xvio_tracks, df_imu_bias
+    return df_groundtruth, df_poses, df_realtime, df_features, df_resources, df_xvio_tracks, df_imu_bias, df_ekf_updates
 
 
 def read_eklt_output_files(output_folder):
