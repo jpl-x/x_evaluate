@@ -69,58 +69,86 @@ def main():
     slow_segment = [15, 25]
     fast_segment = [40, 50]
 
-    # dynamic_stats = pd.DataFrame(columns=["Dataset", "Lin vel slow segment", "Lin vel fast segment",
-    #                                       "Ang vel slow segment", "Ang vel fast segment"])
-    #
-    # with PlotContext(subplot_cols=2, subplot_rows=len(target_datasets)) as pc:
-    #
-    #     for dataset in target_datasets:
-    #         data = evaluations[0].data[dataset]
-    #
-    #         t, lin_vel, ang_vel = calculate_velocities(data.trajectory_data.traj_gt)
-    #
-    #         t -= t[0]
-    #
-    #         lin_vel = np.linalg.norm(lin_vel, axis=1)
-    #         ang_vel = np.linalg.norm(ang_vel, axis=1)
-    #
-    #         # ax = pc.get_axis()
-    #         time_windows = [5, 10, 15, 20, 25]
-    #         t_s, lin_vels = zip(*tuple([moving_average(t, lin_vel, time_window) for time_window in time_windows]))
-    #         time_series_plot(pc, list(t_s), lin_vels, [F"{tw}s average" for tw in time_windows],
-    #                          F"Linear velocity norm '{dataset}'", "[m/s]")
-    #
-    #         t_s, ang_vels = zip(*tuple([moving_average(t, ang_vel, time_window) for time_window in time_windows]))
-    #         time_series_plot(pc, list(t_s), ang_vels, [F"{tw}s average" for tw in time_windows],
-    #                          F"Angular velocity norm '{dataset}'", "[rad/s]")
-    #
-    #         i_1_slow = np.argmin(np.abs(t - slow_segment[0]))
-    #         i_2_slow = np.argmin(np.abs(t - slow_segment[1]))
-    #         i_1_fast = np.argmin(np.abs(t - fast_segment[0]))
-    #         i_2_fast = np.argmin(np.abs(t - fast_segment[1]))
-    #
-    #         new_row = [dataset, np.mean(lin_vel[i_1_slow:i_2_slow+1]), np.mean(lin_vel[i_1_fast:i_2_fast+1]),
-    #                    np.mean(ang_vel[i_1_slow:i_2_slow+1]), np.mean(ang_vel[i_1_fast:i_2_fast+1])]
-    #
-    #         dynamic_stats.loc[len(dynamic_stats)] = new_row
-    #
+    # dynamic_stats = pd.DataFrame(columns=["Dataset", "Lin vel SLOW", "Lin vel FAST",
+    #                                       "Ang vel SLOW", "Ang vel FAST"])
+
+    table_data = []
+    with PlotContext(subplot_cols=2, subplot_rows=len(target_datasets)) as pc:
+
+
+        for dataset in target_datasets:
+            data = evaluations[0].data[dataset]
+
+            t, lin_vel, ang_vel = calculate_velocities(data.trajectory_data.traj_gt)
+
+            t -= t[0]
+
+            lin_vel = np.linalg.norm(lin_vel, axis=1)
+            ang_vel = np.linalg.norm(ang_vel, axis=1)
+
+            # ax = pc.get_axis()
+            time_windows = [5, 10, 15, 20, 25]
+            t_s, lin_vels = zip(*tuple([moving_average(t, lin_vel, time_window) for time_window in time_windows]))
+            time_series_plot(pc, list(t_s), lin_vels, [F"{tw}s average" for tw in time_windows],
+                             F"Linear velocity norm '{dataset}'", "[m/s]")
+
+            t_s, ang_vels = zip(*tuple([moving_average(t, ang_vel, time_window) for time_window in time_windows]))
+            time_series_plot(pc, list(t_s), ang_vels, [F"{tw}s average" for tw in time_windows],
+                             F"Angular velocity norm '{dataset}'", "[rad/s]")
+
+            i_1_slow = np.argmin(np.abs(t - slow_segment[0]))
+            i_2_slow = np.argmin(np.abs(t - slow_segment[1]))
+            i_1_fast = np.argmin(np.abs(t - fast_segment[0]))
+            i_2_fast = np.argmin(np.abs(t - fast_segment[1]))
+
+            new_row = [np.mean(lin_vel[i_1_slow:i_2_slow+1]), np.mean(lin_vel[i_1_fast:i_2_fast+1]),
+                       np.mean(ang_vel[i_1_slow:i_2_slow+1]), np.mean(ang_vel[i_1_fast:i_2_fast+1])]
+
+            table_data.append(new_row)
+
+    index_columns = [("GT Stats", "Lin vel SLOW"),
+                     ("GT Stats", "Lin vel FAST"),
+                     ("GT Stats", "Ang vel SLOW"),
+                     ("GT Stats", "Ang vel FAST")]
+    index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
+
+    slow_fast_gt_stats_table = pd.DataFrame(table_data, index=target_datasets, columns=index)
+
+
     # plt.show()
 
-    # print(dynamic_stats)
+    print(slow_fast_gt_stats_table)
 
     updates_per_sec_data = {}
 
     stats_func = get_common_stats_functions()
 
+    slow_fast_ekf_updates_tables = []
+
     for e in evaluations:
         labels = []
         times = []
         updates = []
-        for k, v in e.data.items():
-            t_x, updates_per_sec = calculate_updates_per_seconds(v.df_ekf_updates)
+        table_data = []
+        for k in target_datasets:
+            t_x, updates_per_sec = calculate_updates_per_seconds(e.data[k].df_ekf_updates)
             labels.append(k)
             times.append(t_x)
             updates.append(updates_per_sec)
+
+            i_1_slow = np.argmin(np.abs(t_x - slow_segment[0]))
+            i_2_slow = np.argmin(np.abs(t_x - slow_segment[1]))
+            i_1_fast = np.argmin(np.abs(t_x - fast_segment[0]))
+            i_2_fast = np.argmin(np.abs(t_x - fast_segment[1]))
+
+            new_row = [np.mean(updates_per_sec[i_1_slow:i_2_slow + 1]), np.mean(updates_per_sec[i_1_fast:i_2_fast + 1])]
+            table_data.append(new_row)
+
+        index_columns = [(e.name, "EKF Updates/s SLOW"),
+                         (e.name, "EKF Updates/s FAST")]
+        index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
+        slow_fast_ekf_updates_table = pd.DataFrame(table_data, index=target_datasets, columns=index)
+        slow_fast_ekf_updates_tables.append(slow_fast_ekf_updates_table)
 
         updates_per_sec_data[e.name] = []
 
@@ -130,9 +158,10 @@ def main():
         with PlotContext() as pc:
             time_series_plot(pc, times, updates, labels, F"EKF updates per seconds '{e.name}'", "updates / s")
 
-    updates_per_sec_table = pd.DataFrame(updates_per_sec_data, index=stats_func.keys())
+    slow_fast_ekf_updates_table = merge_tables(slow_fast_ekf_updates_tables)
+    # slow_fast_ekf_updates_table = pd.DataFrame(updates_per_sec_data, index=stats_func.keys())
 
-    print(updates_per_sec_table)
+    print(slow_fast_ekf_updates_table)
 
     #
     #
@@ -200,7 +229,7 @@ def main():
             fast_part_pos_result = position_metric.get_result().stats['mean'] / fast_part_gt.distances[-1] * 100
             fast_part_rot_result = orientation_metric.get_result().stats['mean'] / fast_part_gt.distances[-1]
 
-            table_data[i, :] = [slow_part_pos_result, slow_part_rot_result, fast_part_pos_result, fast_part_rot_result]
+            table_data[i, :] = [slow_part_pos_result, fast_part_pos_result, slow_part_rot_result, fast_part_rot_result]
             i += 1
 
         # result_table.loc[len(result_table)] = ["Pos Error [%] SLOW"] + results_slow_part_pos
@@ -209,19 +238,38 @@ def main():
         # result_table.loc[len(result_table)] = ["Rot Error [deg/m] FAST"] + results_fast_part_rot
 
         index_columns = [(evaluation.name, "Pos Error [m] SLOW"),
-                         (evaluation.name, "Rot Error [deg] SLOW"),
                          (evaluation.name, "Pos Error [m] FAST"),
+                         (evaluation.name, "Rot Error [deg] SLOW"),
                          (evaluation.name, "Rot Error [deg] FAST")]
         index = pd.MultiIndex.from_tuples(index_columns, names=["Evaluation Run", "Metric"])
-        slow_fast_pose_error_table = pd.DataFrame(table_data, index=target_datasets, columns=index)
-        slow_fast_pose_error_tables.append(slow_fast_pose_error_table)
+        slow_fast_ekf_updates_table = pd.DataFrame(table_data, index=target_datasets, columns=index)
+        slow_fast_pose_error_tables.append(slow_fast_ekf_updates_table)
 
-    slow_fast_pose_error_table = merge_tables(slow_fast_pose_error_tables)
-    print(slow_fast_pose_error_table)
+    slow_fast_ekf_updates_table = merge_tables(slow_fast_pose_error_tables)
+    print(slow_fast_ekf_updates_table)
+
+    one_big_fat_ass_table = merge_tables([slow_fast_gt_stats_table] + slow_fast_ekf_updates_tables +
+                                         slow_fast_pose_error_tables)
+
+    mask_trans = one_big_fat_ass_table.index.str.contains('Translation')
+    mask_6dof = one_big_fat_ass_table.index.str.contains('6DOF')
+    mask_hdr = one_big_fat_ass_table.index.str.contains('HDR')
+    mean_trans = one_big_fat_ass_table[mask_trans].mean()
+    mean_6dof = one_big_fat_ass_table[mask_6dof].mean()
+    mean_hdr = one_big_fat_ass_table[mask_hdr].mean()
+    mean = one_big_fat_ass_table.mean()
+    median = one_big_fat_ass_table.median()
+    one_big_fat_ass_table.loc["* Translation"] = mean_trans
+    one_big_fat_ass_table.loc["* 6DOF"] = mean_6dof
+    one_big_fat_ass_table.loc["* HDR"] = mean_hdr
+    one_big_fat_ass_table.loc["Mean"] = mean
+    one_big_fat_ass_table.loc["Median"] = median
 
     with pd.ExcelWriter(os.path.join(args.input_folder, "update_strategy_result.xlsx")) as writer:
-        slow_fast_pose_error_table.to_excel(writer, sheet_name='Average pose errors')
-        updates_per_sec_table.to_excel(writer, sheet_name='EKF updates per second')
+        one_big_fat_ass_table.to_excel(writer, sheet_name='ALL WE NEED')
+        slow_fast_ekf_updates_table.to_excel(writer, sheet_name='Average pose errors')
+        slow_fast_ekf_updates_table.to_excel(writer, sheet_name='EKF updates per second')
+        slow_fast_gt_stats_table.to_excel(writer, sheet_name='GT dynamics stats')
 
     plt.show()
 
