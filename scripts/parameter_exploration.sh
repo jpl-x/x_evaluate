@@ -6,10 +6,10 @@ BASE_DIR=$(pwd -P)
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 SCRIPT_PATH="$( cd -- "$(dirname "$SCRIPT_PATH/../test/evaluate.py")" >/dev/null 2>&1 ; pwd -P )"
 
-CONFIGURATION="evaluate_sim.yaml --skip_feature_tracking"
+CONFIGURATION="evaluate_wells.yaml --skip_feature_tracking"
 
 COMPARISONS_ONLY=0
-EXPLORE_BASELINES=0
+EXPLORE_BASELINES=1
 EXPLORE_XVIO_PATCH_SIZE=0
 EXPLORE_XVIO_IMU_OFFSET=0
 EXPLORE_XVIO_MSCKF_BASELINE=0
@@ -57,7 +57,7 @@ EXPLORE_HASTE_INTERPOLATION_TIMESTAMP=0
 EXPLORE_HASTE_FEATURE_INTERPOLATION=0
 EXPLORE_HASTE_UPDATE_STRATEGY_N_MSEC=0
 EXPLORE_HASTE_UPDATE_STRATEGY_N_EVENTS=0
-EXPLORE_HASTE_BEST=1
+EXPLORE_HASTE_BEST=0
 
 
 
@@ -229,74 +229,74 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/000-baseline --frontend \
      XVIO --name "XVIO baseline"
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/001-offset0.0027626 --frontend \
-     XVIO --name "XVIO IMU offset 0.0027626" --overrides cam1_time_offset=0.0027626
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/001-offset0.0027626 --frontend \
+    #  XVIO --name "XVIO IMU offset 0.0027626" --overrides cam1_time_offset=0.0027626
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/001-offset-0.0027626 --frontend \
-     XVIO --name "XVIO IMU offset -0.0027626" --overrides cam1_time_offset=-0.0027626
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/001-offset-0.0027626 --frontend \
+    #  XVIO --name "XVIO IMU offset -0.0027626" --overrides cam1_time_offset=-0.0027626
 
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/001-offset-0.01 --frontend \
-#     XVIO --name "XVIO IMU offset -0.01" --overrides cam1_time_offset=-0.01
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/002-offset-0.009 --frontend \
-#     XVIO --name "XVIO IMU offset -0.009" --overrides cam1_time_offset=-0.009
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/003-offset-0.008 --frontend \
-#     XVIO --name "XVIO IMU offset -0.008" --overrides cam1_time_offset=-0.008
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/004-offset-0.007 --frontend \
-#     XVIO --name "XVIO IMU offset -0.007" --overrides cam1_time_offset=-0.007
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/005-offset-0.006 --frontend \
-#     XVIO --name "XVIO IMU offset -0.006" --overrides cam1_time_offset=-0.006
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/006-offset-0.005 --frontend \
-#     XVIO --name "XVIO IMU offset -0.005" --overrides cam1_time_offset=-0.005
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/007-offset-0.004 --frontend \
-#     XVIO --name "XVIO IMU offset -0.004" --overrides cam1_time_offset=-0.004
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/008-offset-0.003 --frontend \
-#     XVIO --name "XVIO IMU offset -0.003" --overrides cam1_time_offset=-0.003
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/009-offset-0.002 --frontend \
-#     XVIO --name "XVIO IMU offset -0.002" --overrides cam1_time_offset=-0.002
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/010-offset-0.001 --frontend \
-#     XVIO --name "XVIO IMU offset -0.001" --overrides cam1_time_offset=-0.001
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/011-offset0.0 --frontend \
-#     XVIO --name "XVIO IMU offset +0.0" --overrides cam1_time_offset=0.0
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/012-offset0.001 --frontend \
-#     XVIO --name "XVIO IMU offset +0.001" --overrides cam1_time_offset=0.001
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/013-offset0.002 --frontend \
-#     XVIO --name "XVIO IMU offset +0.002" --overrides cam1_time_offset=0.002
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/014-offset0.003 --frontend \
-#     XVIO --name "XVIO IMU offset +0.003" --overrides cam1_time_offset=0.003
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/015-offset0.004 --frontend \
-#     XVIO --name "XVIO IMU offset +0.004" --overrides cam1_time_offset=0.004
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/016-offset0.005 --frontend \
-#     XVIO --name "XVIO IMU offset +0.005" --overrides cam1_time_offset=0.005
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/017-offset0.006 --frontend \
-#     XVIO --name "XVIO IMU offset +0.006" --overrides cam1_time_offset=0.006
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/018-offset0.007 --frontend \
-#     XVIO --name "XVIO IMU offset +0.007" --overrides cam1_time_offset=0.007
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/019-offset0.008 --frontend \
-#     XVIO --name "XVIO IMU offset +0.008" --overrides cam1_time_offset=0.008
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/020-offset0.009 --frontend \
-#     XVIO --name "XVIO IMU offset +0.009" --overrides cam1_time_offset=0.009
-#
-#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/021-offset0.01 --frontend \
-#     XVIO --name "XVIO IMU offset +0.01" --overrides cam1_time_offset=0.01
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/001-offset-0.01 --frontend \
+    XVIO --name "XVIO IMU offset -0.01" --overrides cam1_time_offset=-0.01
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/002-offset-0.009 --frontend \
+    XVIO --name "XVIO IMU offset -0.009" --overrides cam1_time_offset=-0.009
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/003-offset-0.008 --frontend \
+    XVIO --name "XVIO IMU offset -0.008" --overrides cam1_time_offset=-0.008
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/004-offset-0.007 --frontend \
+    XVIO --name "XVIO IMU offset -0.007" --overrides cam1_time_offset=-0.007
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/005-offset-0.006 --frontend \
+    XVIO --name "XVIO IMU offset -0.006" --overrides cam1_time_offset=-0.006
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/006-offset-0.005 --frontend \
+    XVIO --name "XVIO IMU offset -0.005" --overrides cam1_time_offset=-0.005
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/007-offset-0.004 --frontend \
+    XVIO --name "XVIO IMU offset -0.004" --overrides cam1_time_offset=-0.004
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/008-offset-0.003 --frontend \
+    XVIO --name "XVIO IMU offset -0.003" --overrides cam1_time_offset=-0.003
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/009-offset-0.002 --frontend \
+    XVIO --name "XVIO IMU offset -0.002" --overrides cam1_time_offset=-0.002
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/010-offset-0.001 --frontend \
+    XVIO --name "XVIO IMU offset -0.001" --overrides cam1_time_offset=-0.001
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/011-offset0.0 --frontend \
+    XVIO --name "XVIO IMU offset +0.0" --overrides cam1_time_offset=0.0
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/012-offset0.001 --frontend \
+    XVIO --name "XVIO IMU offset +0.001" --overrides cam1_time_offset=0.001
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/013-offset0.002 --frontend \
+    XVIO --name "XVIO IMU offset +0.002" --overrides cam1_time_offset=0.002
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/014-offset0.003 --frontend \
+    XVIO --name "XVIO IMU offset +0.003" --overrides cam1_time_offset=0.003
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/015-offset0.004 --frontend \
+    XVIO --name "XVIO IMU offset +0.004" --overrides cam1_time_offset=0.004
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/016-offset0.005 --frontend \
+    XVIO --name "XVIO IMU offset +0.005" --overrides cam1_time_offset=0.005
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/017-offset0.006 --frontend \
+    XVIO --name "XVIO IMU offset +0.006" --overrides cam1_time_offset=0.006
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/018-offset0.007 --frontend \
+    XVIO --name "XVIO IMU offset +0.007" --overrides cam1_time_offset=0.007
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/019-offset0.008 --frontend \
+    XVIO --name "XVIO IMU offset +0.008" --overrides cam1_time_offset=0.008
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/020-offset0.009 --frontend \
+    XVIO --name "XVIO IMU offset +0.009" --overrides cam1_time_offset=0.009
+
+   python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-xvio-imu-offset/021-offset0.01 --frontend \
+    XVIO --name "XVIO IMU offset +0.01" --overrides cam1_time_offset=0.01
 
   fi
 
@@ -1751,50 +1751,77 @@ then
   if [ $COMPARISONS_ONLY -lt 1 ]
   then
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/000-xvio-baseline \
-      --frontend XVIO --name "XVIO baseline"
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/000-xvio-baseline \
+    #   --frontend XVIO --name "XVIO baseline"
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/000-xvio-baseline
+    # cleanup $1/$DATE-eklt-update-strategy-msec/000-xvio-baseline
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/001-eklt-update-1-msec \
-      --frontend EKLT --name "EKLT update every 1msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=1
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/001-eklt-update-1-msec \
+    #   --frontend EKLT --name "EKLT update every 1msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=1
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/001-eklt-update-1-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/001-eklt-update-1-msec
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/002-eklt-update-2-msec \
-      --frontend EKLT --name "EKLT update every 2msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=2
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/002-eklt-update-2-msec \
+    #   --frontend EKLT --name "EKLT update every 2msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=2
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/002-eklt-update-2-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/002-eklt-update-2-msec
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/003-eklt-update-3-msec \
-      --frontend EKLT --name "EKLT update every 3msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=3
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/003-eklt-update-3-msec \
+    #   --frontend EKLT --name "EKLT update every 3msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=3
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/003-eklt-update-3-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/003-eklt-update-3-msec
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/004-eklt-update-5-msec \
-      --frontend EKLT --name "EKLT update every 5msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=5
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/004-eklt-update-5-msec \
+    #   --frontend EKLT --name "EKLT update every 5msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=5
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/004-eklt-update-5-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/004-eklt-update-5-msec
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/005-eklt-update-7-msec \
-      --frontend EKLT --name "EKLT update every 7msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=7
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/005-eklt-update-7-msec \
+    #   --frontend EKLT --name "EKLT update every 7msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=7
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/005-eklt-update-7-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/005-eklt-update-7-msec
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/006-eklt-update-9-msec \
-      --frontend EKLT --name "EKLT update every 9msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=9
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/006-eklt-update-9-msec \
+    #   --frontend EKLT --name "EKLT update every 9msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=9
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/006-eklt-update-9-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/006-eklt-update-9-msec
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/007-eklt-update-12-msec \
-      --frontend EKLT --name "EKLT update every 12msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=12
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/007-eklt-update-12-msec \
+    #   --frontend EKLT --name "EKLT update every 12msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=12
 
-    cleanup $1/$DATE-eklt-update-strategy-msec/007-eklt-update-12-msec
+    # cleanup $1/$DATE-eklt-update-strategy-msec/007-eklt-update-12-msec
 
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/008-eklt-update-40-msec \
     #   --frontend EKLT --name "EKLT update every 40msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=40
 
     # cleanup $1/$DATE-eklt-update-strategy-msec/008-eklt-update-40-msec
+
+
+
+
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/001-eklt-update-10-msec \
+      --frontend EKLT --name "EKLT update every 10msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=10
+
+    cleanup $1/$DATE-eklt-update-strategy-msec/001-eklt-update-10-msec
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/002-eklt-update-20-msec \
+      --frontend EKLT --name "EKLT update every 20msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=20
+
+    cleanup $1/$DATE-eklt-update-strategy-msec/002-eklt-update-20-msec
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/003-eklt-update-30-msec \
+      --frontend EKLT --name "EKLT update every 30msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=30
+
+    cleanup $1/$DATE-eklt-update-strategy-msec/003-eklt-update-30-msec
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-msec/004-eklt-update-40-msec \
+      --frontend EKLT --name "EKLT update every 40msec" --overrides eklt_ekf_update_strategy=every-n-msec-with-events eklt_ekf_update_every_n=40
+
+    cleanup $1/$DATE-eklt-update-strategy-msec/004-eklt-update-40-msec
+
+
+
 
   fi
 
@@ -1813,45 +1840,71 @@ then
   if [ $COMPARISONS_ONLY -lt 1 ]
   then
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/000-xvio-baseline \
-      --frontend XVIO --name "XVIO baseline"
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/000-xvio-baseline \
+    #   --frontend XVIO --name "XVIO baseline"
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/000-xvio-baseline
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/000-xvio-baseline
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-500-events \
-      --frontend EKLT --name "EKLT update every 500 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=500
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-500-events \
+    #   --frontend EKLT --name "EKLT update every 500 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=500
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-500-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-500-events
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-1000-events \
-      --frontend EKLT --name "EKLT update every 1000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=1000
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-1000-events \
+    #   --frontend EKLT --name "EKLT update every 1000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=1000
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-1000-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-1000-events
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-2000-events \
-      --frontend EKLT --name "EKLT update every 2000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=2000
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-2000-events \
+    #   --frontend EKLT --name "EKLT update every 2000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=2000
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-2000-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-2000-events
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-3600-events \
-      --frontend EKLT --name "EKLT update every 3600 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=3600
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-3600-events \
+    #   --frontend EKLT --name "EKLT update every 3600 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=3600
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-3600-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-3600-events
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-4800-events \
-      --frontend EKLT --name "EKLT update every 4800 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=4800
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-4800-events \
+    #   --frontend EKLT --name "EKLT update every 4800 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=4800
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-4800-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-4800-events
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-7200-events \
-      --frontend EKLT --name "EKLT update every 7200 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=7200
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-7200-events \
+    #   --frontend EKLT --name "EKLT update every 7200 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=7200
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-7200-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/006-eklt-update-7200-events
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/007-eklt-update-9200-events \
-      --frontend EKLT --name "EKLT update every 9200 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=9200
+    # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/007-eklt-update-9200-events \
+    #   --frontend EKLT --name "EKLT update every 9200 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=9200
 
-    cleanup $1/$DATE-eklt-update-strategy-n-events/007-eklt-update-9200-events
+    # cleanup $1/$DATE-eklt-update-strategy-n-events/007-eklt-update-9200-events
+
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-5000-events \
+      --frontend EKLT --name "EKLT update every 5000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=5000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/001-eklt-update-5000-events
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-10000-events \
+      --frontend EKLT --name "EKLT update every 10000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=10000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/002-eklt-update-10000-events
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-15000-events \
+      --frontend EKLT --name "EKLT update every 15000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=15000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/003-eklt-update-15000-events
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-20000-events \
+      --frontend EKLT --name "EKLT update every 20000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=20000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/004-eklt-update-20000-events
+
+    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-25000-events \
+      --frontend EKLT --name "EKLT update every 25000 events" --overrides eklt_ekf_update_strategy=every-n-events eklt_ekf_update_every_n=25000
+
+    cleanup $1/$DATE-eklt-update-strategy-n-events/005-eklt-update-25000-events
 
   fi
 

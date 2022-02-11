@@ -230,7 +230,9 @@ def combine_error(evaluations: Collection[EvaluationData], error_key) -> np.ndar
     for d in evaluations:
         if d.trajectory_data is not None:
             arrays.append(d.trajectory_data.ate_errors[error_key])
-    return np.hstack(tuple(arrays))
+    if len(arrays) > 0:
+        return np.hstack(tuple(arrays))
+    return []
 
 
 def plot_rpg_error_arrays(pc: PlotContext, trajectories: List[TrajectoryData], labels, use_log=False,
@@ -363,6 +365,9 @@ def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
 
 
 def plot_trajectory_plots(trajectory_data: TrajectoryData, name, output_folder):
+
+    if trajectory_data is None:
+        return
 
     if hasattr(trajectory_data, 'imu_bias') and trajectory_data.imu_bias is not None:
         with PlotContext(os.path.join(output_folder, "imu_bias"), subplot_cols=2) as pc:
