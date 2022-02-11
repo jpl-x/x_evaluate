@@ -201,17 +201,7 @@ def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.
     # filter empty buckets:  (-1 to convert upper bound --> lower bound, as we always take the first errors per bucket)
     buckets = buckets[np.clip(indices - 1, 0, len(buckets))]
 
-    stats_func = {
-        'mean': lambda d: np.mean(d),
-        'median': lambda d: np.median(d),
-        'min': lambda d: np.min(d),
-        'max': lambda d: np.max(d),
-        'q25': lambda d: np.quantile(d, 0.25),
-        'q75': lambda d: np.quantile(d, 0.75),
-        'q05': lambda d: np.quantile(d, 0.05),
-        'q95': lambda d: np.quantile(d, 0.95),
-        'num': lambda d: len(d)
-    }
+    stats_func = get_common_stats_functions()
 
     stats = {x: np.empty((len(indices))) for x in stats_func.keys()}
 
@@ -225,6 +215,21 @@ def get_quantized_statistics_along_axis(x, data, data_filter=None, resolution=0.
             stats[k][i] = stats_func[k](data_slice)
 
     return buckets, stats
+
+
+def get_common_stats_functions():
+    stats_func = {
+        'mean': lambda d: np.mean(d),
+        'median': lambda d: np.median(d),
+        'min': lambda d: np.min(d),
+        'max': lambda d: np.max(d),
+        'q25': lambda d: np.quantile(d, 0.25),
+        'q75': lambda d: np.quantile(d, 0.75),
+        'q05': lambda d: np.quantile(d, 0.05),
+        'q95': lambda d: np.quantile(d, 0.95),
+        'num': lambda d: len(d)
+    }
+    return stats_func
 
 
 def read_neurobem_trajectory(filename):
