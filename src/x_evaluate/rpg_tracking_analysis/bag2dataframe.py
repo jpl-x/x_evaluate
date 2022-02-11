@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import rosbag
+try:
+    import rosbag
+except:
+    pass
 import numpy as np
 from cv_bridge import CvBridge
 

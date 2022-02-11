@@ -1,4 +1,7 @@
-import cv2
+try:
+    import cv2
+except:
+    pass
 import numpy as np
 from x_evaluate.rpg_tracking_analysis.tracker_utils import project_landmarks
 import tqdm

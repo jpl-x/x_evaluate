@@ -1,6 +1,9 @@
 from os.path import isfile
 import os
-import cv2
+try:
+    import cv2
+except:
+    pass
 from os.path import join
 import numpy as np
 import tqdm
