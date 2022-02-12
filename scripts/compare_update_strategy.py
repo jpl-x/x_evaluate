@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 from copy import deepcopy
 
@@ -36,13 +35,13 @@ def main():
         evaluations = []
 
         for f in evaluation_files:
-            if '2022-01-18' not in f:
+            if '2022-02-01' not in f:
                 continue
 
             e = read_evaluation_pickle(os.path.dirname(f), os.path.basename(f))
-            #
-            # if e.frontend is not FrontEnd.EKLT or ('2200 events' not in e.name and '3msec' not in e.name):
-            #     continue
+
+            if e.frontend is not FrontEnd.EKLT:  # or ('3600 events' not in e.name and '3msec' not in e.name):
+                continue
 
             print(F"Considering evaluation file '{e.name}'")
 
@@ -67,15 +66,10 @@ def main():
     PlotContext.FORMATS = [".pdf"]
 
     slow_segment = [15, 25]
-    fast_segment = [40, 50]
-
-    # dynamic_stats = pd.DataFrame(columns=["Dataset", "Lin vel SLOW", "Lin vel FAST",
-    #                                       "Ang vel SLOW", "Ang vel FAST"])
+    fast_segment = [0, 60]
 
     table_data = []
     with PlotContext(subplot_cols=2, subplot_rows=len(target_datasets)) as pc:
-
-
         for dataset in target_datasets:
             data = evaluations[0].data[dataset]
 
@@ -159,7 +153,6 @@ def main():
             time_series_plot(pc, times, updates, labels, F"EKF updates per seconds '{e.name}'", "updates / s")
 
     slow_fast_ekf_updates_table = merge_tables(slow_fast_ekf_updates_tables)
-    # slow_fast_ekf_updates_table = pd.DataFrame(updates_per_sec_data, index=stats_func.keys())
 
     print(slow_fast_ekf_updates_table)
 
@@ -180,12 +173,6 @@ def main():
     slow_fast_pose_error_tables = []
 
     for evaluation in evaluations:
-
-        # results_slow_part_pos = []
-        # results_slow_part_rot = []
-        # results_fast_part_pos = []
-        # results_fast_part_rot = []
-
         table_data = np.empty((len(target_datasets), 4), dtype=np.float)
         i = 0
 
@@ -195,47 +182,22 @@ def main():
             traj_gt = data.trajectory_data.traj_gt_synced
             traj_est = data.trajectory_data.traj_est_synced
 
-            slow_part_gt = deepcopy(traj_gt)
-            ids_slow = np.where(
-                np.logical_and(slow_part_gt.timestamps >= traj_gt.timestamps[0] + slow_segment[0],
-                               slow_part_gt.timestamps <= traj_gt.timestamps[0] + slow_segment[1]))[0]
-            slow_part_gt.reduce_to_ids(ids_slow)
-            slow_part_est = deepcopy(traj_est)
-            slow_part_est.reduce_to_ids(ids_slow)
-
-            fast_part_gt = deepcopy(traj_gt)
-            ids_fast = np.where(
-                np.logical_and(fast_part_gt.timestamps >= traj_gt.timestamps[0] + fast_segment[0],
-                               fast_part_gt.timestamps <= traj_gt.timestamps[0] + fast_segment[1]))[0]
-            fast_part_gt.reduce_to_ids(ids_fast)
-            fast_part_est = deepcopy(traj_est)
-            fast_part_est.reduce_to_ids(ids_fast)
+            slow_part_est, slow_part_gt = slice_trajectories_into_segments(traj_est, traj_gt, slow_segment)
+            fast_part_est, fast_part_gt = slice_trajectories_into_segments(traj_est, traj_gt, fast_segment)
 
             print(F"Slow part lengths: {len(slow_part_gt.distances)} {len(slow_part_est.distances)}")
 
             rpg_align(slow_part_gt, slow_part_est, AlignmentType.PosYaw, use_subtrajectory=False)
             rpg_align(fast_part_gt, fast_part_est, AlignmentType.PosYaw, use_subtrajectory=False)
 
-            position_metric = metrics.APE(metrics.PoseRelation.translation_part)
-            orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
+            slow_part_pos_result, slow_part_rot_result = calculate_pos_and_rot_errors(slow_part_est,
+                                                                                      slow_part_gt)
 
-            position_metric.process_data((slow_part_gt, slow_part_est))
-            orientation_metric.process_data((slow_part_gt, slow_part_est))
-            slow_part_pos_result = position_metric.get_result().stats['mean'] / slow_part_gt.distances[-1] * 100
-            slow_part_rot_result = orientation_metric.get_result().stats['mean'] / slow_part_gt.distances[-1]
-
-            position_metric.process_data((fast_part_gt, fast_part_est))
-            orientation_metric.process_data((fast_part_gt, fast_part_est))
-            fast_part_pos_result = position_metric.get_result().stats['mean'] / fast_part_gt.distances[-1] * 100
-            fast_part_rot_result = orientation_metric.get_result().stats['mean'] / fast_part_gt.distances[-1]
+            fast_part_pos_result, fast_part_rot_result = calculate_pos_and_rot_errors(fast_part_est,
+                                                                                      fast_part_gt)
 
             table_data[i, :] = [slow_part_pos_result, fast_part_pos_result, slow_part_rot_result, fast_part_rot_result]
             i += 1
-
-        # result_table.loc[len(result_table)] = ["Pos Error [%] SLOW"] + results_slow_part_pos
-        # result_table.loc[len(result_table)] = ["Rot Error [deg/m] SLOW"] + results_slow_part_rot
-        # result_table.loc[len(result_table)] = ["Pos Error [%] FAST"] + results_fast_part_pos
-        # result_table.loc[len(result_table)] = ["Rot Error [deg/m] FAST"] + results_fast_part_rot
 
         index_columns = [(evaluation.name, "Pos Error [m] SLOW"),
                          (evaluation.name, "Pos Error [m] FAST"),
@@ -248,30 +210,51 @@ def main():
     slow_fast_ekf_updates_table = merge_tables(slow_fast_pose_error_tables)
     print(slow_fast_ekf_updates_table)
 
-    one_big_fat_ass_table = merge_tables([slow_fast_gt_stats_table] + slow_fast_ekf_updates_tables +
+    big_summary_table = merge_tables([slow_fast_gt_stats_table] + slow_fast_ekf_updates_tables +
                                          slow_fast_pose_error_tables)
 
-    mask_trans = one_big_fat_ass_table.index.str.contains('Translation')
-    mask_6dof = one_big_fat_ass_table.index.str.contains('6DOF')
-    mask_hdr = one_big_fat_ass_table.index.str.contains('HDR')
-    mean_trans = one_big_fat_ass_table[mask_trans].mean()
-    mean_6dof = one_big_fat_ass_table[mask_6dof].mean()
-    mean_hdr = one_big_fat_ass_table[mask_hdr].mean()
-    mean = one_big_fat_ass_table.mean()
-    median = one_big_fat_ass_table.median()
-    one_big_fat_ass_table.loc["* Translation"] = mean_trans
-    one_big_fat_ass_table.loc["* 6DOF"] = mean_6dof
-    one_big_fat_ass_table.loc["* HDR"] = mean_hdr
-    one_big_fat_ass_table.loc["Mean"] = mean
-    one_big_fat_ass_table.loc["Median"] = median
+    mask_trans = big_summary_table.index.str.contains('Translation')
+    mask_6dof = big_summary_table.index.str.contains('6DOF')
+    mask_hdr = big_summary_table.index.str.contains('HDR')
+    mean_trans = big_summary_table[mask_trans].mean()
+    mean_6dof = big_summary_table[mask_6dof].mean()
+    mean_hdr = big_summary_table[mask_hdr].mean()
+    mean = big_summary_table.mean()
+    median = big_summary_table.median()
+    big_summary_table.loc["* Translation"] = mean_trans
+    big_summary_table.loc["* 6DOF"] = mean_6dof
+    big_summary_table.loc["* HDR"] = mean_hdr
+    big_summary_table.loc["Mean"] = mean
+    big_summary_table.loc["Median"] = median
 
     with pd.ExcelWriter(os.path.join(args.input_folder, "update_strategy_result.xlsx")) as writer:
-        one_big_fat_ass_table.to_excel(writer, sheet_name='ALL WE NEED')
+        big_summary_table.to_excel(writer, sheet_name='ALL WE NEED')
         slow_fast_ekf_updates_table.to_excel(writer, sheet_name='Average pose errors')
         slow_fast_ekf_updates_table.to_excel(writer, sheet_name='EKF updates per second')
         slow_fast_gt_stats_table.to_excel(writer, sheet_name='GT dynamics stats')
 
     plt.show()
+
+
+def slice_trajectories_into_segments(traj_est, traj_gt, segment_timestamps):
+    slow_part_gt = deepcopy(traj_gt)
+    ids_slow = np.where(
+        np.logical_and(slow_part_gt.timestamps >= traj_gt.timestamps[0] + segment_timestamps[0],
+                       slow_part_gt.timestamps <= traj_gt.timestamps[0] + segment_timestamps[1]))[0]
+    slow_part_gt.reduce_to_ids(ids_slow)
+    slow_part_est = deepcopy(traj_est)
+    slow_part_est.reduce_to_ids(ids_slow)
+    return slow_part_est, slow_part_gt
+
+
+def calculate_pos_and_rot_errors(slow_part_est, slow_part_gt):
+    position_metric = metrics.APE(metrics.PoseRelation.translation_part)
+    orientation_metric = metrics.APE(metrics.PoseRelation.rotation_angle_deg)
+    position_metric.process_data((slow_part_gt, slow_part_est))
+    orientation_metric.process_data((slow_part_gt, slow_part_est))
+    slow_part_pos_result = position_metric.get_result().stats['mean'] / slow_part_gt.distances[-1] * 100
+    slow_part_rot_result = orientation_metric.get_result().stats['mean'] / slow_part_gt.distances[-1]
+    return slow_part_pos_result, slow_part_rot_result
 
 
 def calculate_updates_per_seconds(df_ekf_updates):
@@ -283,8 +266,6 @@ def calculate_updates_per_seconds(df_ekf_updates):
     updates_per_sec, _ = np.histogram(t, bins=bins)
     t_x = np.arange(0.0, len(updates_per_sec))
     return t_x, updates_per_sec
-
-#         data = evaluations[0].data[dataset]
 
 
 if __name__ == '__main__':
