@@ -1,60 +1,21 @@
 import argparse
 import os
-import sys
 
 import numpy as np
 import pandas as pd
 from typing import Dict
 
-import tqdm
-
 from x_evaluate.comparisons import identify_common_datasets, identify_changing_parameters, \
     create_parameter_changes_table
 from x_evaluate.evaluation_data import EvaluationDataSummary, FrontEnd
 import x_evaluate.plots
-from x_evaluate.plots import PlotType
-from x_evaluate.plots import PlotContext as ActualPlotContext
+from x_evaluate.plots import PlotType, ProgressPlotContextManager
 from x_evaluate.utils import name_to_identifier, n_to_grid_size
 from x_evaluate.scriptlets import read_evaluation_pickle, find_evaluation_files_recursively
 
 import x_evaluate.performance_evaluation as pe
 import x_evaluate.trajectory_evaluation as te
 import x_evaluate.tracking_evaluation as fe
-
-
-# enables a dummy run, counting how often a PlotContext is called, then enabling to visualize a progress bar
-class ProgressPlotContextManager:
-    def __init__(self):
-        self.count = 0
-        self.dummy_plot_context = self.create_plot_context(True)
-        self.actual_plot_context = self.create_plot_context(False)
-        self.pb = None
-
-    def init_progress_bar(self):
-        self.pb = tqdm.tqdm(total=self.count)
-
-    def create_plot_context(self, for_counting: bool):
-        manager = self
-
-        class ProgressBarPlotContext(ActualPlotContext):
-            def __init__(self, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-
-            def __enter__(self):
-                if for_counting:
-                    manager.count += 1
-                    return None
-                return super().__enter__()
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                if for_counting:
-                    return True
-                manager.pb.update(1)
-                if manager.pb.n == manager.count:
-                    manager.pb.close()
-                return super().__exit__(exc_type, exc_val, exc_tb)
-
-        return ProgressBarPlotContext
 
 
 def main():

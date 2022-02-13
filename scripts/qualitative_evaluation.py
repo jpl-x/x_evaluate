@@ -7,12 +7,8 @@ import os
 import evo.core.trajectory
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from PIL import Image, ImageDraw
 
-from scripts.compare import ProgressPlotContextManager
-from x_evaluate.plots import time_series_plot, boxplot_compare
+from x_evaluate.plots import time_series_plot, boxplot_compare, ProgressPlotContextManager
 from x_evaluate.utils import convert_to_evo_trajectory
 
 
@@ -61,11 +57,9 @@ def main():
 
     run_name = args.input_dir.split('/')[-1]
 
-    colors = list(mcolors.TABLEAU_COLORS)
-
     output_folder = args.output_dir
     if output_folder is None:
-        args.output_dir = work_dir + "/" + run_name
+        output_folder = work_dir + "/" + run_name
         try:
             os.makedirs(output_folder)
         except OSError as e:
