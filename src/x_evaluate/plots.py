@@ -155,7 +155,8 @@ def boxplot_from_summary(pc: PlotContext, distribution_summaries: List[Distribut
 
 
 def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None, use_scatter=False, use_log=False,
-                     xlabel=None, subplot_arg=None, shaded_area_lower=None, shaded_area_upper=None):
+                     xlabel=None, subplot_arg=None, shaded_area_lower=None, shaded_area_upper=None, ylim=None,
+                     axis_equal=False):
     ax = pc.get_axis(subplot_arg)
     for i in range(len(data)):
 
@@ -178,11 +179,16 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
             ax.fill_between(t, shaded_area_lower[i], shaded_area_upper[i], alpha=0.25, lw=0,
                             facecolor=DEFAULT_COLORS[i])
 
+    if ylim is not None:
+        ax.set_ylim(ylim[0], ylim[1])
     ax.legend()
     ax.set_title(title)
     if not xlabel:
         xlabel = "Time [s]"
     ax.set_xlabel(xlabel)
+
+    if axis_equal:
+        ax.axis('equal')
 
     if ylabel is not None:
         ax.set_ylabel(ylabel)
@@ -350,7 +356,7 @@ def hist_from_bin_values(ax: plt.Axes, bins, hist, xlabel=None, use_percentages=
 
 
 def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=None, legend=True, ylabel=None,
-                    title=None, showfliers=True):
+                    title=None, showfliers=True, use_log=False):
     if colors is None:
         colors = DEFAULT_COLORS
 
@@ -413,6 +419,9 @@ def boxplot_compare(ax: plt.Axes, x_tick_labels, data, legend_labels, colors=Non
 
     if title:
         ax.set_title(title)
+
+    if use_log:
+        ax.set_yscale('log')
 
     # map(lambda x: x.set_visible(False), leg_handles)
 

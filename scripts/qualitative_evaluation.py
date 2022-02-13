@@ -4,11 +4,16 @@ import sys
 import argparse
 import os
 
+import evo.core.trajectory
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from PIL import Image, ImageDraw
+
+from scripts.compare import ProgressPlotContextManager
+from x_evaluate.plots import time_series_plot, boxplot_compare
+from x_evaluate.utils import convert_to_evo_trajectory
 
 
 def parse_args():
@@ -20,6 +25,7 @@ def parse_args():
     parser.add_argument('input_dir', type=str, help='input directory')
     args = parser.parse_args()
     return args
+
 
 def get_sub_dirs(input_dir):
 
@@ -36,6 +42,7 @@ def get_sub_dirs(input_dir):
 
     return eval_dirs
 
+
 def highlight_if_true(df, color = "green"):
 
     attr = 'background-color: {}'.format(color)
@@ -45,8 +52,9 @@ def highlight_if_true(df, color = "green"):
     return pd.DataFrame(np.where(df_bool, attr, ""),
                        index= df.index, columns=df.columns)
 
+
 # Press the green button in the gutter to run the script.
-if __name__ == '__main__':
+def main():
     args = parse_args()
 
     work_dir = os.getcwd()
@@ -55,209 +63,151 @@ if __name__ == '__main__':
 
     colors = list(mcolors.TABLEAU_COLORS)
 
-    if args.output_dir is None:
+    output_folder = args.output_dir
+    if output_folder is None:
         args.output_dir = work_dir + "/" + run_name
         try:
-            os.makedirs(args.output_dir)
+            os.makedirs(output_folder)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
     else:
         if not os.path.isdir(args.input_dir):
-            print("Output directory not found! (" + args.output_dir + ")")
+            print("Output directory not found! (" + output_folder + ")")
             exit(1)
-
 
     if not os.path.isdir(args.input_dir):
         print("Input directory not found! (" + args.input_dir + ")")
         exit(1)
 
+    class EvaluationRun:
+        def __init__(self, dataset_name, eval_run_name, trajectory):
+            self.trajectory = trajectory
+            self.dataset_name = dataset_name
+            self.eval_run_name = eval_run_name
+
     eval_dirs = get_sub_dirs(args.input_dir)
 
-    all_pose_files = []
+    # all_trajectories = []
     dataset_dirs = get_sub_dirs(args.input_dir + "/" + eval_dirs[0])
 
+    # contains { dataset: { eval_run: EvaluationRun() }}
+    data_dict = dict()
+
     for directory in eval_dirs:
-        pose_files = []
+        trajectories = []
         current_dir = args.input_dir + "/" + directory
         for dataset_dir in dataset_dirs:
             pose_file = current_dir + "/" + dataset_dir + "/pose.csv"
             if os.path.isfile(pose_file):
                 #print(pose_file)
-                pose_files.append(pd.read_csv(pose_file, header=0, delimiter=";"))
+                df_poses = pd.read_csv(pose_file, delimiter=";")
+                traj_est, _ = convert_to_evo_trajectory(df_poses, prefix="estimated_")
             else:
-                pose_files.append(pd.DataFrame())
-        all_pose_files.append(pose_files)
+                traj_est = evo.core.trajectory.Trajectory()
+            if dataset_dir not in data_dict.keys():
+                data_dict[dataset_dir] = dict()
+            data_dict[dataset_dir][directory] = EvaluationRun(dataset_dir, directory, traj_est)
 
+    manager = ProgressPlotContextManager()
+
+    # dry run with dummy plot context
+    plot_qualitativ_comparison_plots(data_dict, output_folder, manager.dummy_plot_context)
+
+    print()
+    print(F"Creating {manager.count} qualitative comparison plots")
+    print()
+
+    manager.init_progress_bar()
+
+    # actual run with displaying progress
+    plot_qualitativ_comparison_plots(data_dict, output_folder, manager.actual_plot_context)
+
+
+    # #success = np.zeros((len(dataset_dirs), len(all_pose_files)))
+    # dist_max = np.inf * np.ones((len(dataset_dirs), len(all_trajectories)))
+    # max_dist = 42.0
+    #
+    # for i, dataset in enumerate(dataset_dirs):
+    #     for j, experiment in enumerate(all_trajectories):
+    #         try:
+    #             t = experiment[i]['t'].to_numpy()
+    #             p_x = experiment[i]['estimated_p_x'].to_numpy()
+    #             p_y = experiment[i]['estimated_p_y'].to_numpy()
+    #             p_z = experiment[i]['estimated_p_z'].to_numpy()
+    #             p_x = p_x[t != -1]
+    #             p_y = p_y[t != -1]
+    #             p_z = p_z[t != -1]
+    #             t = t[t != -1]
+    #             max_xx = np.max(p_x**2)
+    #             max_yy = np.max(p_y**2)
+    #             max_zz = np.max(p_z**2)
+    #             dist_max[i, j] = np.sqrt(max_xx + max_yy + max_zz)
+    #         except:
+    #             dist_max[i, j] = np.inf
+    # #print(pd.DataFrame(dist_max, dataset_dirs, eval_dirs))
+    # success = dist_max < max_dist
+    # results = pd.DataFrame(success, dataset_dirs, eval_dirs)
+    # results.style. \
+    #     apply(highlight_if_true, axis=None). \
+    #     to_excel(args.output_dir + '/' + 'results.xlsx', engine="openpyxl")
+    #
+    # victory = False
+    # for column in results:
+    #     victory = all(results[column] == True)
+    #     if victory:
+    #         print("Run " + column + " was successful on all datasets!!")
+
+
+def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
     t_max = 10
     x_max = 30
     y_max = 30
     z_max = 3
     limit = 2
-
     ## Make xyz-t-plot
-    for i, dataset in enumerate(dataset_dirs):
-        plt.figure(figsize=(9, 3.2))
-        plt.subplot(131)
-        for j, experiment in enumerate(all_pose_files):
-            try:
-                t = experiment[i]['t'].to_numpy()
-                p_x = experiment[i]['estimated_p_x'].to_numpy()
-                p_x = p_x[t != -1]
-                t = t[t != -1]
-                plt.plot(t-t[0], p_x, color=colors[j])
-                plt.xlabel('t')
-                plt.ylabel('x')
-                plt.xlim(0, t_max)
-                plt.ylim(-x_max, x_max)
-            except:
-                pass
-        plt.subplot(132)
-        for j, experiment in enumerate(all_pose_files):
-            try:
-                t = experiment[i]['t'].to_numpy()
-                p_y = experiment[i]['estimated_p_y'].to_numpy()
-                p_y = p_y[t != -1]
-                t = t[t != -1]
-                plt.plot(t-t[0], p_y, color=colors[j])
-                plt.xlabel('t')
-                plt.ylabel('y')
-                plt.xlim(0, t_max)
-                plt.ylim(-y_max, y_max)
-            except:
-                pass
-        plt.subplot(133)
-        for j, experiment in enumerate(all_pose_files):
-            try:
-                t = experiment[i]['t'].to_numpy()
-                p_z = experiment[i]['estimated_p_z'].to_numpy()
-                p_z = p_z[t != -1]
-                t = t[t != -1]
-                plt.plot(t-t[0], p_z, color=colors[j])
-                plt.legend(eval_dirs)
-                plt.xlabel('t')
-                plt.ylabel('z')
-                plt.xlim(0, t_max)
-                plt.ylim(-z_max, z_max)
-            except:
-                pass
-        plt.suptitle('position over time')
-        plt.tight_layout()
-        plt.savefig(args.output_dir + '/' + dataset + '_xyz_t.svg', format='svg', dpi=1200)
+    for dataset, eval_runs in data_dict.items():
+        eval_run_names = list(eval_runs.keys())
 
-        ## Make xyz-t-plot
-        for i, dataset in enumerate(dataset_dirs):
-            plt.figure(figsize=(9, 3.2))
-            plt.subplot(131)
-            for j, experiment in enumerate(all_pose_files):
-                try:
-                    t = experiment[i]['t'].to_numpy()
-                    p_x = experiment[i]['estimated_p_x'].to_numpy()
-                    p_y = experiment[i]['estimated_p_y'].to_numpy()
-                    p_x = p_x[t != -1]
-                    p_y = p_y[t != -1]
-                    t = t[t != -1]
-                    plt.plot(p_x, p_y, color=colors[j])
-                    plt.xlim(-limit, limit)
-                    plt.ylim(-limit, limit)
-                    plt.xlabel('x')
-                    plt.ylabel('y')
-                except:
-                    pass
-            plt.subplot(132)
-            for j, experiment in enumerate(all_pose_files):
-                try:
-                    t = experiment[i]['t'].to_numpy()
-                    p_y = experiment[i]['estimated_p_y'].to_numpy()
-                    p_z = experiment[i]['estimated_p_z'].to_numpy()
-                    p_y = p_y[t != -1]
-                    p_z = p_z[t != -1]
-                    t = t[t != -1]
-                    plt.plot(p_y, p_z, color=colors[j])
-                    plt.xlabel('y')
-                    plt.ylabel('z')
-                except:
-                    pass
-            plt.subplot(133)
-            for j, experiment in enumerate(all_pose_files):
-                try:
-                    try:
-                        t = experiment[i]['t'].to_numpy()
-                        p_x = experiment[i]['estimated_p_x'].to_numpy()
-                        p_z = experiment[i]['estimated_p_z'].to_numpy()
-                        p_x = p_x[t != -1]
-                        p_z = p_z[t != -1]
-                        t = t[t != -1]
-                        plt.plot(p_x, p_z, color=colors[j])
-                        plt.xlabel('x')
-                        plt.ylabel('z')
-                    except:
-                        pass
-                    plt.legend(eval_dirs)
-                    #plt.legend(["EKLT-VIO", "KLT-VIO"])
-                except:
-                    pass
-            plt.suptitle('position over time')
-            plt.tight_layout()
-            plt.savefig(args.output_dir + '/' + dataset + '_position.svg', format='svg', dpi=1200)
-            plt.close()
+        t = [eval_runs[run].trajectory.timestamps - eval_runs[run].trajectory.timestamps[0] for run in eval_run_names]
+        p_x = [eval_runs[run].trajectory.positions_xyz[:, 0] for run in eval_run_names]
+        p_y = [eval_runs[run].trajectory.positions_xyz[:, 1] for run in eval_run_names]
+        p_z = [eval_runs[run].trajectory.positions_xyz[:, 2] for run in eval_run_names]
+        distances = [eval_runs[run].trajectory.distances for run in eval_run_names]
+        distances_plus_one = [eval_runs[run].trajectory.distances + 1 for run in eval_run_names]
 
-    ## Make xyz-t-plot
-    for i, dataset in enumerate(dataset_dirs):
-        plt.figure(figsize=(4, 3))
-        for j, experiment in enumerate(all_pose_files):
-            try:
-                t = experiment[i]['t'].to_numpy()
-                p_x = experiment[i]['estimated_p_x'].to_numpy()
-                p_y = experiment[i]['estimated_p_y'].to_numpy()
-                p_z = experiment[i]['estimated_p_y'].to_numpy()
-                dist = np.sqrt(p_x * p_x + p_y * p_y + p_z * p_z)
-                p_x = p_x[t != -1]
-                p_y = p_y[t != -1]
-                p_z = p_z[t != -1]
-                dist = dist[t != -1]
-                t = t[t != -1]
-                plt.plot(t-t[0], dist, color=colors[j])
-                plt.legend(eval_dirs)
-                plt.xlabel('Time [s]')
-                plt.ylabel('Distance [m]')
-                plt.grid(True)
-                plt.tight_layout()
-            except:
-                pass
-        plt.savefig(args.output_dir + '/' + dataset + '_distance.svg', format='svg', dpi=1200)
-        plt.close()
+        with PlotContext(os.path.join(output_folder, F"{dataset}_xyz_in_time"), subplot_cols=3) as pc:
+            pc.figure.suptitle("Positions in time")
+            time_series_plot(pc, t, p_x, eval_run_names, ylabel="x", ylim=[-x_max, x_max])
+            time_series_plot(pc, t, p_y, eval_run_names, ylabel="y", ylim=[-y_max, y_max])
+            time_series_plot(pc, t, p_z, eval_run_names, ylabel="z", ylim=[-z_max, z_max])
 
-    #success = np.zeros((len(dataset_dirs), len(all_pose_files)))
-    dist_max = np.inf * np.ones((len(dataset_dirs), len(all_pose_files)))
-    max_dist = 42.0
+        with PlotContext(os.path.join(output_folder, F"{dataset}_xyz"), subplot_cols=3) as pc:
+            time_series_plot(pc, p_x, p_y, eval_run_names, xlabel="x [m]", ylabel="y [m]", axis_equal=True)
+            time_series_plot(pc, p_x, p_z, eval_run_names, xlabel="x [m]", ylabel="z [m]", axis_equal=True)
+            time_series_plot(pc, p_y, p_z, eval_run_names, xlabel="y [m]", ylabel="z [m]", axis_equal=True)
 
-    for i, dataset in enumerate(dataset_dirs):
-        for j, experiment in enumerate(all_pose_files):
-            try:
-                t = experiment[i]['t'].to_numpy()
-                p_x = experiment[i]['estimated_p_x'].to_numpy()
-                p_y = experiment[i]['estimated_p_y'].to_numpy()
-                p_z = experiment[i]['estimated_p_z'].to_numpy()
-                p_x = p_x[t != -1]
-                p_y = p_y[t != -1]
-                p_z = p_z[t != -1]
-                t = t[t != -1]
-                max_xx = np.max(p_x**2)
-                max_yy = np.max(p_y**2)
-                max_zz = np.max(p_z**2)
-                dist_max[i, j] = np.sqrt(max_xx + max_yy + max_zz)
-            except:
-                dist_max[i, j] = np.inf
-    #print(pd.DataFrame(dist_max, dataset_dirs, eval_dirs))
-    success = dist_max < max_dist
-    results = pd.DataFrame(success, dataset_dirs, eval_dirs)
-    results.style. \
-        apply(highlight_if_true, axis=None). \
-        to_excel(args.output_dir + '/' + 'results.xlsx', engine="openpyxl")
+        with PlotContext(os.path.join(output_folder, F"{dataset}_distance_in_time")) as pc:
+            time_series_plot(pc, t, distances, eval_run_names, "Distance over time")
 
-    victory = False
-    for column in results:
-        victory = all(results[column] == True)
-        if victory:
-            print("Run " + column + " was successful on all datasets!!")
+        with PlotContext(os.path.join(output_folder, F"{dataset}_distance_in_time_log")) as pc:
+            time_series_plot(pc, t, distances_plus_one, eval_run_names, "Distance over time", use_log=True)
+
+    # Assumes each dataset contains same evaluation runs...
+    dataset_labels = list(data_dict.keys())
+    eval_run_names = list(data_dict[dataset_labels[0]].keys())
+    data = [[data_dict[k][run].trajectory.distances for k in dataset_labels] for run in eval_run_names]
+
+    scaled_with_runs = max(10 * len(eval_run_names) / 6, 10)
+
+    with PlotContext(os.path.join(output_folder, F"boxplot_distances"), base_width_inch=scaled_with_runs*1.5) as pc:
+        boxplot_compare(pc.get_axis(), dataset_labels, data, eval_run_names, ylabel="Distances",
+                        title="Distances")
+
+    with PlotContext(os.path.join(output_folder, F"boxplot_distances_log"), base_width_inch=scaled_with_runs*1.5) as pc:
+        boxplot_compare(pc.get_axis(), dataset_labels, data, eval_run_names, ylabel="Distances",
+                        title="Distances", use_log=True)
+
+
+if __name__ == '__main__':
+    main()
