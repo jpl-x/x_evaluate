@@ -2,6 +2,7 @@ import os
 import sys
 
 import argparse
+import traceback
 
 from envyaml import EnvYAML
 # import orjson
@@ -96,21 +97,27 @@ def main():
 
     try:
         for i, dataset in enumerate(eval_config['datasets']):
-            output_folder = F"{i+1:>03}_{name_to_identifier(dataset['name'])}"
-            print(F"Processing dataset {i+1} of {n}, writing to {output_folder}")
-            output_folder = os.path.join(args.output_folder, output_folder)
+            try:
+                output_folder = F"{i+1:>03}_{name_to_identifier(dataset['name'])}"
+                print(F"Processing dataset {i+1} of {n}, writing to {output_folder}")
+                output_folder = os.path.join(args.output_folder, output_folder)
 
-            d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config,
-                                cmdline_override_params, args.frontend, args.skip_feature_tracking, args.skip_analysis,
-                                args.dump_input_frames, args.dump_debug_frames)
+                d = process_dataset(args.evaluate, dataset, output_folder, tmp_yaml_filename, eval_config,
+                                    cmdline_override_params, args.frontend, args.skip_feature_tracking, args.skip_analysis,
+                                    args.dump_input_frames, args.dump_debug_frames)
 
-            if not args.skip_analysis:
-                pe.plot_performance_plots(d, output_folder)
-                te.plot_trajectory_plots(d.trajectory_data, d.name, output_folder)
-                fe.plot_feature_plots(d, output_folder)
-                print(F"Analysis of output {i + 1} of {n} completed")
+                if not args.skip_analysis:
+                    pe.plot_performance_plots(d, output_folder)
+                    te.plot_trajectory_plots(d.trajectory_data, d.name, output_folder)
+                    fe.plot_feature_plots(d, output_folder)
+                    print(F"Analysis of output {i + 1} of {n} completed")
 
-            summary.data[dataset['name']] = d
+                summary.data[dataset['name']] = d
+
+            except Exception as e:
+                print(F"Processing '{dataset}' failed: {e}")
+                print(traceback.format_exc())
+                print("\n\n\n")
 
         if not args.skip_analysis:
             te.plot_summary_plots(summary, args.output_folder)
@@ -131,8 +138,8 @@ def main():
         if summary is not None:
             write_evaluation_pickle(summary, args.output_folder)
 
-        # if os.path.exists(tmp_yaml_filename):
-        #     os.remove(tmp_yaml_filename)
+        if os.path.exists(tmp_yaml_filename):
+            os.remove(tmp_yaml_filename)
 
 
 if __name__ == '__main__':
