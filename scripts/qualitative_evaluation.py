@@ -7,18 +7,19 @@ import os
 import evo.core.trajectory
 import numpy as np
 import pandas as pd
+from evo.core.trajectory import Trajectory
 
+from x_evaluate import trajectory_evaluation as te
 from x_evaluate.plots import time_series_plot, boxplot_compare, ProgressPlotContextManager
-from x_evaluate.utils import convert_to_evo_trajectory
+from x_evaluate.utils import convert_to_evo_trajectory, n_to_grid_size
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         prog='qualitative_analysis.py',
-        description='Checks if parameter runs are sucessfull or if they are diverging.')
-    parser.add_argument('--output_dir', type=str, help='output directory',
-                        default=None, metavar="output_dir")
-    parser.add_argument('input_dir', type=str, help='input directory')
+        description='Checks if parameter runs are successful or if they are diverging.')
+    parser.add_argument('--input_folder', type=str, required=True)
+    parser.add_argument('--output_folder', type=str)
     args = parser.parse_args()
     return args
 
@@ -53,55 +54,45 @@ def highlight_if_true(df, color = "green"):
 def main():
     args = parse_args()
 
-    work_dir = os.getcwd()
-
-    run_name = args.input_dir.split('/')[-1]
-
-    output_folder = args.output_dir
+    output_folder = args.output_folder
     if output_folder is None:
-        output_folder = work_dir + "/" + run_name
-        try:
-            os.makedirs(output_folder)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-    else:
-        if not os.path.isdir(args.input_dir):
-            print("Output directory not found! (" + output_folder + ")")
-            exit(1)
+        output_folder = os.path.join(args.input_folder, "results")
+        print(F"Using 'output_folder' as output_folder")
 
-    if not os.path.isdir(args.input_dir):
-        print("Input directory not found! (" + args.input_dir + ")")
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    if not os.path.isdir(args.input_folder):
+        print("Input directory not found! (" + args.input_folder + ")")
         exit(1)
 
     class EvaluationRun:
-        def __init__(self, dataset_name, eval_run_name, trajectory):
+        def __init__(self, dataset_name, eval_run_name, trajectory: Trajectory, imu_bias: pd.DataFrame):
             self.trajectory = trajectory
             self.dataset_name = dataset_name
             self.eval_run_name = eval_run_name
+            self.imu_bias = imu_bias
 
-    eval_dirs = get_sub_dirs(args.input_dir)
+    eval_dirs = get_sub_dirs(args.input_folder)
 
     # all_trajectories = []
-    dataset_dirs = get_sub_dirs(args.input_dir + "/" + eval_dirs[0])
+    dataset_dirs = get_sub_dirs(args.input_folder + "/" + eval_dirs[0])
 
     # contains { dataset: { eval_run: EvaluationRun() }}
     data_dict = dict()
 
     for directory in eval_dirs:
-        trajectories = []
-        current_dir = args.input_dir + "/" + directory
+        current_dir = args.input_folder + "/" + directory
         for dataset_dir in dataset_dirs:
-            pose_file = current_dir + "/" + dataset_dir + "/pose.csv"
-            if os.path.isfile(pose_file):
-                #print(pose_file)
-                df_poses = pd.read_csv(pose_file, delimiter=";")
-                traj_est, _ = convert_to_evo_trajectory(df_poses, prefix="estimated_")
-            else:
-                traj_est = evo.core.trajectory.Trajectory()
+            pose_file = os.path.join(current_dir, dataset_dir, "pose.csv")
+            imu_file = os.path.join(current_dir, dataset_dir, "imu_bias.csv")
+            df_imu_bias = pd.read_csv(imu_file, delimiter=";")
+            #print(pose_file)
+            df_poses = pd.read_csv(pose_file, delimiter=";")
+            traj_est, _ = convert_to_evo_trajectory(df_poses, prefix="estimated_")
             if dataset_dir not in data_dict.keys():
                 data_dict[dataset_dir] = dict()
-            data_dict[dataset_dir][directory] = EvaluationRun(dataset_dir, directory, traj_est)
+            data_dict[dataset_dir][directory] = EvaluationRun(dataset_dir, directory, traj_est, df_imu_bias)
 
     manager = ProgressPlotContextManager()
 
@@ -162,6 +153,7 @@ def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
     ## Make xyz-t-plot
     for dataset, eval_runs in data_dict.items():
         eval_run_names = list(eval_runs.keys())
+        rows, cols = n_to_grid_size(len(eval_run_names))
 
         t = [eval_runs[run].trajectory.timestamps - eval_runs[run].trajectory.timestamps[0] for run in eval_run_names]
         p_x = [eval_runs[run].trajectory.positions_xyz[:, 0] for run in eval_run_names]
@@ -186,6 +178,11 @@ def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
 
         with PlotContext(os.path.join(output_folder, F"{dataset}_distance_in_time_log")) as pc:
             time_series_plot(pc, t, distances_plus_one, eval_run_names, "Distance over time", use_log=True)
+
+        with PlotContext(os.path.join(output_folder, F"{dataset}_imu_bias"), subplot_rows=rows,
+                         subplot_cols=cols) as pc:
+            for run in eval_run_names:
+                te.plot_imu_bias_in_one(pc, eval_runs[run].imu_bias, dataset, run)
 
     # Assumes each dataset contains same evaluation runs...
     dataset_labels = list(data_dict.keys())

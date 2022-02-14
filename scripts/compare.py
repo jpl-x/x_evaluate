@@ -361,7 +361,7 @@ def compare(common_datasets, eklt_names, eklt_summaries, feature_tracking_summar
             with PlotContext(os.path.join(output_folder, F"compare_imu_bias_{d_id}"), subplot_rows=rows,
                              subplot_cols=cols) as pc:
                 for k, s in summaries.items():
-                    te.plot_imu_bias_in_one(pc, s.data[dataset], s.name)
+                    te.plot_imu_bias_in_one(pc, s.data[dataset].trajectory_data.imu_bias, s.data[dataset].name, s.name)
 
 
 if __name__ == '__main__':

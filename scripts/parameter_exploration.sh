@@ -9,6 +9,7 @@ SCRIPT_PATH="$( cd -- "$(dirname "$SCRIPT_PATH/../test/evaluate.py")" >/dev/null
 CONFIGURATION="evaluate_wells.yaml --skip_feature_tracking"
 
 COMPARISONS_ONLY=0
+QUALITATIVE_COMPARISON=1
 EXPLORE_BASELINES=1
 EXPLORE_XVIO_PATCH_SIZE=0
 EXPLORE_XVIO_IMU_OFFSET=0
@@ -94,7 +95,12 @@ cd "$SCRIPT_PATH" || exit
 
 trap 'cd "$BASE_DIR"' EXIT
 
+COMPARISON_SCRIPT="../scripts/compare.py"
 
+if [ $QUALITATIVE_COMPARISON -gt 0 ]
+then
+  COMPARISON_SCRIPT="../scripts/qualitative_evaluation.py"
+fi
 
 if [ $EXPLORE_BASELINES -gt 0 ]
 then
@@ -122,7 +128,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-baselines/ --output_folder $1/$DATE-baselines/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-baselines/ --output_folder $1/$DATE-baselines/results
 
 fi
 
@@ -153,7 +159,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-best/ --output_folder $1/$DATE-haste-best/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-best/ --output_folder $1/$DATE-haste-best/results
 
 fi
 
@@ -212,7 +218,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-patch-size/ --output_folder $1/$DATE-xvio-patch-size/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-patch-size/ --output_folder $1/$DATE-xvio-patch-size/results
 
 fi
 
@@ -300,7 +306,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-imu-offset/ --output_folder $1/$DATE-xvio-imu-offset/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-imu-offset/ --output_folder $1/$DATE-xvio-imu-offset/results
 
 fi
 
@@ -347,7 +353,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-msckf-baseline/ --output_folder $1/$DATE-xvio-msckf-baseline/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-msckf-baseline/ --output_folder $1/$DATE-xvio-msckf-baseline/results
 
 fi
 
@@ -403,7 +409,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-rho-0/ --output_folder $1/$DATE-xvio-rho-0/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-rho-0/ --output_folder $1/$DATE-xvio-rho-0/results
 
 fi
 
@@ -464,7 +470,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-fast-detection-delta/ --output_folder $1/$DATE-xvio-fast-detection-delta/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-fast-detection-delta/ --output_folder
+  $1/$DATE-xvio-fast-detection-delta/results
 
 fi
 
@@ -491,7 +498,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-non-max-supp/ --output_folder $1/$DATE-xvio-non-max-supp/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-non-max-supp/ --output_folder $1/$DATE-xvio-non-max-supp/results
 
 fi
 
@@ -523,7 +530,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-n-feat-min/ --output_folder $1/$DATE-xvio-n-feat-min/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-n-feat-min/ --output_folder $1/$DATE-xvio-n-feat-min/results
 
 fi
 
@@ -683,7 +690,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-outlier-method/ --output_folder $1/$DATE-xvio-outlier-method/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-outlier-method/ --output_folder $1/$DATE-xvio-outlier-method/results
 
 fi
 
@@ -739,7 +746,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-tiling/ --output_folder $1/$DATE-xvio-tiling/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-tiling/ --output_folder $1/$DATE-xvio-tiling/results
 
 fi
 
@@ -774,7 +781,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-n-poses-max/ --output_folder $1/$DATE-xvio-n-poses-max/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-n-poses-max/ --output_folder $1/$DATE-xvio-n-poses-max/results
 
 fi
 
@@ -818,7 +825,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-n-slam-features-max/ --output_folder $1/$DATE-xvio-n-slam-features-max/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-n-slam-features-max/ --output_folder
+  $1/$DATE-xvio-n-slam-features-max/results
 
 fi
 
@@ -862,7 +870,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-sigma-img/ --output_folder $1/$DATE-xvio-sigma-img/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-sigma-img/ --output_folder $1/$DATE-xvio-sigma-img/results
 
 fi
  
@@ -1041,7 +1049,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-imu-noise/ --output_folder $1/$DATE-xvio-imu-noise/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-imu-noise/ --output_folder $1/$DATE-xvio-imu-noise/results
 
 fi
 
@@ -1080,7 +1088,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-acc-spike/ --output_folder $1/$DATE-xvio-acc-spike/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-acc-spike/ --output_folder $1/$DATE-xvio-acc-spike/results
 
 fi
 
@@ -1133,7 +1141,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-initial-stds-dp/ --output_folder $1/$DATE-xvio-initial-stds-dp/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-initial-stds-dp/ --output_folder $1/$DATE-xvio-initial-stds-dp/results
 
 fi
 
@@ -1187,7 +1195,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-initial-stds-dv/ --output_folder $1/$DATE-xvio-initial-stds-dv/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-initial-stds-dv/ --output_folder $1/$DATE-xvio-initial-stds-dv/results
 
 fi
 
@@ -1241,7 +1249,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-initial-stds-dtheta/ --output_folder $1/$DATE-xvio-initial-stds-dtheta/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-initial-stds-dtheta/ --output_folder
+  $1/$DATE-xvio-initial-stds-dtheta/results
 
 fi
 
@@ -1295,7 +1304,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-initial-stds-dbw/ --output_folder $1/$DATE-xvio-initial-stds-dbw/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-initial-stds-dbw/ --output_folder $1/$DATE-xvio-initial-stds-dbw/results
 
 fi
 
@@ -1349,7 +1358,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-xvio-initial-stds-dba/ --output_folder $1/$DATE-xvio-initial-stds-dba/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-xvio-initial-stds-dba/ --output_folder $1/$DATE-xvio-initial-stds-dba/results
 
 fi
 
@@ -1417,7 +1426,7 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-patch-size/ --output_folder $1/$DATE-eklt-patch-size/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-patch-size/ --output_folder $1/$DATE-eklt-patch-size/results
 
 fi
 
@@ -1505,7 +1514,7 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-imu-offset/ --output_folder $1/$DATE-eklt-imu-offset/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-imu-offset/ --output_folder $1/$DATE-eklt-imu-offset/results
 
 fi
 
@@ -1586,7 +1595,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-outlier-removal/ --output_folder $1/$DATE-eklt-outlier-removal/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-outlier-removal/ --output_folder $1/$DATE-eklt-outlier-removal/results
 
 fi
 
@@ -1736,7 +1745,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-tracking-quality/ --output_folder $1/$DATE-eklt-tracking-quality/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-tracking-quality/ --output_folder $1/$DATE-eklt-tracking-quality/results
 
 fi
 
@@ -1825,7 +1834,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-update-strategy-msec/ --output_folder $1/$DATE-eklt-update-strategy-msec/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-update-strategy-msec/ --output_folder
+  $1/$DATE-eklt-update-strategy-msec/results
 
 fi
 
@@ -1908,7 +1918,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-update-strategy-n-events/ --output_folder $1/$DATE-eklt-update-strategy-n-events/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-update-strategy-n-events/ --output_folder
+  $1/$DATE-eklt-update-strategy-n-events/results
 
 fi
 
@@ -1951,7 +1962,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpolation-ts/ --output_folder $1/$DATE-eklt-interpolation-ts/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-interpolation-ts/ --output_folder $1/$DATE-eklt-interpolation-ts/results
 
 fi
 
@@ -1993,7 +2004,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-feature-interpolation/ --output_folder $1/$DATE-eklt-feature-interpolation/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-feature-interpolation/ --output_folder
+  $1/$DATE-eklt-feature-interpolation/results
 
 fi
 
@@ -2032,7 +2044,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpol-rel-limit/ --output_folder $1/$DATE-eklt-interpol-rel-limit/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-interpol-rel-limit/ --output_folder
+  $1/$DATE-eklt-interpol-rel-limit/results
 
 fi
 
@@ -2075,7 +2088,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-interpol-abs-limit/ --output_folder $1/$DATE-eklt-interpol-abs-limit/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-interpol-abs-limit/ --output_folder
+  $1/$DATE-eklt-interpol-abs-limit/results
 
 fi
 
@@ -2102,7 +2116,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-linlog-scale/ --output_folder $1/$DATE-eklt-linlog-scale/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-linlog-scale/ --output_folder $1/$DATE-eklt-linlog-scale/results
 
 fi
 
@@ -2142,7 +2156,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-patch-ts-assignment/ --output_folder $1/$DATE-eklt-patch-ts-assignment/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-patch-ts-assignment/ --output_folder
+  $1/$DATE-eklt-patch-ts-assignment/results
 
 fi
 
@@ -2205,7 +2220,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-sigma-img/ --output_folder $1/$DATE-eklt-sigma-img/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-sigma-img/ --output_folder $1/$DATE-eklt-sigma-img/results
 
 fi
 
@@ -2267,7 +2282,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-harris-k/ --output_folder $1/$DATE-eklt-harris-k/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-harris-k/ --output_folder $1/$DATE-eklt-harris-k/results
 
 fi
 
@@ -2324,7 +2339,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-eklt-harris-ql/ --output_folder $1/$DATE-eklt-harris-ql/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-eklt-harris-ql/ --output_folder $1/$DATE-eklt-harris-ql/results
 
 fi
 
@@ -2447,7 +2462,7 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method/ --output_folder $1/$DATE-haste-outlier-method/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-outlier-method/ --output_folder $1/$DATE-haste-outlier-method/results
 
 fi
 
@@ -2564,7 +2579,8 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-95/ --output_folder $1/$DATE-haste-outlier-method-95/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-outlier-method-95/ --output_folder
+  $1/$DATE-haste-outlier-method-95/results
 
 fi
 
@@ -2682,7 +2698,8 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-98/ --output_folder $1/$DATE-haste-outlier-method-98/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-outlier-method-98/ --output_folder
+  $1/$DATE-haste-outlier-method-98/results
 
 fi
 
@@ -2800,7 +2817,8 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-99/ --output_folder $1/$DATE-haste-outlier-method-99/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-outlier-method-99/ --output_folder
+  $1/$DATE-haste-outlier-method-99/results
 
 fi
 
@@ -2913,7 +2931,8 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-outlier-method-evry-msg/ --output_folder $1/$DATE-haste-outlier-method-evry-msg/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-outlier-method-evry-msg/ --output_folder
+  $1/$DATE-haste-outlier-method-evry-msg/results
 
 fi
 
@@ -3023,7 +3042,8 @@ then
     
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-diff-outlier-method/ --output_folder $1/$DATE-haste-diff-outlier-method/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-diff-outlier-method/ --output_folder
+  $1/$DATE-haste-diff-outlier-method/results
 
 fi
 
@@ -3058,7 +3078,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-tracker-type/ --output_folder $1/$DATE-haste-tracker-type/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-tracker-type/ --output_folder $1/$DATE-haste-tracker-type/results
 
 fi
 
@@ -3100,7 +3120,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-interpolation-ts/ --output_folder $1/$DATE-haste-interpolation-ts/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-interpolation-ts/ --output_folder
+  $1/$DATE-haste-interpolation-ts/results
 
 fi
 
@@ -3140,7 +3161,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-feature-interpolation/ --output_folder $1/$DATE-haste-feature-interpolation/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-feature-interpolation/ --output_folder
+  $1/$DATE-haste-feature-interpolation/results
 
 fi
 
@@ -3204,7 +3226,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-update-strategy-msec/ --output_folder $1/$DATE-haste-update-strategy-msec/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-update-strategy-msec/ --output_folder
+  $1/$DATE-haste-update-strategy-msec/results
 
 fi
 
@@ -3264,7 +3287,8 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-update-strategy-n-events/ --output_folder $1/$DATE-haste-update-strategy-n-events/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-update-strategy-n-events/ --output_folder
+  $1/$DATE-haste-update-strategy-n-events/results
 
 fi
 
@@ -3327,7 +3351,7 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-harris-k/ --output_folder $1/$DATE-haste-harris-k/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-harris-k/ --output_folder $1/$DATE-haste-harris-k/results
 
 fi
 
@@ -3389,6 +3413,6 @@ then
 
   fi
 
-  python ../scripts/compare.py --input_folder $1/$DATE-haste-harris-ql/ --output_folder $1/$DATE-haste-harris-ql/results
+  python $COMPARISON_SCRIPT --input_folder $1/$DATE-haste-harris-ql/ --output_folder $1/$DATE-haste-harris-ql/results
 
 fi

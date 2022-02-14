@@ -331,14 +331,13 @@ def plot_imu_bias(pc: PlotContext, trajectory_data: TrajectoryData, name):
         time_series_plot(pc, t, b_w_xyz, labels, F"Gyroscope bias on '{name}'", "rad/s")
 
 
-def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
-    df = eval_data.trajectory_data.imu_bias
-    df = df[df['t'] != -1]
-    t = df['t'].to_numpy()
+def plot_imu_bias_in_one(pc: PlotContext, df_imu_bias: pd.DataFrame, dataset_name, eval_name):
+    df_imu_bias = df_imu_bias[df_imu_bias['t'] != -1]
+    t = df_imu_bias['t'].to_numpy()
     t = t - t[0]
 
     labels = ["$b_{a_x}$", "$b_{a_y}$", "$b_{a_z}$", "$b_{w_x}$", "$b_{w_y}$", "$b_{w_z}$"]
-    data = list(df[["b_a_x", "b_a_y", "b_a_z", "b_w_x", "b_w_y", "b_w_z"]].to_numpy().T)
+    data = list(df_imu_bias[["b_a_x", "b_a_y", "b_a_z", "b_w_x", "b_w_y", "b_w_z"]].to_numpy().T)
 
     ax = pc.get_axis()
     ax_right = ax.twinx()
@@ -358,7 +357,7 @@ def plot_imu_bias_in_one(pc: PlotContext, eval_data: EvaluationData, eval_name):
 
     # https://stackoverflow.com/a/5487005
     ax_right.legend(lines, labels)
-    ax.set_title(F"Gyroscope and accelerometer bias on '{eval_data.name}' ({eval_name})")
+    ax.set_title(F"Gyroscope and accelerometer bias on '{dataset_name}' ({eval_name})")
     ax.set_xlabel("$t [s]$")
     ax.set_ylabel("$m/s^2$")
     ax_right.set_ylabel("$rad/s$")
