@@ -58,31 +58,31 @@ datasets:
  #     # extracted from file 'wells_test3.bag'
  #     q: [0.31180451663623476, -0.9491341719572899, -0.04384366577048217, 0.0]  # [w,x,y,z]
 
- - name: Wells Test 4
-   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test4.bag
-   pose_topic:
-   events_topic: /dvs/events
-   image_topic: /dvs/image_reconstructions
-   imu_topic: /dvs/imu
-   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-   override_params:
-     p: [0.0, 0.0, 0.0]
-     v: [0.0, 0.0, 0.0]
-     # extracted from file 'wells_test4.bag'
-     q: [0.31859310233822197, -0.9458261683285817, -0.06254034255886949, 0.0]  # [w,x,y,z]
+  - name: Wells Test 4
+    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test4.bag
+    pose_topic:
+    events_topic: /dvs/events
+    image_topic: /dvs/image_reconstructions
+    imu_topic: /dvs/imu
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    override_params:
+      p: [0.0, 0.0, 0.0]
+      v: [0.0, 0.0, 0.0]
+      # extracted from file 'wells_test4.bag'
+      q: [0.31859310233822197, -0.9458261683285817, -0.06254034255886949, 0.0]  # [w,x,y,z]
 
- - name: Wells Test 5
-   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test5.bag
-   pose_topic:
-   events_topic: /dvs/events
-   image_topic: /dvs/image_reconstructions
-   imu_topic: /dvs/imu
-   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-   override_params:
-     p: [0.0, 0.0, 0.0]
-     v: [0.0, 0.0, 0.0]
-     # extracted from file 'wells_test5.bag'
-     q: [0.30004146174905705, -0.9511263399262665, -0.07303291538719546, 0.0]  # [w,x,y,z]
+  - name: Wells Test 5
+    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test5.bag
+    pose_topic:
+    events_topic: /dvs/events
+    image_topic: /dvs/image_reconstructions
+    imu_topic: /dvs/imu
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    override_params:
+      p: [0.0, 0.0, 0.0]
+      v: [0.0, 0.0, 0.0]
+      # extracted from file 'wells_test5.bag'
+      q: [0.30004146174905705, -0.9511263399262665, -0.07303291538719546, 0.0]  # [w,x,y,z]
 
  # - name: Wells Test 6
  #   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test6.bag
@@ -97,18 +97,18 @@ datasets:
  #     # extracted from file 'wells_test6.bag'
  #     q: [0.3983769295025507, -0.909436804762696, 0.11924982257067784, 0.0]  # [w,x,y,z]
 
- - name: Wells Test 7
-   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test7.bag
-   pose_topic:
-   events_topic: /dvs/events
-   image_topic: /dvs/image_reconstructions
-   imu_topic: /dvs/imu
-   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-   override_params:
-     p: [0.0, 0.0, 0.0]
-     v: [0.0, 0.0, 0.0]
-     # extracted from file 'wells_test7.bag'
-     q: [0.873941583671023, -0.4686167606162806, 0.12893579797747381, 0.0]  # [w,x,y,z]
+  - name: Wells Test 7
+    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test7.bag
+    pose_topic:
+    events_topic: /dvs/events
+    image_topic: /dvs/image_reconstructions
+    imu_topic: /dvs/imu
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    override_params:
+      p: [0.0, 0.0, 0.0]
+      v: [0.0, 0.0, 0.0]
+      # extracted from file 'wells_test7.bag'
+      q: [0.873941583671023, -0.4686167606162806, 0.12893579797747381, 0.0]  # [w,x,y,z]
 
  # - name: Wells Test 8
  #   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test8.bag
@@ -201,18 +201,18 @@ datasets:
  #     # extracted from file 'wells_test14.bag'
  #     q: [0.7323567519140745, -0.6788123851760818, 0.05354748973971977, 0.0]  # [w,x,y,z]
 
- - name: Wells Test 15
-   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test15.bag
-   pose_topic:
-   events_topic: /dvs/events
-   image_topic: /dvs/image_reconstructions
-   imu_topic: /dvs/imu
-   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-   override_params:
-     p: [0.0, 0.0, 0.0]
-     v: [0.0, 0.0, 0.0]
-     # extracted from file 'wells_test15.bag'
-     q: [0.7205172611956853, -0.6925370969806107, -0.0353163648290258, 0.0]  # [w,x,y,z]
+  - name: Wells Test 15
+    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test15.bag
+    pose_topic:
+    events_topic: /dvs/events
+    image_topic: /dvs/image_reconstructions
+    imu_topic: /dvs/imu
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    override_params:
+      p: [0.0, 0.0, 0.0]
+      v: [0.0, 0.0, 0.0]
+      # extracted from file 'wells_test15.bag'
+      q: [0.7205172611956853, -0.6925370969806107, -0.0353163648290258, 0.0]  # [w,x,y,z]
 
  # - name: Wells Test 16
  #   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test16.bag
@@ -240,18 +240,18 @@ datasets:
  #     # extracted from file 'wells_test17.bag'
  #     q: [0.5773381477915109, -0.7894950773460115, 0.20827430458672264, 0.0]  # [w,x,y,z]
 
- - name: Wells Test 18
-   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test18.bag
-   pose_topic:
-   events_topic: /dvs/events
-   image_topic: /dvs/image_reconstructions
-   imu_topic: /dvs/imu
-   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-   override_params:
-     p: [0.0, 0.0, 0.0]
-     v: [0.0, 0.0, 0.0]
-     # extracted from file 'wells_test18.bag'
-     q: [0.8110557792790364, -0.5843060617951185, 0.02783790666616941, 0.0]  # [w,x,y,z]
+  - name: Wells Test 18
+    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test18.bag
+    pose_topic:
+    events_topic: /dvs/events
+    image_topic: /dvs/image_reconstructions
+    imu_topic: /dvs/imu
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    override_params:
+      p: [0.0, 0.0, 0.0]
+      v: [0.0, 0.0, 0.0]
+      # extracted from file 'wells_test18.bag'
+      q: [0.8110557792790364, -0.5843060617951185, 0.02783790666616941, 0.0]  # [w,x,y,z]
 
  # - name: Wells Test 19
  #   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test19.bag
