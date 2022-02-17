@@ -39,11 +39,11 @@ class PlotContext:
 
         if use_paper_style_plots:
             # one column in paper = 3.5in
-            # self.width_inch = 5
-            # self.height_inch = 3.8
+            self.width_inch = 5
+            self.height_inch = 3.8
             # self.height_inch = 3
-            self.width_inch = 7
-            self.height_inch = 3
+            # self.width_inch = 7
+            # self.height_inch = 3
             self.FORMATS = [".pdf"]
 
     def __enter__(self):
@@ -262,7 +262,6 @@ def time_series_plot_with_ref(pc: PlotContext, time, data, data_ref, labels, tit
 
     if use_log:
         ax.set_yscale('log')
-
 
 
 def bubble_plot(pc: PlotContext, xy_data, labels, y_resolution=0.1, x_resolution=0.1, title=None, ylabel=None,

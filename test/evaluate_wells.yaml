@@ -32,9 +32,9 @@ datasets:
      # extracted from file 'wells_test1.bag'
      q: [0.9005519816988495, -0.43329278817280464, 0.03554557603573308, 0.0]  # [w,x,y,z]
      # from file: ./test1_15000/detector_parameters.yaml
-     eklt_harris_block_size: 30
+     eklt_harris_block_size: 6 # changed from: 30
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 76
+     eklt_detection_min_distance: 30 # changed from: 76
      eklt_harris_quality_level: 0.05
 
  - name: Wells Test 2
@@ -50,9 +50,9 @@ datasets:
      # extracted from file 'wells_test2.bag'
      q: [0.23473739298124427, -0.9697876836620675, 0.06640937398990245, 0.0]  # [w,x,y,z]
      # from file: ./test2_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 3
@@ -68,9 +68,9 @@ datasets:
      # extracted from file 'wells_test3.bag'
      q: [0.31180451663623476, -0.9491341719572899, -0.04384366577048217, 0.0]  # [w,x,y,z]
      # from file: ./test3_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 4
@@ -86,9 +86,9 @@ datasets:
      # extracted from file 'wells_test4.bag'
      q: [0.31859310233822197, -0.9458261683285817, -0.06254034255886949, 0.0]  # [w,x,y,z]
      # from file: ./test4_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 100
+     eklt_detection_min_distance: 30 # changed from: 100
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 5
@@ -104,9 +104,9 @@ datasets:
      # extracted from file 'wells_test5.bag'
      q: [0.30004146174905705, -0.9511263399262665, -0.07303291538719546, 0.0]  # [w,x,y,z]
      # from file: ./test5_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 100
+     eklt_detection_min_distance: 30 # changed from: 100
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 6
@@ -122,9 +122,9 @@ datasets:
      # extracted from file 'wells_test6.bag'
      q: [0.3983769295025507, -0.909436804762696, 0.11924982257067784, 0.0]  # [w,x,y,z]
      # from file: ./test6_15000/detector_parameters.yaml
-     eklt_harris_block_size: 2
+     eklt_harris_block_size: 6 # changed from: 2
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 96
+     eklt_detection_min_distance: 30 # changed from: 96
      eklt_harris_quality_level: 0.05
 
  - name: Wells Test 7
@@ -140,9 +140,9 @@ datasets:
      # extracted from file 'wells_test7.bag'
      q: [0.873941583671023, -0.4686167606162806, 0.12893579797747381, 0.0]  # [w,x,y,z]
      # from file: ./test7_15000/detector_parameters.yaml
-     eklt_harris_block_size: 26
+     eklt_harris_block_size: 6 # changed from: 26
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 64
+     eklt_detection_min_distance: 30 # changed from: 64
      eklt_harris_quality_level: 0.030000000000000006
 
  - name: Wells Test 8
@@ -158,9 +158,9 @@ datasets:
      # extracted from file 'wells_test8.bag'
      q: [0.6284303315916614, -0.7682911800659054, 0.12167161118573604, 0.0]  # [w,x,y,z]
      # from file: ./test8_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 9
@@ -176,9 +176,9 @@ datasets:
      # extracted from file 'wells_test9.bag'
      q: [0.7414647020159385, -0.66994683423278, 0.03743440884923048, 0.0]  # [w,x,y,z]
      # from file: ./test9_15000/detector_parameters.yaml
-     eklt_harris_block_size: 6
+     eklt_harris_block_size: 6 # changed from: 6
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 100
+     eklt_detection_min_distance: 30 # changed from: 100
      eklt_harris_quality_level: 0.030000000000000006
 
  - name: Wells Test 10
@@ -194,9 +194,9 @@ datasets:
      # extracted from file 'wells_test10.bag'
      q: [0.5123662033036138, -0.8555386069931986, 0.07439466147766943, 0.0]  # [w,x,y,z]
      # from file: ./test10_15000/detector_parameters.yaml
-     eklt_harris_block_size: 2
+     eklt_harris_block_size: 6 # changed from: 2
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 100
+     eklt_detection_min_distance: 30 # changed from: 100
      eklt_harris_quality_level: 0.07
 
  - name: Wells Test 11
@@ -212,9 +212,9 @@ datasets:
      # extracted from file 'wells_test11.bag'
      q: [0.41676231410918885, -0.9079934709889961, 0.04309327302153657, 0.0]  # [w,x,y,z]
      # from file: ./test11_15000/detector_parameters.yaml
-     eklt_harris_block_size: 2
+     eklt_harris_block_size: 6 # changed from: 2
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 100
+     eklt_detection_min_distance: 30 # changed from: 100
      eklt_harris_quality_level: 0.05
 
  - name: Wells Test 12
@@ -230,9 +230,9 @@ datasets:
      # extracted from file 'wells_test12.bag'
      q: [0.4190738656639026, -0.8998922842125008, -0.12071028097192478, 0.0]  # [w,x,y,z]
      # from file: ./test12_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 13
@@ -248,9 +248,9 @@ datasets:
      # extracted from file 'wells_test13.bag'
      q: [0.2997656058452482, -0.9329730993310423, -0.199253048852107, 0.0]  # [w,x,y,z]
      # from file: ./test13_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 14
@@ -266,9 +266,9 @@ datasets:
      # extracted from file 'wells_test14.bag'
      q: [0.7323567519140745, -0.6788123851760818, 0.05354748973971977, 0.0]  # [w,x,y,z]
      # from file: ./test14_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 15
@@ -284,9 +284,9 @@ datasets:
      # extracted from file 'wells_test15.bag'
      q: [0.7205172611956853, -0.6925370969806107, -0.0353163648290258, 0.0]  # [w,x,y,z]
      # from file: ./test15_15000/detector_parameters.yaml
-     eklt_harris_block_size: 6
+     eklt_harris_block_size: 6 # changed from: 6
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 72
+     eklt_detection_min_distance: 30 # changed from: 72
      eklt_harris_quality_level: 0.07
 
  - name: Wells Test 16
@@ -302,9 +302,9 @@ datasets:
      # extracted from file 'wells_test16.bag'
      q: [0.3928842344606104, -0.8791366018827403, -0.2697421241526213, 0.0]  # [w,x,y,z]
      # from file: ./test16_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 17
@@ -320,9 +320,9 @@ datasets:
      # extracted from file 'wells_test17.bag'
      q: [0.5773381477915109, -0.7894950773460115, 0.20827430458672264, 0.0]  # [w,x,y,z]
      # from file: ./test17_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.030000000000000006
 
  - name: Wells Test 18
@@ -338,9 +338,9 @@ datasets:
      # extracted from file 'wells_test18.bag'
      q: [0.8110557792790364, -0.5843060617951185, 0.02783790666616941, 0.0]  # [w,x,y,z]
      # from file: ./test18_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 92
+     eklt_detection_min_distance: 30 # changed from: 92
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 19
@@ -356,9 +356,9 @@ datasets:
      # extracted from file 'wells_test19.bag'
      q: [0.47727733612618867, -0.8699715248573238, -0.12391888620267777, 0.0]  # [w,x,y,z]
      # from file: ./test19_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.010000000000000009
 
  - name: Wells Test 20
@@ -374,9 +374,9 @@ datasets:
      # extracted from file 'wells_test20.bag'
      q: [0.3482556972874356, -0.9370386781163941, -0.026009325649142222, 0.0]  # [w,x,y,z]
      # from file: ./test20_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 112
+     eklt_detection_min_distance: 30 # changed from: 112
      eklt_harris_quality_level: 0.07
 
  - name: Wells Test 21
@@ -392,9 +392,9 @@ datasets:
      # extracted from file 'wells_test21.bag'
      q: [0.2765227029502802, -0.9526313725563282, -0.1266043552746793, 0.0]  # [w,x,y,z]
      # from file: ./test21_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.09000000000000001
 
  - name: Wells Test 22
@@ -410,9 +410,9 @@ datasets:
      # extracted from file 'wells_test22.bag'
      q: [0.244214636321686, -0.9495492719172448, 0.1967622718096559, 0.0]  # [w,x,y,z]
      # from file: ./test22_15000/detector_parameters.yaml
-     eklt_harris_block_size: 106
+     eklt_harris_block_size: 6 # changed from: 106
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 108
+     eklt_detection_min_distance: 30 # changed from: 108
      eklt_harris_quality_level: 0.05
 
  - name: Wells Test 23
@@ -428,8 +428,8 @@ datasets:
      # extracted from file 'wells_test23.bag'
      q: [0.22811224493778362, -0.9733967584466527, 0.021530312468552273, 0.0]  # [w,x,y,z]
      # from file: ./test23_15000/detector_parameters.yaml
-     eklt_harris_block_size: 6
+     eklt_harris_block_size: 6 # changed from: 6
      eklt_harris_k: 0.4
-     eklt_detection_min_distance: 50 # changed from: 100
+     eklt_detection_min_distance: 30 # changed from: 100
      eklt_harris_quality_level: 0.05
 
