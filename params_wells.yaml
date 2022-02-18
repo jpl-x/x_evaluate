@@ -188,11 +188,11 @@ n_slam_features_max: 15
 
 # Initial inverse depth of SLAM features [1/m]
 # (default: 1 / (2 * d_min) [Montiel, 2006])
-rho_0: 1.3
+rho_0: 0.7
 
 # Initial standard deviation of SLAM inverse depth [1/m]
 # (default: 1 / (4 * d_min) [Montiel, 2006])
-sigma_rho_0: 0.65
+sigma_rho_0: 0.35
 
 # Number of IEKF iterations (1 <=> EKF)
 iekf_iter: 1
