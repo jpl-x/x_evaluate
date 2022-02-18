@@ -39,7 +39,8 @@ class PlotContext:
 
         if use_paper_style_plots:
             # one column in paper = 3.5in
-            self.width_inch = 5
+            # self.width_inch = 5
+            self.width_inch = 4.8
             self.height_inch = 3.8
             # self.height_inch = 3
             # self.width_inch = 7

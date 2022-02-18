@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import x_evaluate
 from evo.core import metrics
 from evo.core.metrics import PoseRelation
 from matplotlib import pyplot as plt
@@ -12,10 +13,11 @@ from matplotlib import pyplot as plt
 from x_evaluate.comparisons import create_parameter_changes_table, identify_common_datasets
 from x_evaluate.evaluation_data import FrontEnd, AlignmentType, EvaluationDataSummary
 from x_evaluate.math_utils import calculate_velocities, moving_average_fixed_n, moving_average
-from x_evaluate.plots import PlotContext, time_series_plot, plot_moving_boxplot_in_time_from_stats
+from x_evaluate.plots import PlotContext, time_series_plot, plot_moving_boxplot_in_time_from_stats, DEFAULT_COLORS
 from x_evaluate.rpg_trajectory_evaluation import rpg_align
 from x_evaluate.scriptlets import find_evaluation_files_recursively, read_evaluation_pickle, cache
-from x_evaluate.utils import merge_tables, get_quantized_statistics_along_axis, get_common_stats_functions
+from x_evaluate.utils import merge_tables, get_quantized_statistics_along_axis, get_common_stats_functions, \
+    name_to_identifier
 
 
 def plot_ekf_updates_per_second(pc: PlotContext, chosen_ones: List[EvaluationDataSummary], dataset, t_max=None):
@@ -143,29 +145,88 @@ def main():
 
     dataset = target_datasets[0]
 
-    with PlotContext(subplot_cols=len(strategies), subplot_rows=3) as pc:
+    # with PlotContext(subplot_cols=len(strategies), subplot_rows=3) as pc:
+    #
+    #     for s in strategies:
+    #         chosen_ones = [e for e in evaluations if e.data[dataset].params['eklt_ekf_update_strategy'] == s]
+    #         plot_ekf_updates_per_second(pc, chosen_ones, dataset)
+    #
+    #     for s in strategies:
+    #         chosen_ones = [e for e in evaluations if e.data[dataset].params['eklt_ekf_update_strategy'] == s]
+    #         plot_ate_in_time(pc, chosen_ones, dataset)
+    #
+    #     for s in strategies:
+    #         chosen_ones = [e for e in evaluations if e.data[dataset].params['eklt_ekf_update_strategy'] == s]
+    #         plot_slam_features_in_time(pc, chosen_ones, dataset)
+    #
+    # for dataset in ["Boxes 6DOF", "Boxes Translation"]:
+    #     with PlotContext(subplot_rows=3) as pc:
+    #         pc.figure.suptitle(F"Evaluations on '{dataset}'")
+    #         chosen_ones = [e for e in evaluations if "20ms" in e.name or "25000" in e.name]
+    #         #or "15000" in e.name or
+    #         #               "20000" in e.name or "5000" in e.name]
+    #         plot_ekf_updates_per_second(pc, chosen_ones, dataset, 35)
+    #         plot_ate_in_time(pc, chosen_ones, dataset, 35)
+    #         plot_gt_dynamics(pc, chosen_ones[0], [dataset], 35)
+    #
+    # plt.show()
 
-        for s in strategies:
-            chosen_ones = [e for e in evaluations if e.data[dataset].params['eklt_ekf_update_strategy'] == s]
-            plot_ekf_updates_per_second(pc, chosen_ones, dataset)
+    x_evaluate.plots.use_paper_style_plots = True
 
-        for s in strategies:
-            chosen_ones = [e for e in evaluations if e.data[dataset].params['eklt_ekf_update_strategy'] == s]
-            plot_ate_in_time(pc, chosen_ones, dataset)
+    # Final paper plot
+    dataset = "Boxes Translation"
+    with PlotContext(os.path.join(args.input_folder, F"{name_to_identifier(dataset)}_update_strategy"),
+                     subplot_rows=2) as pc:
+        # pc.figure.suptitle(F"Evaluations on '{dataset}'")
+        eval_20ms = [e for e in evaluations if "20ms" in e.name]
+        eval_25k = [e for e in evaluations if "25000" in e.name]
+        chosen_ones = eval_20ms + eval_25k
+        #or "15000" in e.name or
+        #               "20000" in e.name or "5000" in e.name]
+        # plot_ekf_updates_per_second(pc, chosen_ones, dataset, 35)
+        # plot_ate_in_time(pc, chosen_ones, dataset, 35)
+        # plot_gt_dynamics(pc, chosen_ones[0], [dataset], 35)
 
-        for s in strategies:
-            chosen_ones = [e for e in evaluations if e.data[dataset].params['eklt_ekf_update_strategy'] == s]
-            plot_slam_features_in_time(pc, chosen_ones, dataset)
+        ax_top = pc.get_axis()
+        ax_bottom = pc.get_axis(sharex=ax_top)
 
-    for dataset in ["Boxes 6DOF", "Boxes Translation"]:
-        with PlotContext(subplot_rows=3) as pc:
-            pc.figure.suptitle(F"Evaluations on '{dataset}'")
-            chosen_ones = [e for e in evaluations if "20ms" in e.name or "25000" in e.name]
-            plot_ekf_updates_per_second(pc, chosen_ones, dataset, 35)
-            plot_ate_in_time(pc, chosen_ones, dataset, 35)
-            plot_gt_dynamics(pc, chosen_ones[0], [dataset], 35)
+        ax_top.set_ylabel("EKF updates / s")
+        ax_bottom.set_ylabel("APE [m]")
 
-    plt.show()
+        t_max = 35
+        translation_metric = metrics.APE(PoseRelation.translation_part)
+
+        labels = ["every 20ms", "every 25k events"]
+        for j, e in enumerate(chosen_ones):
+            t, u = calculate_updates_per_seconds(e.data[dataset].df_ekf_updates, 5)
+
+            u = u[t < t_max]
+            t = t[t < t_max]
+
+            ax_top.plot(t, u, label=labels[j], color=DEFAULT_COLORS[j+3])
+
+            t_error = e.data[dataset].trajectory_data.traj_gt_synced.timestamps
+            t_error = t_error - t_error[0]
+
+            error = e.data[dataset].trajectory_data.ate_errors[str(translation_metric)]
+
+            error = error[t_error < t_max]
+            t_error = t_error[t_error < t_max]
+
+            ax_bottom.plot(t_error, error, label=labels[j], color=DEFAULT_COLORS[j+3])
+
+        ax_bottom.set_xlabel("t [s]")
+        ax_top.legend()
+        ax_top.label_outer()
+        ax_bottom.label_outer()
+        ax_bottom.axvspan(0, 15, alpha=0.1, facecolor=DEFAULT_COLORS[0])
+        ax_top.axvspan(0, 15, alpha=0.1, facecolor=DEFAULT_COLORS[0])
+        ax_bottom.axvspan(15, t_max, alpha=0.05, facecolor=DEFAULT_COLORS[1])
+        ax_top.axvspan(15, t_max, alpha=0.05, facecolor=DEFAULT_COLORS[1])
+        ax_bottom.set_xlim(0, t_max)
+
+        ax_bottom.text(1, 0.63, "slow", style='italic')
+        ax_bottom.text(16, 0.63, "fast", style='italic')
 
     # PlotContext.FORMATS = [".pdf"]
     #
