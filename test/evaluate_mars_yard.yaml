@@ -1,0 +1,16 @@
+
+common_params:
+  eklt_bootstrap: "klt"
+
+datasets:
+
+ - name: Mars Yard
+   rosbag: ${XVIO_DATASET_DIR}/mars_yard_dvx/mars_yard_dvx_03_all_filtered_full.bag
+   pose_topic:
+   events_topic: /dvs/events_cleaned
+   image_topic: /dvs/reconstruction
+   imu_topic: /dvs/imu
+   params: ${X_EVALUATE_SRC_ROOT}/params_mars_yard.yaml
+   override_params:
+     p: [0.0, 0.0, 0.0]
+     v: [0.0, 0.0, 0.0]

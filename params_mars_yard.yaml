@@ -1,0 +1,214 @@
+/use_sim_time: true
+a_m_max: 88.29
+b_a:
+- 0.0
+- 0.0
+- 0.0
+b_w:
+- 0.0
+- 0.0
+- 0.0
+block_half_length: 6
+cam1_cx: 0.533839538103
+cam1_cy: 0.452191783609
+cam1_dist_model: radial-tangential
+cam1_dist_params:
+- -0.37964381989293516
+- 0.16588122497853042
+- 0.000719295985613572
+- -0.0012078763628782995
+cam1_fx: 0.925339173705
+cam1_fy: 1.22248310329
+cam1_img_height: 480
+cam1_img_width: 640
+cam1_p_ic:
+- -0.21518750448932794
+- 0.0007401427423516556
+- -0.09215016543882257
+cam1_q_ic:
+- -0.024082500605671017
+- 0.9997023667993531
+- 0.00041708735658335357
+- -0.0038777594673196705
+cam1_time_offset: 0.0141923822342
+cam2_cx: 0.533839538103
+cam2_cy: 0.452191783609
+cam2_dist_model: radial-tangential
+cam2_dist_params:
+- -0.37964381989293516
+- 0.16588122497853042
+- 0.000719295985613572
+- -0.0012078763628782995
+cam2_fx: 0.925339173705
+cam2_fy: 1.22248310329
+cam2_img_height: 480
+cam2_img_width: 640
+cam2_p_ic:
+- -0.21518750448932794
+- 0.0007401427423516556
+- -0.09215016543882257
+cam2_q_ic:
+- -0.024082500605671017
+- 0.9997023667993531
+- 0.00041708735658335357
+- -0.0038777594673196705
+cam2_time_offset: 0.0141923822342
+correct_event_motion: false
+delta_seq_imu: 1
+eklt_arrow_length: 5
+eklt_batch_size: 500
+eklt_bootstrap: klt
+eklt_detection_min_distance: 40
+eklt_displacement_px: 0.6
+eklt_display_feature_id: false
+eklt_display_feature_patches: false
+eklt_display_features: false
+eklt_ekf_feature_extrapolation_limit: -1.0
+eklt_ekf_feature_interpolation: linear-no-limit
+eklt_ekf_update_every_n: 7200
+eklt_ekf_update_strategy: every-n-events
+eklt_ekf_update_timestamp: patches-maximum
+eklt_enable_outlier_removal: true
+eklt_first_image_t: -1
+eklt_harris_block_size: 3
+eklt_harris_k: 0.01
+eklt_harris_quality_level: 0.01
+eklt_lk_window_size: 20
+eklt_log_eps: 0.01
+eklt_max_corners: 70
+eklt_max_num_iterations: 10
+eklt_min_corners: 45
+eklt_num_pyramidal_layers: 3
+eklt_outlier_method: 8
+eklt_outlier_param1: 0.6
+eklt_outlier_param2: 0.99
+eklt_patch_size: 31
+eklt_patch_timestamp_assignment: accumulated-events-center
+eklt_scale: 4
+eklt_tracking_quality: 0.3
+eklt_tracks_file_txt: ''
+eklt_update_every_n_events: 20
+eklt_use_linlog_scale: false
+event_accumulation_methode: 0
+event_accumulation_period: 0.1
+event_cam1_cx: 0.550800297
+event_cam1_cy: 0.615070333
+event_cam1_dist_model: radial-tangential
+event_cam1_dist_params:
+- -0.3684363117977873
+- 0.1509472435566583
+- -0.0002961305343848646
+- -0.000759431726241032
+- 0
+event_cam1_fx: 0.829551527
+event_cam1_fy: 1.104604558
+event_cam1_img_height: 180
+event_cam1_img_width: 240
+event_cam1_p_ic:
+- 0.00674696422488
+- 0.0007279224709
+- 0.0342573613538
+event_cam1_q_ic:
+- 0.999965419952174
+- 0.00466020631918
+- -0.003190841088148
+- -0.006104089619662
+event_cam1_time_offset: 0.0
+event_motion_correction_delay: 10
+event_norm_factor: 4.0
+fast_detection_delta: 20
+g:
+- 0.0
+- 0.0
+- -9.81
+haste_bootstrap_from_frames: false
+haste_bootstrap_with_unit_length_of: true
+haste_detection_min_distance: 8
+haste_ekf_feature_extrapolation_limit: -1.0
+haste_ekf_feature_interpolation: nearest-neighbor
+haste_ekf_update_every_n: 3200
+haste_ekf_update_strategy: every-n-events
+haste_ekf_update_timestamp: patches-maximum
+haste_enable_outlier_removal: true
+haste_harris_block_size: 3
+haste_harris_k: 0
+haste_harris_quality_level: 0.3
+haste_max_corners: 60
+haste_min_corners: 45
+haste_outlier_method: 8
+haste_outlier_param1: 1.3
+haste_outlier_param2: 0.95
+haste_patch_size: 31
+haste_tracker_type: haste-correlation-star
+iekf_iter: 1
+init_at_startup: false
+margin: 6
+max_feat_per_tile: 10000
+min_track_length: 10
+msckf_baseline: 30.0
+n_a: 0.004316
+n_ba: 0.0004316
+n_bw: 2.0e-05
+n_events_max: 40000
+n_events_min: 15000
+n_events_noise_detection_min: 40
+n_feat_min: 400
+n_poses_max: 10
+n_slam_features_max: 25
+n_tiles_h: 1
+n_tiles_w: 1
+n_w: 0.0002
+noise_event_rate: 20000
+non_max_supp: true
+outlier_method: 8
+outlier_param1: 1.6
+outlier_param2: 0.99
+p:
+- 0.0
+- 0.0
+- 0.0
+q:
+- 0.991193058235731
+- -0.1257946472590912
+- 0.04137666040486585
+- 0.0
+q_sc:
+- 1.0
+- 0.0
+- 0.0
+- 0.0
+rho_0: 0.5
+sigma_dba:
+- 0.3
+- 0.3
+- 0.3
+sigma_dbw:
+- 6.0
+- 6.0
+- 6.0
+sigma_dp:
+- 0.0
+- 0.0
+- 0.0
+sigma_dtheta:
+- 3.0
+- 3.0
+- 3.0
+sigma_dv:
+- 0.05
+- 0.05
+- 0.05
+sigma_img: 0.02541924711215672
+sigma_range: 0.05
+sigma_rho_0: 0.125
+state_buffer_size: 500
+state_buffer_time_margin: 0.02
+traj_timeout_gui: 3
+v:
+- 0.0
+- 0.0
+- 0.0
+w_s:
+- 0.0
+- 0.0
+- 1.0
