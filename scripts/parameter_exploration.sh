@@ -10,7 +10,7 @@ CONFIGURATION="evaluate_wells.yaml --skip_feature_tracking"
 
 COMPARISONS_ONLY=0
 QUALITATIVE_COMPARISON=1
-EXPLORE_BASELINES=1
+EXPLORE_BASELINES=0
 EXPLORE_XVIO_PATCH_SIZE=0
 EXPLORE_XVIO_IMU_OFFSET=0
 EXPLORE_XVIO_MSCKF_BASELINE=0
@@ -30,9 +30,9 @@ EXPLORE_XVIO_INITIAL_SIGMA_V=0
 EXPLORE_XVIO_INITIAL_SIGMA_THETA=0
 EXPLORE_XVIO_INITIAL_SIGMA_BW=0
 EXPLORE_XVIO_INITIAL_SIGMA_BA=0
-EXPLORE_EKLT_PATCH_SIZE=0
+EXPLORE_EKLT_PATCH_SIZE=1
 EXPLORE_EKLT_IMU_OFFSET=0
-EXPLORE_EKLT_OUTLIER_REMOVAL=0
+EXPLORE_EKLT_OUTLIER_REMOVAL=1
 EXPLORE_EKLT_TRACKING_QUALITY=0
 EXPLORE_EKLT_UPDATE_STRATEGY_N_MSEC=0
 EXPLORE_EKLT_UPDATE_STRATEGY_N_EVENTS=0
@@ -65,11 +65,20 @@ EXPLORE_HASTE_BEST=0
 cleanup () {
   d=`dirname $1/evaluation.pickle`
   echo "Related to $1"
-  find $d -type d | grep -v $d$ | grep -v results | sort | while read j
-  do
-    echo "   going to delete `du -sh $j`"
-    rm -rf $j
-  done
+  if [ $QUALITATIVE_COMPARISON -gt 0 ]
+  then
+    find $d -type f | grep -v results | grep events.csv | sort | while read j
+    do
+      echo "   going to delete `du -sh $j`"
+      rm -rf $j
+    done
+  else
+    find $d -type d | grep -v $d$ | grep -v results | sort | while read j
+    do
+      echo "   going to delete `du -sh $j`"
+      rm -rf $j
+    done
+  fi
 }
 
 
@@ -114,17 +123,17 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/000-xvio-baseline --frontend \
      XVIO --name "XVIO"
 
-    cleanup $1/$DATE-baselines/000-xvio-baseline
+   cleanup $1/$DATE-baselines/000-xvio-baseline
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/001-eklt-baseline --frontend \
      EKLT --name "EKLT"
 
-    cleanup $1/$DATE-baselines/001-eklt-baseline
+   cleanup $1/$DATE-baselines/001-eklt-baseline
 
-    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/002-haste-baseline --frontend \
-     HASTE --name "HASTE"
+#    python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-baselines/002-haste-baseline --frontend \
+#     HASTE --name "HASTE"
 
-    cleanup $1/$DATE-baselines/002-haste-baseline
+#    cleanup $1/$DATE-baselines/002-haste-baseline
 
   fi
 
@@ -1376,12 +1385,12 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/000-xvio-baseline \
       --frontend XVIO --name "XVIO baseline"
 
-    cleanup $1/$DATE-eklt-patch-size/000-xvio-baseline
+#    cleanup $1/$DATE-eklt-patch-size/000-xvio-baseline
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/001-p-15 \
       --frontend EKLT --name "EKLT p=15" --overrides eklt_patch_size=15 eklt_detection_min_distance=7
 
-    cleanup $1/$DATE-eklt-patch-size/001-p-15
+#    cleanup $1/$DATE-eklt-patch-size/001-p-15
 
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/002-p-17 \
     #   --frontend EKLT --name "EKLT p=17" --overrides eklt_patch_size=17 eklt_detection_min_distance=8
@@ -1391,12 +1400,12 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/003-p-19 \
       --frontend EKLT --name "EKLT p=19" --overrides eklt_patch_size=19 eklt_detection_min_distance=9
 
-    cleanup $1/$DATE-eklt-patch-size/003-p-19
+#    cleanup $1/$DATE-eklt-patch-size/003-p-19
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/004-p-21 \
       --frontend EKLT --name "EKLT p=21" --overrides eklt_patch_size=21 eklt_detection_min_distance=10
 
-    cleanup $1/$DATE-eklt-patch-size/004-p-21
+#    cleanup $1/$DATE-eklt-patch-size/004-p-21
 
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/005-p-23 \
     #   --frontend EKLT --name "EKLT p=23" --overrides eklt_patch_size=21 eklt_detection_min_distance=11
@@ -1406,22 +1415,22 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/006-p-25 \
       --frontend EKLT --name "EKLT p=25" --overrides eklt_patch_size=25 eklt_detection_min_distance=12
 
-    cleanup $1/$DATE-eklt-patch-size/006-p-25
+#    cleanup $1/$DATE-eklt-patch-size/006-p-25
 
     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/007-p-27 \
     #   --frontend EKLT --name "EKLT p=27" --overrides eklt_patch_size=27 eklt_detection_min_distance=13
 
-    cleanup $1/$DATE-eklt-patch-size/007-p-27
+#    cleanup $1/$DATE-eklt-patch-size/007-p-27
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/008-p-31 \
       --frontend EKLT --name "EKLT p=31" --overrides eklt_patch_size=31 eklt_detection_min_distance=14
 
-    cleanup $1/$DATE-eklt-patch-size/008-p-31
+#    cleanup $1/$DATE-eklt-patch-size/008-p-31
 
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-patch-size/009-p-35 \
       --frontend EKLT --name "EKLT p=35" --overrides eklt_patch_size=35 eklt_detection_min_distance=14
 
-    cleanup $1/$DATE-eklt-patch-size/009-p-35
+#    cleanup $1/$DATE-eklt-patch-size/009-p-35
 
     
   fi
@@ -1612,91 +1621,91 @@ then
     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/000-xvio-baseline \
       --frontend XVIO --name "XVIO baseline"
 
-    cleanup $1/$DATE-eklt-tracking-quality/000-xvio-baseline
+    # cleanup $1/$DATE-eklt-tracking-quality/000-xvio-baseline
 
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.0001" --overrides eklt_tracking_quality=0.0001
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001 \
+       --frontend EKLT --name "EKLT tracking-q=0.0001" --overrides eklt_tracking_quality=0.0001
 
      # cleanup $1/$DATE-eklt-tracking-quality/001-eklt-tracking-q-0.0001
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.001" --overrides eklt_tracking_quality=0.001
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001 \
+       --frontend EKLT --name "EKLT tracking-q=0.001" --overrides eklt_tracking_quality=0.001
 
      # cleanup $1/$DATE-eklt-tracking-quality/002-eklt-tracking-q-0.001
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.005" --overrides eklt_tracking_quality=0.005
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005 \
+       --frontend EKLT --name "EKLT tracking-q=0.005" --overrides eklt_tracking_quality=0.005
 
      # cleanup $1/$DATE-eklt-tracking-quality/003-eklt-tracking-q-0.005
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.01" --overrides eklt_tracking_quality=0.01
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01 \
+       --frontend EKLT --name "EKLT tracking-q=0.01" --overrides eklt_tracking_quality=0.01
 
      # cleanup $1/$DATE-eklt-tracking-quality/004-eklt-tracking-q-0.01
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.1" --overrides eklt_tracking_quality=0.1
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1 \
+       --frontend EKLT --name "EKLT tracking-q=0.1" --overrides eklt_tracking_quality=0.1
 
      # cleanup $1/$DATE-eklt-tracking-quality/005-eklt-tracking-q-0.1
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.15" --overrides eklt_tracking_quality=0.15
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15 \
+       --frontend EKLT --name "EKLT tracking-q=0.15" --overrides eklt_tracking_quality=0.15
 
      # cleanup $1/$DATE-eklt-tracking-quality/006-eklt-tracking-q-0.15
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.2" --overrides eklt_tracking_quality=0.2
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2 \
+       --frontend EKLT --name "EKLT tracking-q=0.2" --overrides eklt_tracking_quality=0.2
 
      # cleanup $1/$DATE-eklt-tracking-quality/007-eklt-tracking-q-0.2
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.25" --overrides eklt_tracking_quality=0.25
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25 \
+       --frontend EKLT --name "EKLT tracking-q=0.25" --overrides eklt_tracking_quality=0.25
 
      # cleanup $1/$DATE-eklt-tracking-quality/008-eklt-tracking-q-0.25
 
-     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3 \
-     #   --frontend EKLT --name "EKLT tracking-q=0.3" --overrides eklt_tracking_quality=0.3
+     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3 \
+       --frontend EKLT --name "EKLT tracking-q=0.3" --overrides eklt_tracking_quality=0.3
 
      # cleanup $1/$DATE-eklt-tracking-quality/009-eklt-tracking-q-0.3
 
-      python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
-        --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_tracking_quality=0.4
+     #  python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4 \
+     #    --frontend EKLT --name "EKLT tracking-q=0.4" --overrides eklt_tracking_quality=0.4
 
-      cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
+     #  cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.4
 
-      python evaluate.py --configuration $CONFIGURATION --output_folder
-      $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.45 \
-        --frontend EKLT --name "EKLT tracking-q=0.45" --overrides eklt_tracking_quality=0.45
+     #  python evaluate.py --configuration $CONFIGURATION --output_folder
+     #  $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.45 \
+     #    --frontend EKLT --name "EKLT tracking-q=0.45" --overrides eklt_tracking_quality=0.45
 
-      cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.45
+     #  cleanup $1/$DATE-eklt-tracking-quality/010-eklt-tracking-q-0.45
 
-     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5 \
-       --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_tracking_quality=0.5
+     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5 \
+     #   --frontend EKLT --name "EKLT tracking-q=0.5" --overrides eklt_tracking_quality=0.5
 
-     cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5
+     # cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.5
 
-     python evaluate.py --configuration $CONFIGURATION --output_folder
-     $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.55 \
-       --frontend EKLT --name "EKLT tracking-q=0.55" --overrides eklt_tracking_quality=0.55
+     # python evaluate.py --configuration $CONFIGURATION --output_folder
+     # $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.55 \
+     #   --frontend EKLT --name "EKLT tracking-q=0.55" --overrides eklt_tracking_quality=0.55
 
-     cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.55
+     # cleanup $1/$DATE-eklt-tracking-quality/011-eklt-tracking-q-0.55
 
-     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6 \
-       --frontend EKLT --name "EKLT tracking-q=0.6" --overrides eklt_tracking_quality=0.6
+     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6 \
+     #   --frontend EKLT --name "EKLT tracking-q=0.6" --overrides eklt_tracking_quality=0.6
 
-     cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6
+     # cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.6
 
-     python evaluate.py --configuration $CONFIGURATION --output_folder
-     $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.65 \
-       --frontend EKLT --name "EKLT tracking-q=0.65" --overrides eklt_tracking_quality=0.65
+     # python evaluate.py --configuration $CONFIGURATION --output_folder
+     # $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.65 \
+     #   --frontend EKLT --name "EKLT tracking-q=0.65" --overrides eklt_tracking_quality=0.65
 
-     cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.65
+     # cleanup $1/$DATE-eklt-tracking-quality/012-eklt-tracking-q-0.65
 
-     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7 \
-       --frontend EKLT --name "EKLT tracking-q=0.7" --overrides eklt_tracking_quality=0.7
+     # python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7 \
+     #   --frontend EKLT --name "EKLT tracking-q=0.7" --overrides eklt_tracking_quality=0.7
 
-     cleanup $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7
+     # cleanup $1/$DATE-eklt-tracking-quality/013-eklt-tracking-q-0.7
 
 #     python evaluate.py --configuration $CONFIGURATION --output_folder $1/$DATE-eklt-tracking-quality/014-eklt-tracking-q-0.8 \
 #       --frontend EKLT --name "EKLT tracking-q=0.8" --overrides eklt_tracking_quality=0.8
