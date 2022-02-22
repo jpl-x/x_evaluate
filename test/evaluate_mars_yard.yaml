@@ -9,8 +9,9 @@ datasets:
    pose_topic:
    events_topic: /dvs/events_cleaned
    image_topic: /dvs/reconstruction
-   imu_topic: /dvs/imu
+   imu_topic: /mavros/imu/data_raw
    params: ${X_EVALUATE_SRC_ROOT}/params_mars_yard.yaml
+#   to: 1455212408.526946783
    override_params:
      p: [0.0, 0.0, 0.0]
      v: [0.0, 0.0, 0.0]
