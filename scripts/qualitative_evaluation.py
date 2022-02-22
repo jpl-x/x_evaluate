@@ -191,11 +191,11 @@ def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
 
     scaled_with_runs = max(10 * len(eval_run_names) / 6, 10)
 
-    with PlotContext(os.path.join(output_folder, F"boxplot_distances"), base_width_inch=scaled_with_runs*1.5) as pc:
+    with PlotContext(os.path.join(output_folder, F"boxplot_distances"), base_width_inch=scaled_with_runs*2.0) as pc:
         boxplot_compare(pc.get_axis(), dataset_labels, data, eval_run_names, ylabel="Distances",
                         title="Distances")
 
-    with PlotContext(os.path.join(output_folder, F"boxplot_distances_log"), base_width_inch=scaled_with_runs*1.5) as pc:
+    with PlotContext(os.path.join(output_folder, F"boxplot_distances_log"), base_width_inch=scaled_with_runs*2.0) as pc:
         boxplot_compare(pc.get_axis(), dataset_labels, data, eval_run_names, ylabel="Distances",
                         title="Distances", use_log=True)
 
