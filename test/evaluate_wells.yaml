@@ -19,23 +19,23 @@ datasets:
 #              /dvs/imu                     83698 msgs    : sensor_msgs/Imu
 
 
-- name: Wells Test 1
-  rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test1.bag
-  pose_topic:
-  events_topic: /dvs/events
-  image_topic: /dvs/image_reconstructions
-  imu_topic: /dvs/imu
-  params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-  override_params:
-    p: [0.0, 0.0, 0.0]
-    v: [0.0, 0.0, 0.0]
-    # extracted from file 'wells_test1.bag'
-    q: [0.9005519816988495, -0.43329278817280464, 0.03554557603573308, 0.0]  # [w,x,y,z]
-    # from file: ./test1_15000/detector_parameters.yaml
-    eklt_harris_block_size: 38
-    eklt_harris_k: 0.1500000000
-    eklt_detection_min_distance: 44
-    eklt_harris_quality_level: 0.05
+ - name: Wells Test 1
+   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test1.bag
+   pose_topic:
+   events_topic: /dvs/events
+   image_topic: /dvs/image_reconstructions
+   imu_topic: /dvs/imu
+   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+   override_params:
+     p: [0.0, 0.0, 0.0]
+     v: [0.0, 0.0, 0.0]
+     # extracted from file 'wells_test1.bag'
+     q: [0.9005519816988495, -0.43329278817280464, 0.03554557603573308, 0.0]  # [w,x,y,z]
+     # from file: ./test1_15000/detector_parameters.yaml
+     eklt_harris_block_size: 38
+     eklt_harris_k: 0.1500000000
+     eklt_detection_min_distance: 44
+     eklt_harris_quality_level: 0.05
 
  - name: Wells Test 2
    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test2.bag
@@ -379,23 +379,23 @@ datasets:
      eklt_detection_min_distance: 64
      eklt_harris_quality_level: 0.07
 
-- name: Wells Test 21
-  rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test21.bag
-  pose_topic:
-  events_topic: /dvs/events
-  image_topic: /dvs/image_reconstructions
-  imu_topic: /dvs/imu
-  params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-  override_params:
-    p: [0.0, 0.0, 0.0]
-    v: [0.0, 0.0, 0.0]
-    # extracted from file 'wells_test21.bag'
-    q: [0.2765227029502802, -0.9526313725563282, -0.1266043552746793, 0.0]  # [w,x,y,z]
-    # from file: ./test21_15000/detector_parameters.yaml
-    eklt_harris_block_size: 6
-    eklt_harris_k: 0.2
-    eklt_detection_min_distance: 68
-    eklt_harris_quality_level: 0.07
+ - name: Wells Test 21
+   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test21.bag
+   pose_topic:
+   events_topic: /dvs/events
+   image_topic: /dvs/image_reconstructions
+   imu_topic: /dvs/imu
+   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+   override_params:
+     p: [0.0, 0.0, 0.0]
+     v: [0.0, 0.0, 0.0]
+     # extracted from file 'wells_test21.bag'
+     q: [0.2765227029502802, -0.9526313725563282, -0.1266043552746793, 0.0]  # [w,x,y,z]
+     # from file: ./test21_15000/detector_parameters.yaml
+     eklt_harris_block_size: 6
+     eklt_harris_k: 0.2
+     eklt_detection_min_distance: 68
+     eklt_harris_quality_level: 0.07
 
  - name: Wells Test 22
    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test22.bag
