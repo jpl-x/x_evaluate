@@ -65,7 +65,7 @@ eklt_display_feature_patches: false
 eklt_display_features: false
 eklt_ekf_feature_extrapolation_limit: -1.0
 eklt_ekf_feature_interpolation: linear-no-limit
-eklt_ekf_update_every_n: 7200
+eklt_ekf_update_every_n: 20000
 eklt_ekf_update_strategy: every-n-events
 eklt_ekf_update_timestamp: patches-maximum
 eklt_enable_outlier_removal: true

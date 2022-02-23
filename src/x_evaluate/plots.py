@@ -193,7 +193,7 @@ def boxplot_from_summary(pc: PlotContext, distribution_summaries: List[Distribut
 
 def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None, use_scatter=False, use_log=False,
                      xlabel=None, subplot_arg=None, shaded_area_lower=None, shaded_area_upper=None, ylim=None,
-                     axis_equal=False):
+                     xlim=None, axis_equal=False):
     ax = pc.get_axis(subplot_arg)
     for i in range(len(data)):
 
@@ -218,6 +218,9 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
 
     if ylim is not None:
         ax.set_ylim(ylim[0], ylim[1])
+
+    if xlim is not None:
+        ax.set_xlim(xlim[0], xlim[1])
     ax.legend()
     ax.set_title(title)
     if not xlabel:

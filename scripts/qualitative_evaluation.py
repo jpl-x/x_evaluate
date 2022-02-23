@@ -11,7 +11,7 @@ from evo.core.trajectory import Trajectory
 
 from x_evaluate import trajectory_evaluation as te
 from x_evaluate.plots import time_series_plot, boxplot_compare, ProgressPlotContextManager
-from x_evaluate.utils import convert_to_evo_trajectory, n_to_grid_size
+from x_evaluate.utils import convert_to_evo_trajectory, n_to_grid_size, timestamp_to_rosbag_time_zero
 
 
 def parse_args():
@@ -67,11 +67,29 @@ def main():
         exit(1)
 
     class EvaluationRun:
-        def __init__(self, dataset_name, eval_run_name, trajectory: Trajectory, imu_bias: pd.DataFrame):
+        def __init__(self, dataset_name, eval_run_name, trajectory: Trajectory, imu_bias: pd.DataFrame,
+                     features: pd.DataFrame, realtime: pd.DataFrame):
             self.trajectory = trajectory
             self.dataset_name = dataset_name
             self.eval_run_name = eval_run_name
             self.imu_bias = imu_bias
+            self.features = features
+            self.realtime = realtime
+
+            # print("UEHILA")
+
+            if np.all(self.realtime['ts_real'] == 0):
+                # HACKY fix of missing realtime timestamp (from missing easyprofiler library)
+                ts_lowest = self.features['ts'].min()
+                ts_highest = self.features['ts'].max()
+
+                sim_lowest = self.realtime['t_sim'].min()
+                sim_highest = self.realtime['t_sim'].max()
+
+                approximate_timestamps = np.interp(self.realtime['t_sim'], [sim_lowest, sim_highest],
+                                                   [ts_lowest, ts_highest])
+
+                self.realtime['ts_real'] = approximate_timestamps
 
     eval_dirs = get_sub_dirs(args.input_folder)
 
@@ -86,13 +104,18 @@ def main():
         for dataset_dir in dataset_dirs:
             pose_file = os.path.join(current_dir, dataset_dir, "pose.csv")
             imu_file = os.path.join(current_dir, dataset_dir, "imu_bias.csv")
+            features_file = os.path.join(current_dir, dataset_dir, "features.csv")
+            realtime_file = os.path.join(current_dir, dataset_dir, "realtime.csv")
             df_imu_bias = pd.read_csv(imu_file, delimiter=";")
+            df_features = pd.read_csv(features_file, delimiter=";")
+            df_realtime = pd.read_csv(realtime_file, delimiter=";")
             #print(pose_file)
             df_poses = pd.read_csv(pose_file, delimiter=";")
             traj_est, _ = convert_to_evo_trajectory(df_poses, prefix="estimated_")
             if dataset_dir not in data_dict.keys():
                 data_dict[dataset_dir] = dict()
-            data_dict[dataset_dir][directory] = EvaluationRun(dataset_dir, directory, traj_est, df_imu_bias)
+            data_dict[dataset_dir][directory] = EvaluationRun(dataset_dir, directory, traj_est,
+                                                              df_imu_bias, df_features, df_realtime)
 
     manager = ProgressPlotContextManager()
 
@@ -161,6 +184,13 @@ def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
         p_z = [eval_runs[run].trajectory.positions_xyz[:, 2] for run in eval_run_names]
         distances = [eval_runs[run].trajectory.distances for run in eval_run_names]
         distances_plus_one = [eval_runs[run].trajectory.distances + 1 for run in eval_run_names]
+        t_f = [timestamp_to_rosbag_time_zero(eval_runs[run].features['ts'].to_numpy(), eval_runs[run].realtime)
+               for run in eval_run_names]
+
+        num_slam_features = [eval_runs[run].features['num_slam_features'].to_numpy() for run in eval_run_names]
+        num_msckf_features = [eval_runs[run].features['num_msckf_features'].to_numpy() for run in eval_run_names]
+        num_potential_features = [eval_runs[run].features['num_potential_features'].to_numpy() for run in
+                                  eval_run_names]
 
         with PlotContext(os.path.join(output_folder, F"{dataset}_xyz_in_time"), subplot_cols=3) as pc:
             pc.figure.suptitle("Positions in time")
@@ -173,8 +203,21 @@ def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
             time_series_plot(pc, p_x, p_z, eval_run_names, xlabel="x [m]", ylabel="z [m]", axis_equal=True)
             time_series_plot(pc, p_y, p_z, eval_run_names, xlabel="y [m]", ylabel="z [m]", axis_equal=True)
 
+        with PlotContext(os.path.join(output_folder, F"{dataset}_xyz_lim"), subplot_cols=3) as pc:
+            time_series_plot(pc, p_x, p_y, eval_run_names, xlabel="x [m]", ylabel="y [m]", axis_equal=True,
+                             xlim=[-x_max, x_max], ylim=[-y_max, y_max])
+            time_series_plot(pc, p_x, p_z, eval_run_names, xlabel="x [m]", ylabel="z [m]", axis_equal=True,
+                             xlim=[-x_max, x_max], ylim=[-z_max, z_max])
+            time_series_plot(pc, p_y, p_z, eval_run_names, xlabel="y [m]", ylabel="z [m]", axis_equal=True,
+                             xlim=[-y_max, y_max], ylim=[-z_max, z_max])
+
         with PlotContext(os.path.join(output_folder, F"{dataset}_distance_in_time")) as pc:
             time_series_plot(pc, t, distances, eval_run_names, "Distance over time")
+
+        with PlotContext(os.path.join(output_folder, F"{dataset}_num_features"), subplot_cols=3) as pc:
+            time_series_plot(pc, t_f, num_slam_features, eval_run_names, ylabel="SLAM features")
+            time_series_plot(pc, t_f, num_msckf_features, eval_run_names, ylabel="MSCKF features")
+            time_series_plot(pc, t_f, num_potential_features, eval_run_names, ylabel="Potential features")
 
         with PlotContext(os.path.join(output_folder, F"{dataset}_distance_in_time_log")) as pc:
             time_series_plot(pc, t, distances_plus_one, eval_run_names, "Distance over time", use_log=True)
