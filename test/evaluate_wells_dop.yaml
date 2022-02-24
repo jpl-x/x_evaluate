@@ -109,7 +109,7 @@ datasets:
      eklt_detection_min_distance: 72
      eklt_harris_quality_level: 0.05
 
- - name: Wells Test 5
+ - name: Wells Test 5 Reentrance
    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test5_reentrance.bag
    pose_topic:
    events_topic: /dvs/events
