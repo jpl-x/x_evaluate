@@ -3,21 +3,38 @@ common_params:
   eklt_bootstrap: "klt"
 
 datasets:
+  - name: Wells Test 5
+    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test5_with_pose.bag
+    pose_topic: /optitrack/davis
+    events_topic: /dvs/events
+    image_topic: /dvs/image_reconstructions
+    imu_topic: /dvs/imu
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    override_params:
+      # initial state computed from /optitrack/davis at 1624056435.57245s in wells_test5_with_pose.bag:
+      p: [ -0.659018001066486, -2.62335194192339, -0.496722059903016 ]
+      v: [ -0.11597827226708635, 0.22625134715447395, -0.08980424022087258 ]
+      q: [ 0.385059137030963, -0.921542386688921, 0.0465619020689208, 0.0179186997402452 ] #[w,x,y,z]
+      # from file: ./test5_15000/detector_parameters.yaml
+      eklt_harris_block_size: 2
+      eklt_harris_k: 0.2
+      eklt_detection_min_distance: 72
+      eklt_harris_quality_level: 0.05
 
- - name: Wells Test 9
-   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test9_with_pose.bag
-   pose_topic: /optitrack/davis
-   events_topic: /dvs/events
-   image_topic: /dvs/image_reconstructions
-   imu_topic: /dvs/imu
-   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
-   override_params:
-     # initial state computed from /optitrack/davis at 1624057502.45797s in wells_test9_with_pose.bag:
-     p: [ 2.41088499494861, 3.69978663101385, 0.594266045537711 ]
-     v: [ 1.8459367262211968, -6.540950997854848, -0.16677142409649845 ]
-     q: [ 0.718568240752693, -0.695029129938346, -0.0243657090590247, -0.000710028715432968 ] #[w,x,y,z]
-     # from file: ./test9_15000/detector_parameters.yaml
-     eklt_harris_block_size: 6
-     eklt_harris_k: 0.2
-     eklt_detection_min_distance: 68
-     eklt_harris_quality_level: 0.05
+#  - name: Wells Test 9
+#    rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test9_with_pose.bag
+#    pose_topic: /optitrack/davis
+#    events_topic: /dvs/events
+#    image_topic: /dvs/image_reconstructions
+#    imu_topic: /dvs/imu
+#    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+#    override_params:
+#      # initial state computed from /optitrack/davis at 1624057502.45797s in wells_test9_with_pose.bag:
+#      p: [ 2.41088499494861, 3.69978663101385, 0.594266045537711 ]
+#      v: [ 1.8459367262211968, -6.540950997854848, -0.16677142409649845 ]
+#      q: [ 0.718568240752693, -0.695029129938346, -0.0243657090590247, -0.000710028715432968 ] #[w,x,y,z]
+#      # from file: ./test9_15000/detector_parameters.yaml
+#      eklt_harris_block_size: 6
+#      eklt_harris_k: 0.2
+#      eklt_detection_min_distance: 68
+#      eklt_harris_quality_level: 0.05
