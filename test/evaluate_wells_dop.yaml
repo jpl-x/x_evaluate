@@ -97,11 +97,30 @@ datasets:
    image_topic: /dvs/image_reconstructions
    imu_topic: /dvs/imu
    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+   to: 1624056450.96
    override_params:
      p: [0.0, 0.0, 0.0]
      v: [0.0, 0.0, 0.0]
      # extracted from file 'wells_test5.bag'
      q: [0.30004146174905705, -0.9511263399262665, -0.07303291538719546, 0.0]  # [w,x,y,z]
+     # from file: ./test5_15000/detector_parameters.yaml
+     eklt_harris_block_size: 2
+     eklt_harris_k: 0.2
+     eklt_detection_min_distance: 72
+     eklt_harris_quality_level: 0.05
+
+ - name: Wells Test 5
+   rosbag: ${XVIO_DATASET_DIR}/wells_cave/wells_test5_reentrance.bag
+   pose_topic:
+   events_topic: /dvs/events
+   image_topic: /dvs/image_reconstructions
+   imu_topic: /dvs/imu
+   params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+   override_params:
+     p: [0.0, 0.0, 0.0]
+     v: [0.0, 0.0, 0.0]
+     # extracted from file 'wells_test5_reentrance.bag'
+     q: [0.5174117205250686, -0.8262099760367789, -0.22285014462771544, 0.0]  # [w,x,y,z]
      # from file: ./test5_15000/detector_parameters.yaml
      eklt_harris_block_size: 2
      eklt_harris_k: 0.2
