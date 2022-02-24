@@ -122,8 +122,10 @@ def main():
             data_dict[dataset_dir][directory] = QualitativeEvaluationRun(dataset_dir, directory, traj_est,
                                                               df_imu_bias, df_features, df_realtime)
 
+    ####################################################################################################################
+    ################################################### PAPER PLOTS ####################################################
+    ####################################################################################################################
 
-    # PAPER PLOTS
     try:
         klt_vio_run: QualitativeEvaluationRun = data_dict['001_wells_test_5']['000-xvio-framebased']
         eklt_vio_run: QualitativeEvaluationRun = data_dict['001_wells_test_5']['001-eklt-baseline']
@@ -133,17 +135,35 @@ def main():
         klt_vio_run.dataset_name = "Wells Cave Exit"
         eklt_vio_run.dataset_name = "Wells Cave Exit"
 
-        plot_paper_comparison_plots([klt_vio_run, eklt_vio_run], output_folder)
+        plot_paper_comparison_plots_wells([klt_vio_run, eklt_vio_run], output_folder)
 
         return
     except KeyError:
         print("Tried doing paper plots, but didn't get the right keys")
 
+    try:
+        # klt_vio_run: QualitativeEvaluationRun = data_dict['001_mars_yard']['009-p-33']
+        eklt_vio_run: QualitativeEvaluationRun = data_dict['001_mars_yard']['009-p-33']
 
-    manager = ProgressPlotContextManager()
+        # klt_vio_run.eval_run_name = "KLT-VIO"
+        eklt_vio_run.eval_run_name = "EKLT-VIO"
+        # klt_vio_run.dataset_name = "Mars Yard"
+        eklt_vio_run.dataset_name = "Mars Yard"
+
+        # plot_paper_comparison_plots_wells([klt_vio_run, eklt_vio_run], output_folder)
+        plot_paper_comparison_mars_yard([eklt_vio_run], output_folder)
+
+        return
+    except KeyError:
+        print("Tried doing paper plots, but didn't get the right keys")
+
+    ####################################################################################################################
+    ################################################# OVERVIEW PLOTS  ##################################################
+    ####################################################################################################################
 
     # dry run with dummy plot context
-    plot_qualitativ_comparison_plots(data_dict, output_folder, manager.dummy_plot_context)
+    manager = ProgressPlotContextManager()
+    plot_qualitative_comparison_plots(data_dict, output_folder, manager.dummy_plot_context)
 
     print()
     print(F"Creating {manager.count} qualitative comparison plots")
@@ -152,42 +172,16 @@ def main():
     manager.init_progress_bar()
 
     # actual run with displaying progress
-    plot_qualitativ_comparison_plots(data_dict, output_folder, manager.actual_plot_context)
+    plot_qualitative_comparison_plots(data_dict, output_folder, manager.actual_plot_context)
 
 
-def plot_paper_comparison_plots(eval_runs: List[QualitativeEvaluationRun], output_folder):
-    x_evaluate.plots.use_paper_style_plots = True
-    run_names = [e.eval_run_name for e in eval_runs]
-    dataset_names = [e.dataset_name for e in eval_runs]
-    assert len(set(dataset_names)) == 1, "Tried comparing runs on different sequences, not supported"
-    dataset = dataset_names[0]
-    t = [e.trajectory.timestamps - e.trajectory.timestamps[0] for e in eval_runs]
-    p_x = [np.array(e.trajectory.positions_xyz[:, 0]) for e in eval_runs]
-    p_y = [e.trajectory.positions_xyz[:, 1] for e in eval_runs]
-    p_z = [e.trajectory.positions_xyz[:, 2] for e in eval_runs]
-    distances = [e.trajectory.distances for e in eval_runs]
-    distances_from_origin = [np.linalg.norm(e.trajectory.positions_xyz, axis=1) for e in eval_runs]
-    distances_from_origin_plus_one = [np.linalg.norm(e.trajectory.positions_xyz, axis=1) + 1 for e in eval_runs]
-    distances_plus_one = [e.trajectory.distances + 1 for e in eval_runs]
-    num_slam_features = [e.features['num_slam_features'].to_numpy() for e in eval_runs]
-    t_f = [timestamp_to_rosbag_time_zero(e.features['ts'].to_numpy(), e.realtime)
-           for e in eval_runs]
-
+def plot_paper_comparison_plots_wells(eval_runs: List[QualitativeEvaluationRun], output_folder):
     # slice to desired region
     lim_t = [0, 25]
 
-    all_ids = [np.where(np.logical_and(t_i >= lim_t[0], t_i <= lim_t[1]))[0] for t_i in t]
-    all_ids_f = [np.where(np.logical_and(t_i >= lim_t[0], t_i <= lim_t[1]))[0] for t_i in t_f]
-    t = [t[i][ids] for i, ids in enumerate(all_ids)]
-    t_f = [t_f[i][ids] for i, ids in enumerate(all_ids_f)]
-    p_x = [p_x[i][ids] for i, ids in enumerate(all_ids)]
-    p_y = [p_y[i][ids] for i, ids in enumerate(all_ids)]
-    p_z = [p_z[i][ids] for i, ids in enumerate(all_ids)]
-    distances = [distances[i][ids] for i, ids in enumerate(all_ids)]
-    distances_from_origin = [distances_from_origin[i][ids] for i, ids in enumerate(all_ids)]
-    distances_from_origin_plus_one = [distances_from_origin_plus_one[i][ids] for i, ids in enumerate(all_ids)]
-    num_slam_features = [num_slam_features[i][ids] for i, ids in enumerate(all_ids_f)]
-
+    x_evaluate.plots.use_paper_style_plots = True
+    dataset, distances_from_origin, distances_from_origin_plus_one, num_slam_features,\
+        p_x, p_y, p_z, distances, distances_plus_one, run_names, t, t_f = extract_and_slice_data(eval_runs, lim_t)
 
     lim_y = [-1, 5]
     lim_z = [-1, 5]
@@ -224,11 +218,59 @@ def plot_paper_comparison_plots(eval_runs: List[QualitativeEvaluationRun], outpu
     #     time_series_plot(pc, p_y, p_z, run_names, xlabel="y [m]", ylabel="z [m]", xlim=[-5, 5], ylim=[-5, 5])
 
 
-def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
+def plot_paper_comparison_mars_yard(eval_runs: List[QualitativeEvaluationRun], output_folder):
+    # slice to desired region
+    lim_t = [0, 20]
+
+    x_evaluate.plots.use_paper_style_plots = True
+    dataset, distances_from_origin, distances_from_origin_plus_one, num_slam_features,\
+        p_x, p_y, p_z, distances, distances_plus_one, run_names, t, t_f = extract_and_slice_data(eval_runs, lim_t)
+
+    lim_x = [-5, 5]
+    lim_y = [-5, 5]
+
+    with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_xy_plot")) as pc:
+        time_series_plot(pc, p_x, p_y, run_names, xlabel="x [m]", ylabel="y [m]", xlim=lim_x, ylim=lim_y,
+                         axis_equal=True)
+
+
+def extract_and_slice_data(eval_runs, lim_t):
+    run_names = [e.eval_run_name for e in eval_runs]
+    dataset_names = [e.dataset_name for e in eval_runs]
+    assert len(set(dataset_names)) == 1, "Tried comparing runs on different sequences, not supported"
+    dataset = dataset_names[0]
+    t = [e.trajectory.timestamps - e.trajectory.timestamps[0] for e in eval_runs]
+    p_x = [np.array(e.trajectory.positions_xyz[:, 0]) for e in eval_runs]
+    p_y = [e.trajectory.positions_xyz[:, 1] for e in eval_runs]
+    p_z = [e.trajectory.positions_xyz[:, 2] for e in eval_runs]
+    distances = [e.trajectory.distances for e in eval_runs]
+    distances_from_origin = [np.linalg.norm(e.trajectory.positions_xyz, axis=1) for e in eval_runs]
+    distances_from_origin_plus_one = [np.linalg.norm(e.trajectory.positions_xyz, axis=1) + 1 for e in eval_runs]
+    distances_plus_one = [e.trajectory.distances + 1 for e in eval_runs]
+    num_slam_features = [e.features['num_slam_features'].to_numpy() for e in eval_runs]
+    t_f = [timestamp_to_rosbag_time_zero(e.features['ts'].to_numpy(), e.realtime) for e in eval_runs]
+
+    # SLICE
+    all_ids = [np.where(np.logical_and(t_i >= lim_t[0], t_i <= lim_t[1]))[0] for t_i in t]
+    all_ids_f = [np.where(np.logical_and(t_i >= lim_t[0], t_i <= lim_t[1]))[0] for t_i in t_f]
+    t = [t[i][ids] for i, ids in enumerate(all_ids)]
+    t_f = [t_f[i][ids] for i, ids in enumerate(all_ids_f)]
+    p_x = [p_x[i][ids] for i, ids in enumerate(all_ids)]
+    p_y = [p_y[i][ids] for i, ids in enumerate(all_ids)]
+    p_z = [p_z[i][ids] for i, ids in enumerate(all_ids)]
+    distances = [distances[i][ids] for i, ids in enumerate(all_ids)]
+    distances_from_origin = [distances_from_origin[i][ids] for i, ids in enumerate(all_ids)]
+    distances_from_origin_plus_one = [distances_from_origin_plus_one[i][ids] for i, ids in enumerate(all_ids)]
+    num_slam_features = [num_slam_features[i][ids] for i, ids in enumerate(all_ids_f)]
+    return dataset, distances_from_origin, distances_from_origin_plus_one, num_slam_features, p_x, p_y, p_z, \
+           distances, distances_plus_one, run_names, t, t_f
+
+
+def plot_qualitative_comparison_plots(data_dict, output_folder, PlotContext):
     t_max = 10
-    x_max = 30
-    y_max = 30
-    z_max = 3
+    x_max = 10
+    y_max = 10
+    z_max = 10
     limit = 2
     ## Make xyz-t-plot
     for dataset, eval_runs in data_dict.items():
