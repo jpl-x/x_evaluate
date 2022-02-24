@@ -216,11 +216,6 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
             ax.fill_between(t, shaded_area_lower[i], shaded_area_upper[i], alpha=0.25, lw=0,
                             facecolor=DEFAULT_COLORS[i])
 
-    if ylim is not None:
-        ax.set_ylim(ylim[0], ylim[1])
-
-    if xlim is not None:
-        ax.set_xlim(xlim[0], xlim[1])
     ax.legend()
     ax.set_title(title)
     if not xlabel:
@@ -230,11 +225,19 @@ def time_series_plot(pc: PlotContext, time, data, labels, title="", ylabel=None,
     if axis_equal:
         ax.axis('equal')
 
+    if ylim is not None:
+        ax.set_ylim(ylim[0], ylim[1])
+
+    if xlim is not None:
+        ax.set_xlim(xlim[0], xlim[1])
+
     if ylabel is not None:
         ax.set_ylabel(ylabel)
 
     if use_log:
         ax.set_yscale('log')
+
+    return ax
 
 
 def time_series_plot_with_ref(pc: PlotContext, time, data, data_ref, labels, title="", ylabel=None,

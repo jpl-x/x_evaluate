@@ -3,15 +3,19 @@ import errno
 import sys
 import argparse
 import os
+from typing import List
 
 import evo.core.trajectory
 import numpy as np
 import pandas as pd
 from evo.core.trajectory import Trajectory
+from matplotlib import pyplot as plt
 
 from x_evaluate import trajectory_evaluation as te
-from x_evaluate.plots import time_series_plot, boxplot_compare, ProgressPlotContextManager
-from x_evaluate.utils import convert_to_evo_trajectory, n_to_grid_size, timestamp_to_rosbag_time_zero
+from x_evaluate.plots import time_series_plot, boxplot_compare, ProgressPlotContextManager, PlotContext, DEFAULT_COLORS
+import x_evaluate.plots
+from x_evaluate.utils import convert_to_evo_trajectory, n_to_grid_size, timestamp_to_rosbag_time_zero, \
+    name_to_identifier
 
 
 def parse_args():
@@ -50,6 +54,32 @@ def highlight_if_true(df, color = "green"):
                        index= df.index, columns=df.columns)
 
 
+class QualitativeEvaluationRun:
+    def __init__(self, dataset_name, eval_run_name, trajectory: Trajectory, imu_bias: pd.DataFrame,
+                 features: pd.DataFrame, realtime: pd.DataFrame):
+        self.trajectory = trajectory
+        self.dataset_name = dataset_name
+        self.eval_run_name = eval_run_name
+        self.imu_bias = imu_bias
+        self.features = features
+        self.realtime = realtime
+
+        # print("UEHILA")
+
+        if np.all(self.realtime['ts_real'] == 0):
+            # HACKY fix of missing realtime timestamp (from missing easyprofiler library)
+            ts_lowest = self.features['ts'].min()
+            ts_highest = self.features['ts'].max()
+
+            sim_lowest = self.realtime['t_sim'].min()
+            sim_highest = self.realtime['t_sim'].max()
+
+            approximate_timestamps = np.interp(self.realtime['t_sim'], [sim_lowest, sim_highest],
+                                               [ts_lowest, ts_highest])
+
+            self.realtime['ts_real'] = approximate_timestamps
+
+
 # Press the green button in the gutter to run the script.
 def main():
     args = parse_args()
@@ -65,31 +95,6 @@ def main():
     if not os.path.isdir(args.input_folder):
         print("Input directory not found! (" + args.input_folder + ")")
         exit(1)
-
-    class EvaluationRun:
-        def __init__(self, dataset_name, eval_run_name, trajectory: Trajectory, imu_bias: pd.DataFrame,
-                     features: pd.DataFrame, realtime: pd.DataFrame):
-            self.trajectory = trajectory
-            self.dataset_name = dataset_name
-            self.eval_run_name = eval_run_name
-            self.imu_bias = imu_bias
-            self.features = features
-            self.realtime = realtime
-
-            # print("UEHILA")
-
-            if np.all(self.realtime['ts_real'] == 0):
-                # HACKY fix of missing realtime timestamp (from missing easyprofiler library)
-                ts_lowest = self.features['ts'].min()
-                ts_highest = self.features['ts'].max()
-
-                sim_lowest = self.realtime['t_sim'].min()
-                sim_highest = self.realtime['t_sim'].max()
-
-                approximate_timestamps = np.interp(self.realtime['t_sim'], [sim_lowest, sim_highest],
-                                                   [ts_lowest, ts_highest])
-
-                self.realtime['ts_real'] = approximate_timestamps
 
     eval_dirs = get_sub_dirs(args.input_folder)
 
@@ -114,8 +119,26 @@ def main():
             traj_est, _ = convert_to_evo_trajectory(df_poses, prefix="estimated_")
             if dataset_dir not in data_dict.keys():
                 data_dict[dataset_dir] = dict()
-            data_dict[dataset_dir][directory] = EvaluationRun(dataset_dir, directory, traj_est,
+            data_dict[dataset_dir][directory] = QualitativeEvaluationRun(dataset_dir, directory, traj_est,
                                                               df_imu_bias, df_features, df_realtime)
+
+
+    # PAPER PLOTS
+    try:
+        klt_vio_run: QualitativeEvaluationRun = data_dict['001_wells_test_5']['000-xvio-framebased']
+        eklt_vio_run: QualitativeEvaluationRun = data_dict['001_wells_test_5']['001-eklt-baseline']
+
+        klt_vio_run.eval_run_name = "KLT-VIO"
+        eklt_vio_run.eval_run_name = "EKLT-VIO"
+        klt_vio_run.dataset_name = "Wells Cave Exit"
+        eklt_vio_run.dataset_name = "Wells Cave Exit"
+
+        plot_paper_comparison_plots([klt_vio_run, eklt_vio_run], output_folder)
+
+        return
+    except KeyError:
+        print("Tried doing paper plots, but didn't get the right keys")
+
 
     manager = ProgressPlotContextManager()
 
@@ -132,39 +155,73 @@ def main():
     plot_qualitativ_comparison_plots(data_dict, output_folder, manager.actual_plot_context)
 
 
-    # #success = np.zeros((len(dataset_dirs), len(all_pose_files)))
-    # dist_max = np.inf * np.ones((len(dataset_dirs), len(all_trajectories)))
-    # max_dist = 42.0
+def plot_paper_comparison_plots(eval_runs: List[QualitativeEvaluationRun], output_folder):
+    x_evaluate.plots.use_paper_style_plots = True
+    run_names = [e.eval_run_name for e in eval_runs]
+    dataset_names = [e.dataset_name for e in eval_runs]
+    assert len(set(dataset_names)) == 1, "Tried comparing runs on different sequences, not supported"
+    dataset = dataset_names[0]
+    t = [e.trajectory.timestamps - e.trajectory.timestamps[0] for e in eval_runs]
+    p_x = [np.array(e.trajectory.positions_xyz[:, 0]) for e in eval_runs]
+    p_y = [e.trajectory.positions_xyz[:, 1] for e in eval_runs]
+    p_z = [e.trajectory.positions_xyz[:, 2] for e in eval_runs]
+    distances = [e.trajectory.distances for e in eval_runs]
+    distances_from_origin = [np.linalg.norm(e.trajectory.positions_xyz, axis=1) for e in eval_runs]
+    distances_from_origin_plus_one = [np.linalg.norm(e.trajectory.positions_xyz, axis=1) + 1 for e in eval_runs]
+    distances_plus_one = [e.trajectory.distances + 1 for e in eval_runs]
+    num_slam_features = [e.features['num_slam_features'].to_numpy() for e in eval_runs]
+    t_f = [timestamp_to_rosbag_time_zero(e.features['ts'].to_numpy(), e.realtime)
+           for e in eval_runs]
+
+    # slice to desired region
+    lim_t = [0, 25]
+
+    all_ids = [np.where(np.logical_and(t_i >= lim_t[0], t_i <= lim_t[1]))[0] for t_i in t]
+    all_ids_f = [np.where(np.logical_and(t_i >= lim_t[0], t_i <= lim_t[1]))[0] for t_i in t_f]
+    t = [t[i][ids] for i, ids in enumerate(all_ids)]
+    t_f = [t_f[i][ids] for i, ids in enumerate(all_ids_f)]
+    p_x = [p_x[i][ids] for i, ids in enumerate(all_ids)]
+    p_y = [p_y[i][ids] for i, ids in enumerate(all_ids)]
+    p_z = [p_z[i][ids] for i, ids in enumerate(all_ids)]
+    distances = [distances[i][ids] for i, ids in enumerate(all_ids)]
+    distances_from_origin = [distances_from_origin[i][ids] for i, ids in enumerate(all_ids)]
+    distances_from_origin_plus_one = [distances_from_origin_plus_one[i][ids] for i, ids in enumerate(all_ids)]
+    num_slam_features = [num_slam_features[i][ids] for i, ids in enumerate(all_ids_f)]
+
+
+    lim_y = [-1, 5]
+    lim_z = [-1, 5]
+
+    with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_yz_plot")) as pc:
+        time_series_plot(pc, p_y, p_z, run_names, xlabel="y [m]", ylabel="z [m]", xlim=lim_y, ylim=lim_z,
+                         axis_equal=True)
+
+    with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_distance")) as pc:
+        time_series_plot(pc, t, distances_from_origin, run_names, ylabel="Distance from origin [m]", ylim=[0, 5],
+                         xlim=lim_t)
+
+    with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_distance_log")) as pc:
+        ax = time_series_plot(pc, t, distances_from_origin_plus_one, run_names, ylabel="Distance from origin [m]",
+                         use_log=True, xlim=lim_t)
+        ax.axvspan(0, 15, alpha=0.1, facecolor="gray")
+        ax.text(11, 2.2, "inside", style='italic')
+        ax.text(10.2, 1.5, "(low-light)", style='italic')
+        ax.text(15.5, 2.2, "entrance", style='italic')
+        ax.text(15.9, 1.5, "(HDR)", style='italic')
+
+    with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_num_features")) as pc:
+        ax = time_series_plot(pc, t_f, num_slam_features, run_names, ylabel="\\# of SLAM features", xlim=lim_t,
+                              ylim=[0, 16])
+        ax.axvspan(0, 15, alpha=0.1, facecolor="gray")
+        ax.text(11, 4.5, "inside", style='italic')
+        ax.text(10.2, 3, "(low-light)", style='italic')
+        ax.text(15.5, 4.5, "entrance", style='italic')
+        ax.text(15.9, 3, "(HDR)", style='italic')
+    # with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_yz_plot")) as pc:
+    #     time_series_plot(pc, p_y, p_z, run_names, xlabel="y [m]", ylabel="z [m]", xlim=[-5, 5], ylim=[-5, 5])
     #
-    # for i, dataset in enumerate(dataset_dirs):
-    #     for j, experiment in enumerate(all_trajectories):
-    #         try:
-    #             t = experiment[i]['t'].to_numpy()
-    #             p_x = experiment[i]['estimated_p_x'].to_numpy()
-    #             p_y = experiment[i]['estimated_p_y'].to_numpy()
-    #             p_z = experiment[i]['estimated_p_z'].to_numpy()
-    #             p_x = p_x[t != -1]
-    #             p_y = p_y[t != -1]
-    #             p_z = p_z[t != -1]
-    #             t = t[t != -1]
-    #             max_xx = np.max(p_x**2)
-    #             max_yy = np.max(p_y**2)
-    #             max_zz = np.max(p_z**2)
-    #             dist_max[i, j] = np.sqrt(max_xx + max_yy + max_zz)
-    #         except:
-    #             dist_max[i, j] = np.inf
-    # #print(pd.DataFrame(dist_max, dataset_dirs, eval_dirs))
-    # success = dist_max < max_dist
-    # results = pd.DataFrame(success, dataset_dirs, eval_dirs)
-    # results.style. \
-    #     apply(highlight_if_true, axis=None). \
-    #     to_excel(args.output_dir + '/' + 'results.xlsx', engine="openpyxl")
-    #
-    # victory = False
-    # for column in results:
-    #     victory = all(results[column] == True)
-    #     if victory:
-    #         print("Run " + column + " was successful on all datasets!!")
+    # with PlotContext(os.path.join(output_folder, F"{name_to_identifier(dataset)}_features_plot")) as pc:
+    #     time_series_plot(pc, p_y, p_z, run_names, xlabel="y [m]", ylabel="z [m]", xlim=[-5, 5], ylim=[-5, 5])
 
 
 def plot_qualitativ_comparison_plots(data_dict, output_folder, PlotContext):
