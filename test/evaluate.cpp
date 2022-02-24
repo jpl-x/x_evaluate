@@ -293,6 +293,14 @@ int evaluate(x::AbstractVio &vio, const fs::path &output_path, const x::Params& 
       x::TiledImage image;
       if (!msgToTiledImage(params, msg, image))
         continue;
+
+      if (image.rows != params.img_height || image.cols != params.img_width) {
+        std::cerr << "CRITICAL ERROR: image width different height / width encountered: " << image.cols << "x"
+                  << image.rows << ", expected: " << params.img_width << "x" << params.img_height
+                  << " --> SKIPPING IMAGE" << std::endl;
+        continue;
+      }
+
       x::TiledImage feature_img(image);
       state = vio.processImageMeasurement(image.getTimestamp(), image.getFrameNumber(), image, feature_img);
       EASY_END_BLOCK;
