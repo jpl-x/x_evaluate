@@ -82,7 +82,7 @@ eklt_num_pyramidal_layers: 3
 eklt_outlier_method: 8
 eklt_outlier_param1: 0.6
 eklt_outlier_param2: 0.99
-eklt_patch_size: 31
+eklt_patch_size: 33
 eklt_patch_timestamp_assignment: accumulated-events-center
 eklt_scale: 4
 eklt_tracking_quality: 0.3
