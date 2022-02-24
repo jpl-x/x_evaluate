@@ -437,8 +437,8 @@ def plot_summary_plots(summary: EvaluationDataSummary, output_folder):
 
     if has_imu_bias:
         with PlotContext(os.path.join(output_folder, F"imu_bias"), subplot_rows=rows, subplot_cols=cols) as pc:
-            for e in summary.data.values():
-                plot_imu_bias_in_one(pc, e, summary.name)
+            for k, e in summary.data.items():
+                plot_imu_bias_in_one(pc, e.trajectory_data.imu_bias, k, summary.name)
 
 
 def plot_ape_error_comparison(pc: PlotContext, evaluations: Collection[EvaluationData],
