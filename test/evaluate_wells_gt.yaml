@@ -9,7 +9,7 @@ datasets:
     events_topic: /dvs/events
     image_topic: /dvs/image_reconstructions
     imu_topic: /dvs/imu
-    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+    params: ${X_EVALUATE_SRC_ROOT}/params_wells_gt.yaml
     override_params:
       # initial state computed from /optitrack/davis at 1624056435.57245s in wells_test5_with_pose.bag:
       p: [ -0.659018001066486, -2.62335194192339, -0.496722059903016 ]
@@ -27,7 +27,7 @@ datasets:
 #    events_topic: /dvs/events
 #    image_topic: /dvs/image_reconstructions
 #    imu_topic: /dvs/imu
-#    params: ${X_EVALUATE_SRC_ROOT}/params_wells.yaml
+#    params: ${X_EVALUATE_SRC_ROOT}/params_wells_gt.yaml
 #    override_params:
 #      # initial state computed from /optitrack/davis at 1624057502.45797s in wells_test9_with_pose.bag:
 #      p: [ 2.41088499494861, 3.69978663101385, 0.594266045537711 ]
