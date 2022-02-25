@@ -10,6 +10,7 @@ datasets:
     image_topic: /dvs/image_reconstructions
     imu_topic: /dvs/imu
     params: ${X_EVALUATE_SRC_ROOT}/params_wells_gt.yaml
+    to: 1624056447
     override_params:
       # initial state computed from /optitrack/davis at 1624056435.57245s in wells_test5_with_pose.bag:
       p: [ -0.659018001066486, -2.62335194192339, -0.496722059903016 ]
