@@ -55,10 +55,38 @@ datasets:
      p: [4.435079038565721, -0.4512899051834541, 1.436505416579184]
      v: [0.00013363752649147009, 0.013441110640813717, -0.011822809412348785]
      q: [-0.4868524839877926, 0.5065013064576117, -0.5010928587534683, 0.505308848426312]  # [w,x,y,z]
+     eklt_displacement_px: 0.3
 
  - name: Poster 6DOF CTM factor=5
    rosbag: ${XVIO_DATASET_DIR}/speedup/poster_6dof_different_events.bag
    events_topic: /dvs/events_contrast_threshold_multiplier_factor_5
+   image_topic: /dvs/image_raw
+   pose_topic: /optitrack/davis
+   imu_topic: /dvs/imu
+   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
+   override_params:
+     # initial state computed from topic /optitrack/davis over 100ms:
+     p: [4.435079038565721, -0.4512899051834541, 1.436505416579184]
+     v: [0.00013363752649147009, 0.013441110640813717, -0.011822809412348785]
+     q: [-0.4868524839877926, 0.5065013064576117, -0.5010928587534683, 0.505308848426312]  # [w,x,y,z]
+     eklt_displacement_px: 0.12
+
+ - name: Poster 6DOF RF 2
+   rosbag: ${XVIO_DATASET_DIR}/speedup/poster_6dof_different_events.bag
+   events_topic: /dvs/events_random_factor_fixed_2
+   image_topic: /dvs/image_raw
+   pose_topic: /optitrack/davis
+   imu_topic: /dvs/imu
+   params: ${X_EVALUATE_SRC_ROOT}/params_rpg_davis.yaml
+   override_params:
+     # initial state computed from topic /optitrack/davis over 100ms:
+     p: [4.435079038565721, -0.4512899051834541, 1.436505416579184]
+     v: [0.00013363752649147009, 0.013441110640813717, -0.011822809412348785]
+     q: [-0.4868524839877926, 0.5065013064576117, -0.5010928587534683, 0.505308848426312]  # [w,x,y,z]
+
+ - name: Poster 6DOF RF 5
+   rosbag: ${XVIO_DATASET_DIR}/speedup/poster_6dof_different_events.bag
+   events_topic: /dvs/events_random_factor_fixed_5
    image_topic: /dvs/image_raw
    pose_topic: /optitrack/davis
    imu_topic: /dvs/imu
